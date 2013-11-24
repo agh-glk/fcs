@@ -1,0 +1,84 @@
+---
+- hosts: all
+  gather_facts: false
+  vars:
+      project_name: fcs
+      dbname: fcs
+      dbuser: fcs
+      dbpassword: fcs
+
+  handlers:
+    - name: reload postgres
+      action: service name=postgresql state=reloaded
+      sudo: yes
+
+  tasks:
+    - name: ensure apt cache is up to date
+      action: apt update_cache=yes
+      sudo: yes
+
+    - name: install system packages
+      action: apt pkg=$item state=present
+      sudo: yes
+      with_items:
+        - postgresql
+        - redis-server
+        - libpq-dev
+        - python-dev
+        - python-psycopg2
+        - python-pip
+        - python-virtualenv
+        - git
+        - vim
+
+    - name: postgres listen *
+      lineinfile: regexp="^listen_addresses = '*'" line="listen_addresses = '*'" dest=/etc/postgresql/9.1/main/postgresql.conf
+      sudo: yes
+      notify:
+        - reload postgres
+
+
+    - name: fixing postrgres authentication configuration
+      lineinfile: regexp="^local\s+all\s+all\s+" line="local all all md5" dest=/etc/postgresql/9.1/main/pg_hba.conf
+      sudo: yes
+      notify:
+        - reload postgres
+
+    - name: fixing postrgres authentication configuration
+      lineinfile: regexp="^host\s+all\s+all\s+" line="host all all all md5" dest=/etc/postgresql/9.1/main/pg_hba.conf
+      sudo: yes
+      notify:
+        - reload postgres
+
+    - name: ensure user has access to database
+      action: postgresql_user db={{dbname}} user={{dbuser}} password={{dbpassword}} priv=ALL role_attr_flags=CREATEDB,SUPERUSER
+      sudo: yes
+      sudo_user: postgres
+
+    - name: ensure database is created
+      action: postgresql_db db={{dbname}} owner={{dbuser}}
+      sudo: yes
+      sudo_user: postgres
+
+    - name: creating virtualenv
+      action: command virtualenv /home/vagrant/{{project_name}} creates=/home/vagrant/{{project_name}}/bin/activate
+
+    - action: lineinfile dest=/home/vagrant/.bashrc regexp="^alias e=" line="alias e='. /home/vagrant/{{project_name}}/bin/activate && cd /vagrant && export DJANGO_SETTINGS_MODULE={{project_name}}.settings_dev'" state=present insertafter=EOF
+
+    - name: upgrading pip
+      action: pip name=pip virtualenv=/home/vagrant/{{project_name}} state=latest
+      
+    - name: installing python packages to virtualenv
+      action: pip virtualenv=/home/vagrant/{{project_name}} requirements=/vagrant/requirements.txt
+
+    - name: installing python dev packages to virtualenv
+      action: pip virtualenv=/home/vagrant/{{project_name}} requirements=/vagrant/requirements_dev.txt
+
+    - name: django syncdb
+      action: django_manage command=syncdb app_path=/vagrant/
+                            settings={{project_name}}.settings_dev virtualenv=/home/vagrant/{{project_name}}
+
+    - name: django migrate
+      action: django_manage command=migrate app_path=/vagrant/
+                            settings={{project_name}}.settings_dev virtualenv=/home/vagrant/{{project_name}}
+
