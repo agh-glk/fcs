@@ -35,5 +35,8 @@ nosetests.xml
 .project
 .pydevproject
 
+# Sphinx documentation
+docs/_build/
+
 # Generic files to ignore
 *~
