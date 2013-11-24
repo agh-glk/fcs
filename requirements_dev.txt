@@ -1,1 +1,5 @@
 coveralls
+django-extensions
+django-debug-toolbar
+mock
+sphinx
