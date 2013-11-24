@@ -1,1 +1,1 @@
-coveralls
+django>=1.6
