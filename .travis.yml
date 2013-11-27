@@ -6,7 +6,7 @@ install:
   - pip install -r requirements.txt --use-mirrors
   - pip install -e .
 
-script: nosetests --with-coverage --cover-package=.
+script: python fcs/manage.py test fcs/*/tests.py
 
 after_success:
   - coveralls
