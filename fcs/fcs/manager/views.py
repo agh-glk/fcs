@@ -15,12 +15,16 @@ def register(request):
     if request.method == 'POST':
         form = forms.RegistrationForm(request.POST)
         if form.is_valid():
-            username, passwd, email, qta = \
-                [form.cleaned_data[x] for x in ['username', 'password', 'email', 'quota']]
-            user = User.objects.create_user(username=username, password=passwd, email=email)
-            quota = Quota.objects.create(mock_field=int(qta))
-            client = ClientData.objects.create(user=user, quota=quota)
-            client.save()
+            username, first_name, last_name, passwd, email, qta = \
+                [form.cleaned_data[x] for x in ['username', 'first_name', 'last_name', 'password', 'email', 'quota']]
+            user = User.objects.create_user(username=username, first_name=first_name,
+                                            last_name=last_name, password=passwd, email=email)
+            user.save()
+            user_data = UserData.objects.create(user=user)
+            user_data.save()
+            quota = Quota.objects.create(user=user, mock_field=qta)
+            quota.save()
+
             return HttpResponseRedirect('/reg_scs/')
     else:
         form = forms.RegistrationForm()
@@ -47,6 +51,23 @@ def login_user(request):
     form = forms.LoginForm()
     return render(request, 'login.html', {'form': form})
 
+
 def logout_user(request):
     logout(request)
     return redirect('/')
+
+
+@login_required()
+def change_password(request):
+        if request.method == 'POST':
+            form = forms.ChangePasswordForm(request.POST)
+            if form.is_valid():
+                old_passwd, passwd1, passwd2 = \
+                    [form.cleaned_data[x] for x in ['old_password', 'password', 'password_again']]
+                if request.user.check_password(old_passwd) and passwd1 == passwd2:
+                    request.user.set_password(passwd1)
+                    request.user.save()
+                    logout(request)
+                    return render(request, 'passwd_changed_scs.html')
+        form = forms.ChangePasswordForm()
+        return render(request, 'change_password.html', {'form': form})

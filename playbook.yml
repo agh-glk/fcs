@@ -18,7 +18,7 @@
       sudo: yes
 
     - name: install system packages
-      action: apt pkg=$item state=present
+      action: apt pkg={{ item }} state=present
       sudo: yes
       with_items:
         - postgresql
@@ -50,35 +50,36 @@
       notify:
         - reload postgres
 
-    - name: ensure user has access to database
-      action: postgresql_user db={{dbname}} user={{dbuser}} password={{dbpassword}} priv=ALL role_attr_flags=CREATEDB,SUPERUSER
+    - name: ensure database is created
+      action: postgresql_db db={{ dbname }} owner=postgres
       sudo: yes
       sudo_user: postgres
 
-    - name: ensure database is created
-      action: postgresql_db db={{dbname}} owner={{dbuser}}
+    - name: ensure user has access to database
+      action: postgresql_user db={{ dbname }} user={{ dbuser }} password={{ dbpassword }} priv=ALL role_attr_flags=CREATEDB,SUPERUSER
       sudo: yes
       sudo_user: postgres
+
 
     - name: creating virtualenv
-      action: command virtualenv /home/vagrant/{{project_name}} creates=/home/vagrant/{{project_name}}/bin/activate
+      action: command virtualenv /home/vagrant/{{ project_name }} creates=/home/vagrant/{{ project_name }}/bin/activate
 
-    - action: lineinfile dest=/home/vagrant/.bashrc regexp="^alias e=" line="alias e='. /home/vagrant/{{project_name}}/bin/activate && cd /vagrant && export DJANGO_SETTINGS_MODULE={{project_name}}.settings_dev'" state=present insertafter=EOF
+    - action: lineinfile dest=/home/vagrant/.bashrc regexp="^alias e=" line="alias e='. /home/vagrant/{{ project_name }}/bin/activate && cd /vagrant && export DJANGO_SETTINGS_MODULE={{ project_name }}.settings_dev'" state=present insertafter=EOF
 
     - name: upgrading pip
-      action: pip name=pip virtualenv=/home/vagrant/{{project_name}} state=latest
+      action: pip name=pip virtualenv=/home/vagrant/{{ project_name }} state=latest
       
     - name: installing python packages to virtualenv
-      action: pip virtualenv=/home/vagrant/{{project_name}} requirements=/vagrant/requirements.txt
+      action: pip virtualenv=/home/vagrant/{{ project_name }} requirements=/vagrant/requirements.txt
 
     - name: installing python dev packages to virtualenv
-      action: pip virtualenv=/home/vagrant/{{project_name}} requirements=/vagrant/requirements_dev.txt
+      action: pip virtualenv=/home/vagrant/{{ project_name }} requirements=/vagrant/requirements_dev.txt
 
     - name: django syncdb
-      action: django_manage command=syncdb app_path=/vagrant/
-                            settings={{project_name}}.settings_dev virtualenv=/home/vagrant/{{project_name}}
+      action: django_manage command=syncdb app_path=/vagrant/{{ project_name }}/
+                            settings={{ project_name }}.settings_dev virtualenv=/home/vagrant/{{ project_name }}
 
     - name: django migrate
-      action: django_manage command=migrate app_path=/vagrant/
-                            settings={{project_name}}.settings_dev virtualenv=/home/vagrant/{{project_name}}
+      action: django_manage command=migrate app_path=/vagrant/{{ project_name }}/
+                            settings={{ project_name }}.settings_dev virtualenv=/home/vagrant/{{ project_name }}
 
