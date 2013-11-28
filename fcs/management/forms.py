@@ -1,4 +1,3 @@
-from oauthlib.oauth2.ext import django
 from django import forms
 from django.forms.widgets import PasswordInput
 
@@ -16,5 +15,6 @@ class RegistrationForm(forms.Form):
         return super(forms.Form, self).is_valid()
 
 
-
-
+class LoginForm(forms.Form):
+    username = forms.CharField(max_length=50)
+    password = forms.CharField(max_length=50, widget=PasswordInput())
