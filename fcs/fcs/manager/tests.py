@@ -1,5 +1,5 @@
 from django.test import TestCase
-from models import FakeModel
+from fcs.fcs.manager.models import FakeModel
 
 class FakeModelTest(TestCase):
     test_obj = None

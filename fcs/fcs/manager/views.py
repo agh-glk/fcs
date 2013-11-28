@@ -4,8 +4,8 @@ from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import logout
 from django.shortcuts import redirect
-import forms
-from models import Quota, ClientData
+from fcs.fcs.manager import forms
+from fcs.fcs.manager.models import Quota, ClientData
 
 
 def index(request):
