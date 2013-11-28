@@ -4,7 +4,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth import logout, authenticate, login
 from django.shortcuts import redirect
 import forms
-from models import Quota, ClientData
+from models import Quota, UserData
+from django.contrib.auth.decorators import login_required
 
 
 def index(request):

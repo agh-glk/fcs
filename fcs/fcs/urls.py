@@ -10,4 +10,5 @@ urlpatterns = patterns('',
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^', include('fcs.manager.urls')),
+    url(r'^accounts/', include('allauth.urls')),
 )
