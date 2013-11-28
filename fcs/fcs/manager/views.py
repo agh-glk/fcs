@@ -1,10 +1,11 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout, authenticate, login
 from django.shortcuts import redirect
 import forms
-from models import Quota, ClientData
+from models import Quota, UserData
 
 
 def index(request):
@@ -22,7 +23,7 @@ def register(request):
             user.save()
             user_data = UserData.objects.create(user=user)
             user_data.save()
-            quota = Quota.objects.create(user=user, mock_field=qta)
+            quota = Quota.objects.create(user=user, max_priority=qta)
             quota.save()
 
             return HttpResponseRedirect('/reg_scs/')
