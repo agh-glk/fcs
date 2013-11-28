@@ -19,9 +19,7 @@ def register(request):
             username, passwd, email, qta = \
                 [form.cleaned_data[x] for x in ['username', 'password', 'email', 'quota']]
             user = User.objects.create(username=username, password=passwd, email=email)
-            user.save()
-            quota = Quota.objects.create(mock_field=int(qta))
-            quota.save()
+            quota = Quota.objects.create(mock_field=qta)
             client = ClientData.objects.create(user=user, quota=quota)
             client.save()
 
