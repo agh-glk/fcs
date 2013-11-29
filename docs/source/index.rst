@@ -10,7 +10,8 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
-
+.. automodule:: fcs.manager.models
+   :members:
 
 
 Indices and tables
