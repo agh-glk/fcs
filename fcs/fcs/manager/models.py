@@ -46,7 +46,7 @@ class Task(models.Model):
         """
         if user.quota.max_priority < priority:
             raise QuotaException('Task priority exceeds user quota!')
-        if user.quota.max_tasks == len(user.task_set.filter(finished=False)):
+        if user.quota.max_tasks == user.task_set.filter(finished=False).count():
             raise QuotaException('User has too many opened tasks!')
         if user.quota.max_links < max_links:
             raise QuotaException('Task link limit exceeds user quota!')
@@ -62,7 +62,7 @@ class Task(models.Model):
         Task priority cannot exceed quota of user which owns this task. In other case QuotaException is raised.
         """
         if self.user.quota.max_priority < priority:
-            raise QuotaException('Task priority exceeds client quota!')
+            raise QuotaException('Task priority exceeds user quota!')
         self.priority = priority
         self.save()
 
