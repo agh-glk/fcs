@@ -34,7 +34,7 @@ class TaskModelTest(TestCase):
                 task.delete()
 
     def failed_task_creation_test(self):
-        self.assertRaisesMessage(QuotaException, 'Task priority exceeds client quota!', Task.create_task, self.client, 'Task1',
+        self.assertRaisesMessage(QuotaException, 'Task priority exceeds user quota!', Task.create_task, self.client, 'Task1',
                                  15, datetime.now(), 'text', 'onet.pl', max_links=400)
 
     def tearDown(self):
