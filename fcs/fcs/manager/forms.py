@@ -1,5 +1,5 @@
 from django import forms
-from django.forms.widgets import PasswordInput
+from django.forms.widgets import PasswordInput, SplitDateTimeWidget
 
 
 class RegistrationForm(forms.Form):
@@ -37,3 +37,15 @@ class ChangePasswordForm(forms.Form):
         if password1 != password2:
             raise forms.ValidationError("Two different passwords!")
         return self.cleaned_data
+
+
+class CreateTaskForm(forms.Form):
+    name = forms.CharField(max_length=100)
+    priority = forms.IntegerField()
+    whitelist = forms.CharField(max_length=250)
+    blacklist = forms.CharField(max_length=250)
+    max_links = forms.IntegerField()
+    expire = forms.DateTimeField(widget=SplitDateTimeWidget(date_format='%Y-%m-%d', time_format='%H:%M'))
+    type = forms.CharField(max_length=20)
+
+

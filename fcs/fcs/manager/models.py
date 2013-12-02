@@ -28,7 +28,7 @@ class QuotaException(Exception):
 class Task(models.Model):
     """Class representing crawling tasks defined by users"""
     user = models.ForeignKey(User, null=False)
-    name = models.CharField(max_length=100, null=False)
+    name = models.CharField(max_length=100, null=False, unique=True)
     priority = models.IntegerField(default=1, null=False)
     whitelist = models.CharField(max_length=250, null=False)
     blacklist = models.CharField(max_length=250, null=False)
@@ -89,6 +89,9 @@ class Task(models.Model):
         """
         self.finished = True
         self.save()
+
+    def __unicode__(self):
+        return "Task %s of user %s" % (self.name, self.user)
 
 
 

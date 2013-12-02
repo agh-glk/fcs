@@ -4,6 +4,11 @@
     <title>Home</title>
 </head>
 <body>
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
     <nav>
         <ul>
             <li><a href="">Home</a></li>

@@ -1,9 +1,11 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.contrib import messages
 from django.contrib.auth import logout, authenticate, login
 from django.shortcuts import redirect
 import forms
 from django.contrib.auth.decorators import login_required
+from models import Task
 
 
 def index(request):
@@ -19,7 +21,8 @@ def login_user(request):
             user = authenticate(username=username, password=passwd)
             if user is not None and user.is_active:
                 login(request, user)
-                return render(request, 'log_scs.html')
+                messages.success(request, "Login successful.")
+                return redirect('/')
     else:
         if request.user.is_authenticated():
             return HttpResponse('You are already logged in')
@@ -30,6 +33,7 @@ def login_user(request):
 
 def logout_user(request):
     logout(request)
+    messages.success(request, "Logout successful.")
     return redirect('/')
 
 
@@ -45,5 +49,28 @@ def change_password(request):
                     request.user.save()
                     logout(request)
                     return render(request, 'passwd_changed_scs.html')
-        form = forms.ChangePasswordForm()
+        else:
+            form = forms.ChangePasswordForm()
         return render(request, 'change_password.html', {'form': form})
+
+
+@login_required()
+def list_tasks(request):
+    tasks = Task.objects.filter(user=request.user)
+    return render(request, 'tasks/list.html', {'tasks': tasks})
+
+
+@login_required()
+def add_task(request):
+    if request.method == 'POST':
+        form = forms.CreateTaskForm(request.POST)
+        if form.is_valid():
+            name, priority, whitelist, blacklist, max_links, expire, type = \
+                [form.cleaned_data[x] for x in ['name', 'priority', 'whitelist', 'blacklist', \
+                                                'max_links', 'expire', 'type']]
+            Task.create_task(request.user, name, priority, expire, type, whitelist, blacklist, max_links)
+            messages.success(request, 'New task created.')
+            return redirect('/tasks/list/')
+    else:
+        form = forms.CreateTaskForm()
+    return render(request, 'tasks/add.html', {'form': form})

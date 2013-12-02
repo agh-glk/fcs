@@ -7,4 +7,6 @@ urlpatterns = patterns('',
     url(r'^logout',views.logout_user, name='logout'),
     url(r'^change_password', views.change_password, name='change_password'),
     url(r'^accounts/', include('registration.backends.default.urls')),
+    url(r'^tasks/list/', views.list_tasks, name='list_tasks'),
+    url(r'^tasks/add/',views.add_task, name='add_task')
 )
