@@ -5,3 +5,6 @@ coverage
 coveralls
 django-nose
 django-registration
+djangorestframework
+markdown
+django-filter
