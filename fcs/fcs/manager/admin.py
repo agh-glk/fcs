@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import UserData, Quota, Task
+from models import UserData, Quota, Task, CrawlingType
 from django.contrib.auth.models import User
 
 
@@ -22,3 +22,4 @@ admin.site.register(User, UserAdmin)
 admin.site.register(Quota)
 admin.site.register(UserData)
 admin.site.register(Task)
+admin.site.register(CrawlingType)
