@@ -12,11 +12,14 @@
     <nav>
         <ul>
             <li><a href="">Home</a></li>
+            {% if not user.is_authenticated %}
             <li><a href="/accounts/register/">Register</a></li>
             <li><a href="login">Login</a></li>
+            {% else %}
+            <li><a href="tasks/list">Tasks</a></li>
             <li><a href="logout">Logout</a></li>
+            {% endif %}
         </ul>
     </nav>
-    Hello World!
 </body>
 </html>
