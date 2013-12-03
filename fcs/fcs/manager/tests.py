@@ -1,15 +1,6 @@
 from django.test import TestCase
-from models import FakeModel, UserData, Quota, User, QuotaException, Task
+from models import UserData, Quota, User, QuotaException, Task
 from django.utils import timezone
-
-class FakeModelTest(TestCase):
-    test_obj = None
-
-    def setUp(self):
-        self.__class__.test_obj = FakeModel()
-
-    def fake_method_test(self):
-        self.assertEqual(self.__class__.test_obj.fake_method(), True)
 
 
 class TaskModelTest(TestCase):

@@ -45,6 +45,18 @@ def activate_user_callback(sender, **kwargs):
 signals.user_activated.connect(activate_user_callback, dispatch_uid="model")
 
 
+CRAWLING_TYPES_CHOICES = (
+    (0, 'TEXT'),
+    (1, 'PICTURES'),
+    (2, 'LINKS')
+)
+class CrawlingType(models.Model):
+    type = models.IntegerField(max_length=1, choices=CRAWLING_TYPES_CHOICES)
+
+    def __unicode__(self):
+        return self.get_type_display()
+
+
 class Task(models.Model):
     """Class representing crawling tasks defined by users"""
     user = models.ForeignKey(User, null=False)
@@ -54,12 +66,12 @@ class Task(models.Model):
     blacklist = models.CharField(max_length=250, null=False)
     max_links = models.IntegerField(default=1000, null=False)
     expire = models.DateTimeField(null=False)
-    type = models.CharField(max_length=20, null=False)
+    type = models.ManyToManyField(CrawlingType)
     active = models.BooleanField(default=True)
     finished = models.BooleanField(default=False)
 
     @classmethod
-    def create_task(self, user, name, priority, expire, type, whitelist, blacklist='', max_links=1000):
+    def create_task(self, user, name, priority, expire, types, whitelist, blacklist='', max_links=1000):
         """Return new task.
 
         Raises QuotaException when user quota is exceeded.
@@ -70,8 +82,10 @@ class Task(models.Model):
             raise QuotaException('User has too many opened tasks!')
         if user.quota.max_links < max_links:
             raise QuotaException('Task link limit exceeds user quota!')
-        task = Task.objects.create(user=user, name=name, whitelist=whitelist, blacklist=blacklist, type=type,
+        task = Task.objects.create(user=user, name=name, whitelist=whitelist, blacklist=blacklist,
                                    max_links=max_links, expire=expire, priority=priority)
+        task.save()
+        task.type.add(*list(types))
         task.save()
         return task
 
