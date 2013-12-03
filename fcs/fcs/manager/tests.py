@@ -62,7 +62,7 @@ class TaskModelTest(TestCase):
         task = Task.create_task(self.client, 'Task1', 5, timezone.now(), 'text', 'onet.pl', max_links=400)
         self.assertRaisesMessage(QuotaException, 'User has too many opened tasks!', Task.create_task, self.client, 'Task1',
                                  5, timezone.now(), 'text', 'onet.pl', max_links=400)
-        task.finish()
+        task.stop()
         self.assertEqual(True,task.finished)
         Task.create_task(self.client, 'Task2', 5, timezone.now(), 'text', 'onet.pl', max_links=400)
 

@@ -82,7 +82,7 @@ class Task(models.Model):
         self.active = True
         self.save()
 
-    def finish(self):
+    def stop(self):
         """Mark task as finished.
 
         Finished tasks do not count to user max_tasks quota.

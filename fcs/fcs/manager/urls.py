@@ -8,5 +8,6 @@ urlpatterns = patterns('',
     url(r'^change_password', views.change_password, name='change_password'),
     url(r'^accounts/', include('registration.backends.default.urls')),
     url(r'^tasks/list/', views.list_tasks, name='list_tasks'),
-    url(r'^tasks/add/',views.add_task, name='add_task')
+    url(r'^tasks/add/',views.add_task, name='add_task'),
+    url(r'^api/', include('fcs.manager.apiurls', namespace='api')),
 )
