@@ -6,6 +6,7 @@ from django.shortcuts import redirect
 import forms
 from django.contrib.auth.decorators import login_required
 from models import Task
+from django.shortcuts import get_object_or_404
 
 
 def index(request):
@@ -74,3 +75,9 @@ def add_task(request):
     else:
         form = forms.CreateTaskForm()
     return render(request, 'tasks/add.html', {'form': form})
+
+
+@login_required()
+def show_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id, user=request.user.id)
+    return render(request, 'tasks/show.html', {'task': task})

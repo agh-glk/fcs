@@ -12,8 +12,9 @@
 </ul>
 {% endif %}
 <ul>
+    <a href="/tasks/add/">Add new...</a>
     {% for task in tasks %}
-        <li>{{ task }}</li>
+        <li><a href="/tasks/show/{{ task.id }}/">{{ task }}</a></li>
     {% endfor %}
 </ul>
 </body>

@@ -1,10 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
+from registration import signals
+from threading import Lock
 
-class FakeModel():
-
-    def fake_method(self):
-            return True
 
 class UserData(models.Model):
     user = models.OneToOneField(User)
@@ -22,8 +20,30 @@ class Quota(models.Model):
     def __unicode__(self):
         return "User %s quota" % self.user.__unicode__()
 
+
 class QuotaException(Exception):
     pass
+
+
+def activate_user_callback(sender, **kwargs):
+    """
+    Function creates objects connected with User -
+    UserData and Quota after user account is activated.
+    """
+    user = kwargs['user']
+    lock = Lock()
+    lock.acquire()
+    try:
+        if Quota.objects.filter(user=user).count() == 0:
+            Quota.objects.create(user=user).save()
+        if UserData.objects.filter(user=user).count() == 0:
+            UserData.objects.create(user=user).save()
+    finally:
+        lock.release()
+
+
+signals.user_activated.connect(activate_user_callback, dispatch_uid="model")
+
 
 class Task(models.Model):
     """Class representing crawling tasks defined by users"""
