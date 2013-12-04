@@ -41,7 +41,7 @@ INSTALLED_APPS = (
     'django_nose',
     'django.contrib.sites',
     'registration',
-    'rest_framework'
+    'rest_framework',
 )
 
 #Django-Registration BEGIN

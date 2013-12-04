@@ -1,11 +1,20 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 from registration import signals
 from threading import Lock
+from backend.keys_helper import KeysHelper
 
 
 class UserData(models.Model):
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, primary_key=True, related_name='user_data')
+    key = models.CharField(max_length=100, unique=True, blank=False)
+
+    def clean(self):
+        if self.user is None:
+            raise ValidationError('UserData must be connected with User object.')
+        if self.key == '':
+            raise ValidationError('User key cannot be empty.')
 
     def __unicode__(self):
         return "User %s data" % self.user.__unicode__()
@@ -25,21 +34,28 @@ class QuotaException(Exception):
     pass
 
 
-def activate_user_callback(sender, **kwargs):
-    """
-    Function creates objects connected with User -
-    UserData and Quota after user account is activated.
-    """
-    user = kwargs['user']
+def initialise_user_object(user):
     lock = Lock()
     lock.acquire()
     try:
         if Quota.objects.filter(user=user).count() == 0:
             Quota.objects.create(user=user).save()
         if UserData.objects.filter(user=user).count() == 0:
-            UserData.objects.create(user=user).save()
+            _key = KeysHelper.generate()
+            while UserData.objects.filter(key=_key).count() != 0:
+                _key = KeysHelper.generate()
+            UserData.objects.create(user=user, key=_key).save()
     finally:
         lock.release()
+
+
+def activate_user_callback(sender, **kwargs):
+    """
+    Function creates objects connected with User -
+    UserData and Quota after user account is activated.
+    """
+    _user = kwargs['user']
+    initialise_user_object(_user)
 
 
 signals.user_activated.connect(activate_user_callback, dispatch_uid="model")

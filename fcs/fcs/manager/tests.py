@@ -1,12 +1,15 @@
 from django.test import TestCase
-from models import UserData, Quota, User, QuotaException, Task, CrawlingType, CRAWLING_TYPES_CHOICES
+from models import UserData, Quota, User, QuotaException, Task, CrawlingType
 from django.utils import timezone
+from django.core.exceptions import ValidationError
+import models
 
 
 class TaskModelTest(TestCase):
 
     user = None
 
+    @classmethod
     def get_user(self):
         if self.user is None:
             self.user = User.objects.all()[0]
@@ -77,5 +80,46 @@ class TaskModelTest(TestCase):
         Task.create_task(self.get_user(), 'Task2', 5, timezone.now(), [CrawlingType.objects.get(type=CrawlingType.TEXT)],
                          'onet.pl', max_links=400)
 
-    def tearDown(self):
-        self.get_user().delete()
+    @classmethod
+    def tearDownClass(self):
+        User.objects.all().delete()
+        CrawlingType.objects.all().delete()
+        UserData.objects.all().delete()
+        Quota.objects.all().delete()
+
+
+class UserDataModelTest(TestCase):
+
+    user = None
+
+    @classmethod
+    def get_user(self):
+        if self.user is None:
+            self.user = User.objects.all()[0]
+        return self.user
+
+    @classmethod
+    def setUpClass(cls):
+        CrawlingType.objects.create(type=CrawlingType.TEXT).save()
+        CrawlingType.objects.create(type=CrawlingType.LINKS).save()
+        CrawlingType.objects.create(type=CrawlingType.PICTURES).save()
+        _user = User.objects.create_user(username='test_user', password='test_pwd', email='test@gmail.pl')
+        quota = Quota.objects.create(max_priority=10, max_tasks=1, max_links=1000, user=_user)
+        quota.save()
+
+
+    def test_create_user_data(self):
+            _user = self.get_user()
+            try:
+                models.initialise_user_object(_user)
+            except ValidationError:
+                self.fail('Exception')
+            self.assertNotEqual(_user.user_data.key, '')
+
+    @classmethod
+    def tearDownClass(cls):
+        User.objects.all().delete()
+        CrawlingType.objects.all().delete()
+        UserData.objects.all().delete()
+        Quota.objects.all().delete()
+
