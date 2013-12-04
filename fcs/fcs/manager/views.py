@@ -7,6 +7,7 @@ import forms
 from django.contrib.auth.decorators import login_required
 from models import Task, CrawlingType
 from django.shortcuts import get_object_or_404
+import backend.mailing_helper
 
 
 def index(request):
@@ -94,8 +95,9 @@ def increase_quota(request):
         form = forms.IncreaseQuotaForm(request.POST)
         if form.is_valid():
             #calculate cost & save to db
-            messages.success("Check your email and confirm operation.")
-
+            messages.success(request, "Check your email and confirm operation.")
+            mh = backend.mailing_helper.MailingHelper('./fcs/manager/backend/mail_templates')
+            print mh.send_html_email("info", {"title":"AAAA", "body":"BBB"})
             return redirect('/tasks/list/')
     else:
         form = forms.IncreaseQuotaForm()
