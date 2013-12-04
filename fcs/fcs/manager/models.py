@@ -51,6 +51,9 @@ CRAWLING_TYPES_CHOICES = (
     (2, 'LINKS')
 )
 class CrawlingType(models.Model):
+    TEXT = 0
+    PICTURES = 1
+    LINKS = 2
     type = models.IntegerField(max_length=1, choices=CRAWLING_TYPES_CHOICES)
 
     def __unicode__(self):
