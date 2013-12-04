@@ -87,3 +87,16 @@ def show_task(request, task_id):
         messages.success(request, "Task %s updated" % task.name)
         return redirect('/tasks/list/')
     return render(request, 'tasks/show.html', {'task': task, 'form':form})
+
+@login_required()
+def increase_quota(request):
+    if request.method == 'POST':
+        form = forms.IncreaseQuotaForm(request.POST)
+        if form.is_valid():
+            #calculate cost & save to db
+            messages.success("Check your email and confirm operation.")
+
+            return redirect('/tasks/list/')
+    else:
+        form = forms.IncreaseQuotaForm()
+    return render(request, 'increase_quota.html', {'form': form})

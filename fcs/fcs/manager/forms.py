@@ -56,3 +56,8 @@ class CreateTaskForm(forms.Form):
     type = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, choices=CRAWLING_TYPES_CHOICES)
 
 
+class IncreaseQuotaForm(forms.Form):
+    max_priority = forms.IntegerField()
+    priority_pool = forms.IntegerField()
+    max_tasks = forms.IntegerField()
+    link_pool = forms.IntegerField()

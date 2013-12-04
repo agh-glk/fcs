@@ -22,8 +22,9 @@ class UserData(models.Model):
 
 class Quota(models.Model):
     max_priority = models.IntegerField(default=10)
-    max_tasks = models.IntegerField(default=5)
-    max_links = models.IntegerField(default=10000)
+    priority_pool = models.IntegerField(default=100)
+    max_tasks = models.IntegerField(default=50)
+    link_pool = models.IntegerField(default=10000)
     user = models.OneToOneField(User)
 
     def __unicode__(self):
@@ -146,6 +147,21 @@ class Task(models.Model):
     def __unicode__(self):
         return "Task %s of user %s" % (self.name, self.user)
 
+
+SERVICES_TYPES_CHOICES = (
+    (0, 'CRAWLING'),
+    (1, 'INCREASE_MAX_LINKS'),
+    (2, 'INCREASE_MAX_PRIORITY'),
+)
+class Service(models.Model):
+    CRAWLING = 0
+    INCREASE_MAX_LINKS = 1
+    INCREASE_MAX_PRIORITY = 2
+
+    user = models.ForeignKey(User)
+    type = models.IntegerField(max_length=2, choices=SERVICES_TYPES_CHOICES)
+    cost = models.DecimalField(max_digits=12, decimal_places=2)
+    confirmed = models.BooleanField(default=False)
 
 
 

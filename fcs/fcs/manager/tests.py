@@ -10,10 +10,10 @@ class TaskModelTest(TestCase):
     user = None
 
     @classmethod
-    def get_user(self):
-        if self.user is None:
-            self.user = User.objects.all()[0]
-        return self.user
+    def get_user(cls):
+        if cls.user is None:
+            cls.user = User.objects.all()[0]
+        return cls.user
 
     @classmethod
     def setUpClass(cls):
@@ -81,7 +81,7 @@ class TaskModelTest(TestCase):
                          'onet.pl', max_links=400)
 
     @classmethod
-    def tearDownClass(self):
+    def tearDownClass(cls):
         User.objects.all().delete()
         CrawlingType.objects.all().delete()
         UserData.objects.all().delete()
@@ -93,10 +93,10 @@ class UserDataModelTest(TestCase):
     user = None
 
     @classmethod
-    def get_user(self):
-        if self.user is None:
-            self.user = User.objects.all()[0]
-        return self.user
+    def get_user(cls):
+        if cls.user is None:
+            cls.user = User.objects.all()[0]
+        return cls.user
 
     @classmethod
     def setUpClass(cls):
@@ -106,7 +106,6 @@ class UserDataModelTest(TestCase):
         _user = User.objects.create_user(username='test_user', password='test_pwd', email='test@gmail.pl')
         quota = Quota.objects.create(max_priority=10, max_tasks=1, max_links=1000, user=_user)
         quota.save()
-
 
     def test_create_user_data(self):
             _user = self.get_user()
