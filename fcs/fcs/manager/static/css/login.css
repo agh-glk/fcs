@@ -23,3 +23,8 @@
 .form-signin button {
   margin-top: 10px;
 }
+
+.field-alert {
+  margin-bottom: 3px;
+  padding: 5px;
+}

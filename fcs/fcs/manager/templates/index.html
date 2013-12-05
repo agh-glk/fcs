@@ -9,7 +9,7 @@
     {% include "navigation.html" %}
 
     {% for message in messages %}
-    <div class="alert alert-info {% if message.tags %} {{ message.tags }} {% endif %}">{{ message }}</div>
+    <div class="alert alert-info">{{ message }}</div>
     <!--<div class="alert {% if message.tags %} {{ message.tags }} {% endif %}">{{ message }}</div> -->
     {% endfor %}
 
