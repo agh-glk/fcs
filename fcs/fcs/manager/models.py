@@ -1,8 +1,9 @@
+from django.contrib.sites.management import create_default_site
 from django.db import models
 from django.contrib.auth.models import User
 from registration import signals
 from threading import Lock
-
+from django.utils import timezone
 
 class UserData(models.Model):
     user = models.OneToOneField(User)
@@ -63,7 +64,7 @@ class CrawlingType(models.Model):
 class Task(models.Model):
     """Class representing crawling tasks defined by users"""
     user = models.ForeignKey(User, null=False)
-    name = models.CharField(max_length=100, null=False, unique=True)
+    name = models.CharField(max_length=100, null=False)
     priority = models.IntegerField(default=1, null=False)
     whitelist = models.CharField(max_length=250, null=False)
     blacklist = models.CharField(max_length=250, null=False)
@@ -72,6 +73,7 @@ class Task(models.Model):
     type = models.ManyToManyField(CrawlingType)
     active = models.BooleanField(default=True)
     finished = models.BooleanField(default=False)
+    created = models.DateTimeField(null=False)
 
     @classmethod
     def create_task(self, user, name, priority, expire, types, whitelist, blacklist='', max_links=1000):
@@ -86,7 +88,7 @@ class Task(models.Model):
         if user.quota.max_links < max_links:
             raise QuotaException('Task link limit exceeds user quota!')
         task = Task.objects.create(user=user, name=name, whitelist=whitelist, blacklist=blacklist,
-                                   max_links=max_links, expire=expire, priority=priority)
+                                   max_links=max_links, expire=expire, priority=priority, created=timezone.now())
         task.save()
         task.type.add(*list(types))
         task.save()
@@ -126,6 +128,14 @@ class Task(models.Model):
         """
         self.finished = True
         self.save()
+
+    def feedback(self,score_dict):
+        """Process feedback from client
+
+        Update crawling process in order to satisfy client expectations
+        """
+        #TODO: implement
+        pass
 
     def __unicode__(self):
         return "Task %s of user %s" % (self.name, self.user)
