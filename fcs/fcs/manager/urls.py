@@ -1,4 +1,5 @@
 from django.conf.urls import patterns, url, include
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 import views
 
 urlpatterns = patterns('',
@@ -15,3 +16,5 @@ urlpatterns = patterns('',
     
     url(r'^api/', include('fcs.manager.apiurls', namespace='api')),
 )
+
+urlpatterns += staticfiles_urlpatterns()
