@@ -3,36 +3,18 @@
 <head>
     <title>Home</title>
     <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/base.css" rel="stylesheet">
 </head>
 <body>
-    <ul class="messages">
-        {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-    </ul>
-    <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="navbar-header">
-          <a class="navbar-brand" href="https://github.com/agh-glk/fcs">FCS</a>
-        </div>
-        <ul class="nav navbar-nav">
-            <li><a href="">Home</a></li>
-            {% if not user.is_authenticated %}
-            <li><a href="/accounts/register/">Register</a></li>
-            <li><a href="login">Login</a></li>
-            {% else %}
-            <li><a href="tasks/list">Tasks</a></li>
-            {% endif %}
-        </ul>
-        {% if user.is_authenticated %}
-        <ul class="nav navbar-nav navbar-right">
-            <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ user.username }}</a>
-                <ul class="dropdown-menu">
-                    <li><a href="logout">Logout</a></li>
-                </ul>
-            </li>
-        </ul>
-        {% endif %}
+    {% include "navigation.html" %}
+
+    {% for message in messages %}
+    <div class="alert alert-info {% if message.tags %} {{ message.tags }} {% endif %}">{{ message }}</div>
+    <!--<div class="alert {% if message.tags %} {{ message.tags }} {% endif %}">{{ message }}</div> -->
+    {% endfor %}
+
+    <div class="main-content">
+        <h1>Home of amazing FCS Project</h1>
     </div>
 
     <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
