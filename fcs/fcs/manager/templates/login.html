@@ -1,15 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Home</title>
-    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{{ STATIC_URL }}css/base.css" rel="stylesheet">
-    <link href="{{ STATIC_URL }}css/login.css" rel="stylesheet">
-</head>
-<body>
-    {% include "navigation.html" %}
+{% extends "base.html" %}
 
-    <form class="form-signin main-content" action="/login" method="post">{% csrf_token %}
+{% block title %}Login{% endblock title %}
+{% block rels %}
+    {{ block.super }}
+    <link href="{{ STATIC_URL }}css/login.css" rel="stylesheet">
+{% endblock rels %}
+
+{% block content %}
+    <form class="form-signin" action="/login" method="post">{% csrf_token %}
         {% for field in form %}
         {{ field }}
         {% for error in field.errors %}
@@ -18,8 +16,4 @@
         {% endfor %}
         <button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
     </form>
-
-    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
-    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
-</body>
-</html>
+{% endblock content %}

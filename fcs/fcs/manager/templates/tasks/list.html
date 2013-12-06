@@ -1,23 +1,14 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Task list</title>
-    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{{ STATIC_URL }}css/base.css" rel="stylesheet">
-</head>
-<body>
-    {% include "navigation.html" %}
+{% extends "base.html" %}
 
-    {% for message in messages %}
-    <div class="alert alert-info">{{ message }}</div>
-    <!--<div class="alert {% if message.tags %} {{ message.tags }} {% endif %}">{{ message }}</div> -->
+{% block rels %}
+    {{ block.super }}
+    <link href="{{ STATIC_URL }}css/task.css" rel="stylesheet">
+{% endblock rels %}
+{% block content %}
+<ul>
+    <a href="/tasks/add/">Add new...</a>
+    {% for task in tasks %}
+        <li><a href="/tasks/show/{{ task.id }}/">{{ task }}</a></li>
     {% endfor %}
-    <ul>
-        <a href="/tasks/add/">Add new...</a>
-        {% for task in tasks %}
-            <li><a href="/tasks/show/{{ task.id }}/">{{ task }}</a></li>
-        {% endfor %}
-    </ul>
-
-</body>
-</html>
+</ul>
+{% endblock content %}
