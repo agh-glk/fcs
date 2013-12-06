@@ -1,19 +1,8 @@
-{% extends "base.html" %}
+{% extends "form.html" %}
 
 {% block title %}Login{% endblock title %}
-{% block rels %}
-    {{ block.super }}
-    <link href="{{ STATIC_URL }}css/login.css" rel="stylesheet">
-{% endblock rels %}
 
-{% block content %}
-    <form class="form-signin" action="/login" method="post">{% csrf_token %}
-        {% for field in form %}
-        {{ field }}
-        {% for error in field.errors %}
-        <div class="alert alert-danger field-alert">{{ error }}</div>
-        {% endfor %}
-        {% endfor %}
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Login</button>
-    </form>
-{% endblock content %}
+{% block form-title %}Please log in{% endblock form-title %}
+{% block form-url %}{% url 'login' %}{% endblock form-url %}
+{% block form-button %}Login{% endblock form-button %}
+

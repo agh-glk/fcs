@@ -1,22 +1,10 @@
-{% extends "base.html" %}
+{% extends "form.html" %}
 
 {% block title %}Register{% endblock title %}
-{% block rels %}
-    {{ block.super }}
-    <link href="{{ STATIC_URL }}css/login.css" rel="stylesheet">
-{% endblock rels %}
 
-{% block content %}
-    <form class="form-signin" action="/accounts/register/" method="post">{% csrf_token %}
-        {% for field in form %}
-        {{ field }}
-        {% for error in field.errors %}
-        <div class="alert alert-danger field-alert">{{ error }}</div>
-        {% endfor %}
-        {% endfor %}
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Register</button>
-    </form>
-{% endblock content %}
+{% block form-title %}Please register{% endblock form-title %}
+{% block form-url %}{% url 'registration_register' %}{% endblock form-url %}
+{% block form-button %}Register{% endblock form-button %}
 
 {% block scripts %}
     {{ block.super }}
