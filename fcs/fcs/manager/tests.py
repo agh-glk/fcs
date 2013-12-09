@@ -1,8 +1,11 @@
+import datetime
+
 from django.test import TestCase
-from models import UserData, Quota, User, QuotaException, Task, CrawlingType
-from django.utils import timezone
 from django.core.exceptions import ValidationError
+
+from models import UserData, Quota, User, CrawlingType, Service, ServiceUnitPrice
 import models
+from fcs.fcs.backend.price_calculator import PriceCalculator
 
 
 class TaskModelTest(TestCase):
@@ -21,11 +24,20 @@ class TaskModelTest(TestCase):
         CrawlingType.objects.create(type=CrawlingType.LINKS).save()
         CrawlingType.objects.create(type=CrawlingType.PICTURES).save()
         _user = User.objects.create_user(username='test_user', password='test_pwd', email='test@gmail.pl')
-        quota = Quota.objects.create(max_priority=10, max_tasks=1, max_links=1000, user=_user)
+        quota = Quota.objects.create(max_priority=10, max_tasks=1, link_pool=1000, user=_user)
         quota.save()
         user_data = UserData.objects.create(user=_user)
         user_data.save()
 
+    @classmethod
+    def tearDownClass(cls):
+        User.objects.all().delete()
+        CrawlingType.objects.all().delete()
+        UserData.objects.all().delete()
+        Quota.objects.all().delete()
+
+
+'''
     def test_successful_task_creation(self):
         task = None
         try:
@@ -72,20 +84,17 @@ class TaskModelTest(TestCase):
     def test_finish(self):
         task = Task.create_task(self.get_user(), 'Task1', 5, timezone.now(),
                                 [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
+
         self.assertRaisesMessage(QuotaException, 'User has too many opened tasks!', Task.create_task, self.get_user(),
                                  'Task1', 5, timezone.now(), [CrawlingType.objects.get(type=CrawlingType.TEXT)],
                                  'onet.pl', max_links=400)
+
         task.stop()
         self.assertEqual(True, task.finished)
         Task.create_task(self.get_user(), 'Task2', 5, timezone.now(), [CrawlingType.objects.get(type=CrawlingType.TEXT)],
                          'onet.pl', max_links=400)
 
-    @classmethod
-    def tearDownClass(cls):
-        User.objects.all().delete()
-        CrawlingType.objects.all().delete()
-        UserData.objects.all().delete()
-        Quota.objects.all().delete()
+'''
 
 
 class UserDataModelTest(TestCase):
@@ -121,4 +130,24 @@ class UserDataModelTest(TestCase):
         CrawlingType.objects.all().delete()
         UserData.objects.all().delete()
         Quota.objects.all().delete()
+
+
+class PriceCalculatorTest(TestCase):
+
+    @classmethod
+    def setupClass(cls):
+        ServiceUnitPrice.objects.create(service_type=Service.INCREASE_MAX_LINKS,
+                                        date_from=datetime.datetime(1990, 12, 31),
+                                        date_to=datetime.datetime(2020, 12, 31), price=2)
+        ServiceUnitPrice.objects.create(service_type=Service.INCREASE_MAX_LINKS,
+                                        date_from=datetime.datetime(1990, 12, 31),
+                                        date_to=datetime.datetime(2000, 12, 31), price=3)
+
+    def price_calculator_test(self):
+        _price_calculator = PriceCalculator()
+        self.assertEqual(_price_calculator.get_current_price(Service.INCREASE_MAX_LINKS).count(), 1)
+
+    @classmethod
+    def tearDown(cls):
+        ServiceUnitPrice.objects.all().delete()
 

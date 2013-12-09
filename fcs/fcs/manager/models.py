@@ -1,9 +1,11 @@
+from threading import Lock
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 from registration import signals
-from threading import Lock
-from backend.keys_helper import KeysHelper
+
+from fcs.backend.keys_helper import KeysHelper
 
 
 class UserData(models.Model):
@@ -25,6 +27,7 @@ class Quota(models.Model):
     priority_pool = models.IntegerField(default=100)
     max_tasks = models.IntegerField(default=50)
     link_pool = models.IntegerField(default=10000)
+    max_links = models.IntegerField(default=10000)
     user = models.OneToOneField(User)
 
     def __unicode__(self):
@@ -62,15 +65,16 @@ def activate_user_callback(sender, **kwargs):
 signals.user_activated.connect(activate_user_callback, dispatch_uid="model")
 
 
-CRAWLING_TYPES_CHOICES = (
-    (0, 'TEXT'),
-    (1, 'PICTURES'),
-    (2, 'LINKS')
-)
+
 class CrawlingType(models.Model):
     TEXT = 0
     PICTURES = 1
     LINKS = 2
+    CRAWLING_TYPES_CHOICES = (
+        (0, 'TEXT'),
+        (1, 'PICTURES'),
+        (2, 'LINKS')
+    )
     type = models.IntegerField(max_length=1, choices=CRAWLING_TYPES_CHOICES)
 
     def __unicode__(self):
@@ -80,7 +84,7 @@ class CrawlingType(models.Model):
 class Task(models.Model):
     """Class representing crawling tasks defined by users"""
     user = models.ForeignKey(User, null=False)
-    name = models.CharField(max_length=100, null=False, unique=True)
+    name = models.CharField(max_length=100, null=False)
     priority = models.IntegerField(default=1, null=False)
     whitelist = models.CharField(max_length=250, null=False)
     blacklist = models.CharField(max_length=250, null=False)
@@ -148,22 +152,34 @@ class Task(models.Model):
         return "Task %s of user %s" % (self.name, self.user)
 
 
-SERVICES_TYPES_CHOICES = (
-    (0, 'CRAWLING'),
-    (1, 'INCREASE_MAX_LINKS'),
-    (2, 'INCREASE_MAX_PRIORITY'),
-)
 class Service(models.Model):
     CRAWLING = 0
     INCREASE_MAX_LINKS = 1
     INCREASE_MAX_PRIORITY = 2
+    INCREASE_PRIORITY_POOL = 3
+    INCREASE_LINKS_POOL = 4
+    SERVICES_TYPES_CHOICES = (
+        (0, 'CRAWLING'),
+        (1, 'INCREASE_MAX_LINKS'),
+        (2, 'INCREASE_MAX_PRIORITY'),
+        (3, 'INCREASE_PRIORITY_POOL'),
+        (4, 'INCREASE_LINKS_POOL')
+    )
 
     user = models.ForeignKey(User)
     type = models.IntegerField(max_length=2, choices=SERVICES_TYPES_CHOICES)
-    cost = models.DecimalField(max_digits=12, decimal_places=2)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
     confirmed = models.BooleanField(default=False)
 
 
+class ServiceUnitPrice(models.Model):
+    service_type = models.IntegerField(max_length=2, choices=Service.SERVICES_TYPES_CHOICES)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    date_from = models.DateTimeField()
+    date_to = models.DateTimeField()
+
+    def __unicode__(self):
+        return "Unit price for %s from %s to %s" % (self.get_service_type_display(), self.date_from, self.date_to)
 
 
 
