@@ -3,8 +3,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from registration import signals
 from threading import Lock
-
 from fcs.backend import keys_helper
+
 from django.utils import timezone
 
 

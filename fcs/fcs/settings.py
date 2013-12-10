@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'registration',
     'rest_framework',
+    'fcs.backend'
 )
 
 #Django-Registration BEGIN
