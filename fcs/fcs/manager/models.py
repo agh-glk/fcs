@@ -1,9 +1,12 @@
 from threading import Lock
 
 from django.core.exceptions import ValidationError
+from django.contrib.sites.management import create_default_site
 from django.db import models
 from django.contrib.auth.models import User
 from registration import signals
+from threading import Lock
+from django.utils import timezone
 
 from fcs.backend.keys_helper import KeysHelper
 from django.utils import timezone
@@ -40,6 +43,10 @@ class QuotaException(Exception):
 
 
 def initialise_user_object(user):
+    """
+    Function creates objects connected with User -
+    UserData and Quota after user account is activated.
+    """
     lock = Lock()
     lock.acquire()
     try:
@@ -85,15 +92,16 @@ class CrawlingType(models.Model):
 class Task(models.Model):
     """Class representing crawling tasks defined by users"""
     user = models.ForeignKey(User, null=False)
-    name = models.CharField(max_length=100, null=False)
+    name = models.CharField(max_length=100, null=False, unique=True)
     priority = models.IntegerField(default=1, null=False)
     whitelist = models.CharField(max_length=250, null=False)
     blacklist = models.CharField(max_length=250, null=False)
     max_links = models.IntegerField(default=1000, null=False)
-    expire = models.DateTimeField(null=False)
+    expire_date = models.DateTimeField(null=False)
     type = models.ManyToManyField(CrawlingType)
     active = models.BooleanField(default=True)
     finished = models.BooleanField(default=False)
+    created = models.DateTimeField(default=timezone.now, null=False)
 
     @classmethod
     def create_task(self, user, name, priority, expire, types, whitelist, blacklist='', max_links=1000):
@@ -148,6 +156,14 @@ class Task(models.Model):
         """
         self.finished = True
         self.save()
+
+    def feedback(self,score_dict):
+        """Process feedback from client
+
+        Update crawling process in order to satisfy client expectations
+        """
+        #TODO: implement
+        pass
 
     def __unicode__(self):
         return "Task %s of user %s" % (self.name, self.user)

@@ -1,5 +1,5 @@
 from django import forms
-from django.forms.widgets import PasswordInput, SplitDateTimeWidget
+from django.forms.widgets import PasswordInput, SplitDateTimeWidget, TextInput
 from models import CrawlingType, Task
 
 
@@ -22,8 +22,8 @@ class RegistrationForm(forms.Form):
 
 
 class LoginForm(forms.Form):
-    username = forms.CharField(max_length=50)
-    password = forms.CharField(max_length=50, widget=PasswordInput())
+    username = forms.CharField(max_length=50, widget=TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}))
+    password = forms.CharField(max_length=50, widget=PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}))
 
 
 class ChangePasswordForm(forms.Form):

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Home{% endblock title %}</title>
+    {% block rels %}
+    <link href="{{ STATIC_URL }}bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ STATIC_URL }}css/base.css" rel="stylesheet">
+    {% endblock rels %}
+</head>
+<body>
+    {% block navbar %}
+    {% include "navigation.html" %}
+    {% endblock navbar %}
+
+    {% block msgs %}
+    {% for message in messages %}
+    <div class="alert alert-info">{{ message }}</div>
+    <!--<div class="alert {% if message.tags %} {{ message.tags }} {% endif %}">{{ message }}</div> -->
+    {% endfor %}
+    {% endblock msgs %}
+
+    <div class="main-content">
+        {% block content %}
+        <h1>Home of amazing FCS Project</h1>
+        {% endblock content %}
+    </div>
+
+    {% block scripts %}
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="{{ STATIC_URL }}bootstrap/js/bootstrap.min.js"></script>
+    {% endblock scripts %}
+</body>
+</html>

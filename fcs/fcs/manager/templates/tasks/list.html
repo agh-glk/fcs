@@ -1,21 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title></title>
-</head>
-<body>
-{% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
-<ul>
-    <a href="/tasks/add/">Add new...</a>
+{% extends "base.html" %}
+
+{% block title %}Task list{% endblock title %}
+
+{% block rels %}
+    {{ block.super }}
+    <link href="{{ STATIC_URL }}css/task.css" rel="stylesheet">
+{% endblock rels %}
+{% block content %}
+<h3>Your tasks</h3>
+<ul class="list-unstyled">
     {% for task in tasks %}
-        <li><a href="/tasks/show/{{ task.id }}/">{{ task }}</a></li>
+        <li><a href="{% url 'show_task' task.id %}">{{ task }}</a></li>
     {% endfor %}
 </ul>
-</body>
-</html>
+<a href="{% url 'add_task' %}"><button class="btn btn-default">Add new</button></a>
+{% endblock content %}

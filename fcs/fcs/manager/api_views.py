@@ -1,9 +1,8 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework import status, permissions
 from rest_framework.response import Response
-from models import Task, QuotaException
+from models import Task, QuotaException, CrawlingType
 
-@permission_classes(permissions.IsAuthenticatedOrReadOnly)
 @api_view(['POST'])
 def add_task(request):
     """
@@ -12,8 +11,9 @@ def add_task(request):
     data = request.DATA
     user = request.user
     try:
+        _crawling_types = CrawlingType.objects.filter(type__in=map(lambda x: int(x), data['types']))
         task = Task.create_task(user=user, name=data['name'], priority=data['priority'], expire=data['expire'],
-                            type=data['type'], whitelist=data['whitelist'], blacklist=data['blacklist'],
+                            types=_crawling_types, whitelist=data['whitelist'], blacklist=data['blacklist'],
                             max_links=data['max_links'])
     except KeyError as e:
         return Response(e.message, status=status.HTTP_400_BAD_REQUEST)
@@ -21,7 +21,6 @@ def add_task(request):
         return Response(e.message, status=status.HTTP_412_PRECONDITION_FAILED)
     return Response({'id': task.id}, status=status.HTTP_201_CREATED)
 
-@permission_classes(permissions.IsAuthenticatedOrReadOnly)
 @api_view(['POST'])
 def delete_task(request):
     """
@@ -30,7 +29,7 @@ def delete_task(request):
     data = request.DATA
     user = request.user
     try:
-        task = Task.objects.filter(id=data['task_id'])[0]
+        task = Task.objects.filter(id=data['id'])[0]
         if user != task.user:
             return Response("User is not owner of this task!", status=status.HTTP_403_FORBIDDEN)
     except KeyError as e:
@@ -40,7 +39,6 @@ def delete_task(request):
     task.stop()
     return Response(status=status.HTTP_200_OK)
 
-@permission_classes(permissions.IsAuthenticatedOrReadOnly)
 @api_view(['POST'])
 def pause_task(request):
     """
@@ -49,7 +47,7 @@ def pause_task(request):
     data = request.DATA
     user = request.user
     try:
-        task = Task.objects.filter(id=data['task_id'])[0]
+        task = Task.objects.filter(id=data['id'])[0]
         if user != task.user:
             return Response("User is not owner of this task!", status=status.HTTP_403_FORBIDDEN)
     except KeyError as e:
@@ -59,7 +57,6 @@ def pause_task(request):
     task.pause()
     return Response(status=status.HTTP_200_OK)
 
-@permission_classes(permissions.IsAuthenticatedOrReadOnly)
 @api_view(['POST'])
 def resume_task(request):
     """
@@ -68,7 +65,7 @@ def resume_task(request):
     data = request.DATA
     user = request.user
     try:
-        task = Task.objects.filter(id=data['task_id'])[0]
+        task = Task.objects.filter(id=data['id'])[0]
         if user != task.user:
             return Response("User is not owner of this task!", status=status.HTTP_403_FORBIDDEN)
     except KeyError as e:

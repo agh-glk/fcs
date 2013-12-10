@@ -1,4 +1,8 @@
-<form action="/login" method="post">{% csrf_token %}
-{{ form.as_p }}
-<input type="submit" value="Login" />
-</form>
+{% extends "form.html" %}
+
+{% block title %}Login{% endblock title %}
+
+{% block form-title %}Please log in{% endblock form-title %}
+{% block form-url %}{% url 'login' %}{% endblock form-url %}
+{% block form-button %}Login{% endblock form-button %}
+
