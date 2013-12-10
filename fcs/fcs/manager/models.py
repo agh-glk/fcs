@@ -116,7 +116,7 @@ class Task(models.Model):
         if user.quota.max_links < max_links:
             raise QuotaException('Task link limit exceeds user quota!')
         task = Task.objects.create(user=user, name=name, whitelist=whitelist, blacklist=blacklist,
-                                   max_links=max_links, expire=expire, priority=priority)
+                                   max_links=max_links, expire_date=expire, priority=priority)
         task.save()
         task.type.add(*list(types))
         task.save()
@@ -190,7 +190,7 @@ class Service(models.Model):
     confirmed = models.BooleanField(default=False)
 
     def __unicode__(self):
-        return "%s %s, type: %s, price: %s" % (self.user, self.creation_date, self.type, self.price)
+        return "%s %s, type: %s, price: %s" % (self.user, self.creation_date, self.get_type_display(), self.price)
 
 
 class ServiceUnitPrice(models.Model):
