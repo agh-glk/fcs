@@ -25,7 +25,3 @@ class MailingHelper():
         _message.attach_alternative(_html_mail, "text/html")
         _message.send()
 
-
-if __name__ == '__main__':
-    mh = MailingHelper('./manager/backend/mail_templates')
-    print mh.send_html_email("info", {"title":"AAAA", "body":"BBB"})

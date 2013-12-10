@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from registration import signals
 
 from fcs.backend.keys_helper import KeysHelper
+from django.utils import timezone
 
 
 class UserData(models.Model):
@@ -169,7 +170,11 @@ class Service(models.Model):
     user = models.ForeignKey(User)
     type = models.IntegerField(max_length=2, choices=SERVICES_TYPES_CHOICES)
     price = models.DecimalField(max_digits=12, decimal_places=2)
+    creation_date = models.DateTimeField(default=timezone.now)
     confirmed = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        return "%s %s, type: %s, price: %s" % (self.user, self.creation_date, self.type, self.price)
 
 
 class ServiceUnitPrice(models.Model):

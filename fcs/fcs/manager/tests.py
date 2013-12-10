@@ -1,7 +1,9 @@
 import datetime
+from django.utils import timezone
 
 from django.test import TestCase
 from django.core.exceptions import ValidationError
+from django.utils.timezone import get_current_timezone
 
 from models import UserData, Quota, User, CrawlingType, Service, ServiceUnitPrice
 import models
@@ -137,15 +139,20 @@ class PriceCalculatorTest(TestCase):
     @classmethod
     def setupClass(cls):
         ServiceUnitPrice.objects.create(service_type=Service.INCREASE_MAX_LINKS,
-                                        date_from=datetime.datetime(1990, 12, 31),
-                                        date_to=datetime.datetime(2020, 12, 31), price=2)
+                                        date_from=(timezone.now() - datetime.timedelta(days=4)),
+                                        date_to=(timezone.now() - datetime.timedelta(minutes=1)),
+                                                                      price=1).save()
         ServiceUnitPrice.objects.create(service_type=Service.INCREASE_MAX_LINKS,
-                                        date_from=datetime.datetime(1990, 12, 31),
-                                        date_to=datetime.datetime(2000, 12, 31), price=3)
+                                        date_from=(timezone.now() + datetime.timedelta(minutes=10)),
+                                        date_to=(timezone.now() + datetime.timedelta(minutes=30)),
+                                                                      price=2).save()
+        ServiceUnitPrice.objects.create(service_type=Service.INCREASE_MAX_LINKS,
+                                        date_from=timezone.now() - datetime.timedelta(days=5),
+                                        date_to=timezone.now() + datetime.timedelta(days=1, minutes=1), price=3).save()
 
     def price_calculator_test(self):
         _price_calculator = PriceCalculator()
-        self.assertEqual(_price_calculator.get_current_price(Service.INCREASE_MAX_LINKS).count(), 1)
+        self.assertEqual(_price_calculator.get_current_price(Service.INCREASE_MAX_LINKS).price, 3)
 
     @classmethod
     def tearDown(cls):

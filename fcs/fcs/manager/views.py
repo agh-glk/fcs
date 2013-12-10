@@ -90,6 +90,7 @@ def show_task(request, task_id):
         return redirect('/tasks/list/')
     return render(request, 'tasks/show.html', {'task': task, 'form':form})
 
+
 @login_required()
 def increase_quota(request):
     if request.method == 'POST':
@@ -102,14 +103,15 @@ def increase_quota(request):
                 if _additional_priority_pool > 0:
                     _price = _price_calculator.calculate_price_increase_quota(Service.INCREASE_PRIORITY_POOL,
                                                                               _additional_priority_pool)
-                    Service.objects.create(user=request.user, type=Service.INCREASE_PRIORITY_POOL, price=_price).save()
+                    Service.objects.create(user=request.user, type=Service.INCREASE_PRIORITY_POOL, price=_price) \
+                        .save()
                 if _additional_links_pool > 0:
                     _price = _price_calculator.calculate_price_increase_quota(Service.INCREASE_LINKS_POOL,
-                                                                               _additional_links_pool)
+                                                                              _additional_links_pool)
                     Service.objects.create(user=request.user, type=Service.INCREASE_LINKS_POOL, price=_price).save()
-                mh = mailing_helper.MailingHelper('./fcs/manager/backend/mail_templates')
-                mh.send_html_email("Increase quota", "info", {"title":"AAAA", "body":"BBB"}, "inf@fcs.pl",
-                                         [request.user.email])
+                mh = mailing_helper.MailingHelper('./fcs/backend/mail_templates')
+                mh.send_html_email("Increase quota", "info", {"title": "AAAA", "body": "BBB"}, "inf@fcs.pl",
+                                   [request.user.email])
             except Exception:
                 raise
             messages.success(request, "Check your email and confirm operation.")

@@ -1,6 +1,7 @@
 from fcs.manager.models import ServiceUnitPrice
 import datetime
 from django.db.models import Q
+from django.utils import timezone
 
 
 class PriceCalculator():
@@ -10,9 +11,9 @@ class PriceCalculator():
 
     @staticmethod
     def get_current_price(service_type):
-        _results = ServiceUnitPrice.objects.filter(Q(service_type=service_type) & Q(date_to__gte=datetime.datetime.combine(datetime.datetime.now(),
-                                                                                  datetime.time.min)))
-        return list(_results)
+        _results = ServiceUnitPrice.objects.filter(Q(service_type=service_type)
+                                                   & Q(date_to__gt=timezone.now()) & Q(date_from__lt=timezone.now()))
+        return sorted(_results, key=lambda x: x.price)[0]
 
     def calculate_price_increase_quota(self, service_type, additional_resource_pool):
         _price = self.get_current_price(service_type).price *\
