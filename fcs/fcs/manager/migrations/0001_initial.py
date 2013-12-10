@@ -8,28 +8,99 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding model 'UserData'
+        db.create_table(u'manager_userdata', (
+            ('user', self.gf('django.db.models.fields.related.OneToOneField')(related_name='user_data', unique=True, primary_key=True, to=orm['auth.User'])),
+            ('key', self.gf('django.db.models.fields.CharField')(unique=True, max_length=100)),
+        ))
+        db.send_create_signal(u'manager', ['UserData'])
+
         # Adding model 'Quota'
         db.create_table(u'manager_quota', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('mock_field', self.gf('django.db.models.fields.IntegerField')()),
+            ('max_priority', self.gf('django.db.models.fields.IntegerField')(default=10)),
+            ('priority_pool', self.gf('django.db.models.fields.IntegerField')(default=100)),
+            ('max_tasks', self.gf('django.db.models.fields.IntegerField')(default=50)),
+            ('link_pool', self.gf('django.db.models.fields.IntegerField')(default=10000)),
+            ('max_links', self.gf('django.db.models.fields.IntegerField')(default=10000)),
+            ('user', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['auth.User'], unique=True)),
         ))
         db.send_create_signal(u'manager', ['Quota'])
 
-        # Adding model 'ClientData'
-        db.create_table(u'manager_clientdata', (
+        # Adding model 'CrawlingType'
+        db.create_table(u'manager_crawlingtype', (
             (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['auth.User'], unique=True)),
-            ('quota', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['manager.Quota'], unique=True)),
+            ('type', self.gf('django.db.models.fields.IntegerField')(max_length=1)),
         ))
-        db.send_create_signal(u'manager', ['ClientData'])
+        db.send_create_signal(u'manager', ['CrawlingType'])
+
+        # Adding model 'Task'
+        db.create_table(u'manager_task', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
+            ('priority', self.gf('django.db.models.fields.IntegerField')(default=1)),
+            ('whitelist', self.gf('django.db.models.fields.CharField')(max_length=250)),
+            ('blacklist', self.gf('django.db.models.fields.CharField')(max_length=250)),
+            ('max_links', self.gf('django.db.models.fields.IntegerField')(default=1000)),
+            ('expire', self.gf('django.db.models.fields.DateTimeField')()),
+            ('active', self.gf('django.db.models.fields.BooleanField')(default=True)),
+            ('finished', self.gf('django.db.models.fields.BooleanField')(default=False)),
+        ))
+        db.send_create_signal(u'manager', ['Task'])
+
+        # Adding M2M table for field type on 'Task'
+        m2m_table_name = db.shorten_name(u'manager_task_type')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('task', models.ForeignKey(orm[u'manager.task'], null=False)),
+            ('crawlingtype', models.ForeignKey(orm[u'manager.crawlingtype'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['task_id', 'crawlingtype_id'])
+
+        # Adding model 'Service'
+        db.create_table(u'manager_service', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('type', self.gf('django.db.models.fields.IntegerField')(max_length=2)),
+            ('price', self.gf('django.db.models.fields.DecimalField')(max_digits=12, decimal_places=2)),
+            ('creation_date', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('confirmed', self.gf('django.db.models.fields.BooleanField')(default=False)),
+        ))
+        db.send_create_signal(u'manager', ['Service'])
+
+        # Adding model 'ServiceUnitPrice'
+        db.create_table(u'manager_serviceunitprice', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('service_type', self.gf('django.db.models.fields.IntegerField')(max_length=2)),
+            ('price', self.gf('django.db.models.fields.DecimalField')(max_digits=12, decimal_places=2)),
+            ('date_from', self.gf('django.db.models.fields.DateTimeField')()),
+            ('date_to', self.gf('django.db.models.fields.DateTimeField')()),
+        ))
+        db.send_create_signal(u'manager', ['ServiceUnitPrice'])
 
 
     def backwards(self, orm):
+        # Deleting model 'UserData'
+        db.delete_table(u'manager_userdata')
+
         # Deleting model 'Quota'
         db.delete_table(u'manager_quota')
 
-        # Deleting model 'ClientData'
-        db.delete_table(u'manager_clientdata')
+        # Deleting model 'CrawlingType'
+        db.delete_table(u'manager_crawlingtype')
+
+        # Deleting model 'Task'
+        db.delete_table(u'manager_task')
+
+        # Removing M2M table for field type on 'Task'
+        db.delete_table(db.shorten_name(u'manager_task_type'))
+
+        # Deleting model 'Service'
+        db.delete_table(u'manager_service')
+
+        # Deleting model 'ServiceUnitPrice'
+        db.delete_table(u'manager_serviceunitprice')
 
 
     models = {
@@ -69,16 +140,56 @@ class Migration(SchemaMigration):
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
         },
-        u'manager.clientdata': {
-            'Meta': {'object_name': 'ClientData'},
+        u'manager.crawlingtype': {
+            'Meta': {'object_name': 'CrawlingType'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'quota': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['manager.Quota']", 'unique': 'True'}),
-            'user': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['auth.User']", 'unique': 'True'})
+            'type': ('django.db.models.fields.IntegerField', [], {'max_length': '1'})
         },
         u'manager.quota': {
             'Meta': {'object_name': 'Quota'},
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'mock_field': ('django.db.models.fields.IntegerField', [], {})
+            'link_pool': ('django.db.models.fields.IntegerField', [], {'default': '10000'}),
+            'max_links': ('django.db.models.fields.IntegerField', [], {'default': '10000'}),
+            'max_priority': ('django.db.models.fields.IntegerField', [], {'default': '10'}),
+            'max_tasks': ('django.db.models.fields.IntegerField', [], {'default': '50'}),
+            'priority_pool': ('django.db.models.fields.IntegerField', [], {'default': '100'}),
+            'user': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['auth.User']", 'unique': 'True'})
+        },
+        u'manager.service': {
+            'Meta': {'object_name': 'Service'},
+            'confirmed': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'creation_date': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'price': ('django.db.models.fields.DecimalField', [], {'max_digits': '12', 'decimal_places': '2'}),
+            'type': ('django.db.models.fields.IntegerField', [], {'max_length': '2'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"})
+        },
+        u'manager.serviceunitprice': {
+            'Meta': {'object_name': 'ServiceUnitPrice'},
+            'date_from': ('django.db.models.fields.DateTimeField', [], {}),
+            'date_to': ('django.db.models.fields.DateTimeField', [], {}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'price': ('django.db.models.fields.DecimalField', [], {'max_digits': '12', 'decimal_places': '2'}),
+            'service_type': ('django.db.models.fields.IntegerField', [], {'max_length': '2'})
+        },
+        u'manager.task': {
+            'Meta': {'object_name': 'Task'},
+            'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
+            'blacklist': ('django.db.models.fields.CharField', [], {'max_length': '250'}),
+            'expire': ('django.db.models.fields.DateTimeField', [], {}),
+            'finished': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'max_links': ('django.db.models.fields.IntegerField', [], {'default': '1000'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
+            'priority': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
+            'type': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['manager.CrawlingType']", 'symmetrical': 'False'}),
+            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
+            'whitelist': ('django.db.models.fields.CharField', [], {'max_length': '250'})
+        },
+        u'manager.userdata': {
+            'Meta': {'object_name': 'UserData'},
+            'key': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
+            'user': ('django.db.models.fields.related.OneToOneField', [], {'related_name': "'user_data'", 'unique': 'True', 'primary_key': 'True', 'to': u"orm['auth.User']"})
         }
     }
 
