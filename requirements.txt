@@ -3,7 +3,7 @@ django>=1.6
 south
 coverage
 coveralls
-django-nose
+django-pytest
 django-registration
 djangorestframework
 markdown

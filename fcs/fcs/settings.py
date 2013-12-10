@@ -38,7 +38,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'south',
     'fcs.manager',
-    'django_nose',
+    'django_pytest',
     'django.contrib.sites',
     'registration',
     'rest_framework'
@@ -103,12 +103,10 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+TEST_RUNNER = 'django_pytest.test_runner.TestRunner'
 
-NOSE_ARGS = [
-    '--with-coverage',
-    '--cover-package=fcs',
-]
+# Database used for tests?
+#DATABASE_NAME = 'test_db'
 
 REST_FRAMEWORK = {
     # Use hyperlinked styles by default.
