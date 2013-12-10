@@ -1,14 +1,10 @@
-from threading import Lock
-
 from django.core.exceptions import ValidationError
-from django.contrib.sites.management import create_default_site
 from django.db import models
 from django.contrib.auth.models import User
 from registration import signals
 from threading import Lock
-from django.utils import timezone
 
-from fcs.backend.keys_helper import KeysHelper
+from fcs.backend import keys_helper
 from django.utils import timezone
 
 
@@ -53,9 +49,9 @@ def initialise_user_object(user):
         if Quota.objects.filter(user=user).count() == 0:
             Quota.objects.create(user=user).save()
         if UserData.objects.filter(user=user).count() == 0:
-            _key = KeysHelper.generate()
+            _key = keys_helper.KeysHelper.generate()
             while UserData.objects.filter(key=_key).count() != 0:
-                _key = KeysHelper.generate()
+                _key = keys_helper.KeysHelper.generate()
             UserData.objects.create(user=user, key=_key).save()
     finally:
         lock.release()
