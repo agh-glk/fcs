@@ -1,4 +1,4 @@
-from models import UserData, Quota, User, QuotaException, Task, CrawlingType, ServiceUnitPrice, Service
+from models import User, Quota, User, QuotaException, Task, CrawlingType, ServiceUnitPrice, Service
 import models
 import datetime
 from fcs.backend.price_calculator import PriceCalculator
@@ -18,7 +18,6 @@ class TestTask:
         CrawlingType.objects.create(type=CrawlingType.LINKS)
         CrawlingType.objects.create(type=CrawlingType.PICTURES)
         Quota.objects.create(max_priority=10, max_tasks=1, max_links=1000, user=self.user)
-        UserData.objects.create(user=self.user)
 
     def teardown(self):
         self.user.delete()
