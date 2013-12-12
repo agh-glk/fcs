@@ -5,11 +5,11 @@ from django_pytest.conftest import pytest_funcarg__client, pytest_funcarg__djang
 class TestTask:
     def get_user(self):
         if self.user is None:
-            self.user = User.objects.get(username='test_user5')
+            self.user = User.objects.get(username='test_user')
         return self.user
 
     def setup(self):
-        self.user = User.objects.create_user(username='test_user5', password='test_pwd', email='test@gmail.pl')
+        self.user = User.objects.create_user(username='test_user', password='test_pwd', email='test@gmail.pl')
         CrawlingType.objects.create(type=CrawlingType.TEXT)
         CrawlingType.objects.create(type=CrawlingType.LINKS)
         CrawlingType.objects.create(type=CrawlingType.PICTURES)
