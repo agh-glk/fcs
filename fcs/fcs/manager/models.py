@@ -1,12 +1,22 @@
-from django.contrib.sites.management import create_default_site
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 from registration import signals
 from threading import Lock
+from fcs.backend import keys_helper
+
 from django.utils import timezone
 
+
 class UserData(models.Model):
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, primary_key=True, related_name='user_data')
+    key = models.CharField(max_length=100, unique=True, blank=False)
+
+    def clean(self):
+        if self.user is None:
+            raise ValidationError('UserData must be connected with User object.')
+        if self.key == '':
+            raise ValidationError('User key cannot be empty.')
 
     def __unicode__(self):
         return "User %s data" % self.user.__unicode__()
@@ -14,7 +24,9 @@ class UserData(models.Model):
 
 class Quota(models.Model):
     max_priority = models.IntegerField(default=10)
-    max_tasks = models.IntegerField(default=5)
+    priority_pool = models.IntegerField(default=100)
+    max_tasks = models.IntegerField(default=50)
+    link_pool = models.IntegerField(default=10000)
     max_links = models.IntegerField(default=10000)
     user = models.OneToOneField(User)
 
@@ -26,35 +38,47 @@ class QuotaException(Exception):
     pass
 
 
-def activate_user_callback(sender, **kwargs):
+def initialise_user_object(user):
     """
     Function creates objects connected with User -
     UserData and Quota after user account is activated.
     """
-    user = kwargs['user']
     lock = Lock()
     lock.acquire()
     try:
         if Quota.objects.filter(user=user).count() == 0:
             Quota.objects.create(user=user).save()
         if UserData.objects.filter(user=user).count() == 0:
-            UserData.objects.create(user=user).save()
+            _key = keys_helper.KeysHelper.generate()
+            while UserData.objects.filter(key=_key).count() != 0:
+                _key = keys_helper.KeysHelper.generate()
+            UserData.objects.create(user=user, key=_key).save()
     finally:
         lock.release()
+
+
+def activate_user_callback(sender, **kwargs):
+    """
+    Function creates objects connected with User -
+    UserData and Quota after user account is activated.
+    """
+    _user = kwargs['user']
+    initialise_user_object(_user)
 
 
 signals.user_activated.connect(activate_user_callback, dispatch_uid="model")
 
 
-CRAWLING_TYPES_CHOICES = (
-    (0, 'TEXT'),
-    (1, 'PICTURES'),
-    (2, 'LINKS')
-)
+
 class CrawlingType(models.Model):
     TEXT = 0
     PICTURES = 1
     LINKS = 2
+    CRAWLING_TYPES_CHOICES = (
+        (0, 'TEXT'),
+        (1, 'PICTURES'),
+        (2, 'LINKS')
+    )
     type = models.IntegerField(max_length=1, choices=CRAWLING_TYPES_CHOICES)
 
     def __unicode__(self):
@@ -64,16 +88,16 @@ class CrawlingType(models.Model):
 class Task(models.Model):
     """Class representing crawling tasks defined by users"""
     user = models.ForeignKey(User, null=False)
-    name = models.CharField(max_length=100, null=False)
+    name = models.CharField(max_length=100, null=False, unique=True)
     priority = models.IntegerField(default=1, null=False)
     whitelist = models.CharField(max_length=250, null=False)
     blacklist = models.CharField(max_length=250, null=False)
     max_links = models.IntegerField(default=1000, null=False)
-    expire = models.DateTimeField(null=False)
+    expire_date = models.DateTimeField(null=False)
     type = models.ManyToManyField(CrawlingType)
     active = models.BooleanField(default=True)
     finished = models.BooleanField(default=False)
-    created = models.DateTimeField(null=False)
+    created = models.DateTimeField(default=timezone.now, null=False)
 
     @classmethod
     def create_task(self, user, name, priority, expire, types, whitelist, blacklist='', max_links=1000):
@@ -88,7 +112,7 @@ class Task(models.Model):
         if user.quota.max_links < max_links:
             raise QuotaException('Task link limit exceeds user quota!')
         task = Task.objects.create(user=user, name=name, whitelist=whitelist, blacklist=blacklist,
-                                   max_links=max_links, expire=expire, priority=priority, created=timezone.now())
+                                   max_links=max_links, expire_date=expire, priority=priority)
         task.save()
         task.type.add(*list(types))
         task.save()
@@ -141,7 +165,38 @@ class Task(models.Model):
         return "Task %s of user %s" % (self.name, self.user)
 
 
+class Service(models.Model):
+    CRAWLING = 0
+    INCREASE_MAX_LINKS = 1
+    INCREASE_MAX_PRIORITY = 2
+    INCREASE_PRIORITY_POOL = 3
+    INCREASE_LINKS_POOL = 4
+    SERVICES_TYPES_CHOICES = (
+        (0, 'CRAWLING'),
+        (1, 'INCREASE_MAX_LINKS'),
+        (2, 'INCREASE_MAX_PRIORITY'),
+        (3, 'INCREASE_PRIORITY_POOL'),
+        (4, 'INCREASE_LINKS_POOL')
+    )
 
+    user = models.ForeignKey(User)
+    type = models.IntegerField(max_length=2, choices=SERVICES_TYPES_CHOICES)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    creation_date = models.DateTimeField(default=timezone.now)
+    confirmed = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        return "%s %s, type: %s, price: %s" % (self.user, self.creation_date, self.get_type_display(), self.price)
+
+
+class ServiceUnitPrice(models.Model):
+    service_type = models.IntegerField(max_length=2, choices=Service.SERVICES_TYPES_CHOICES)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    date_from = models.DateTimeField()
+    date_to = models.DateTimeField()
+
+    def __unicode__(self):
+        return "Unit price for %s from %s to %s" % (self.get_service_type_display(), self.date_from, self.date_to)
 
 
 

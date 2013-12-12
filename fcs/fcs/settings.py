@@ -41,7 +41,8 @@ INSTALLED_APPS = (
     'django_pytest',
     'django.contrib.sites',
     'registration',
-    'rest_framework'
+    'rest_framework',
+    'fcs.backend'
 )
 
 #Django-Registration BEGIN

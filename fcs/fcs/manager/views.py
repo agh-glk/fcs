@@ -3,10 +3,12 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth import logout, authenticate, login
 from django.shortcuts import redirect
-import forms
 from django.contrib.auth.decorators import login_required
-from models import Task, CrawlingType
 from django.shortcuts import get_object_or_404
+
+import forms
+from models import Task, CrawlingType, Service
+from fcs.backend import mailing_helper, price_calculator
 
 
 def index(request):
@@ -87,3 +89,39 @@ def show_task(request, task_id):
         messages.success(request, "Task %s updated" % task.name)
         return redirect('/tasks/list/')
     return render(request, 'tasks/show.html', {'task': task, 'form':form})
+
+
+@login_required()
+def increase_quota(request):
+    if request.method == 'POST':
+        form = forms.IncreaseQuotaForm(request.POST)
+        if form.is_valid():
+            try:
+                _additional_priority_pool, _additional_links_pool = \
+                    [form.cleaned_data[x] for x in ['priority_pool', 'link_pool']]
+                _price_calculator = price_calculator.PriceCalculator()
+                _additional_priority_service = None
+                _additional_links_service = None
+                if _additional_priority_pool > 0:
+                    _price = _price_calculator.calculate_price_increase_quota(Service.INCREASE_PRIORITY_POOL,
+                                                                              _additional_priority_pool)
+                    _additional_priority_service = Service(user=request.user, type=Service.INCREASE_PRIORITY_POOL,
+                                                           price=_price)
+                if _additional_links_pool > 0:
+                    _price = _price_calculator.calculate_price_increase_quota(Service.INCREASE_LINKS_POOL,
+                                                                              _additional_links_pool)
+                    _additional_links_service = Service(user=request.user, type=Service.INCREASE_LINKS_POOL,
+                                                        price=_price)
+                mh = mailing_helper.MailingHelper('./fcs/backend/mail_templates')
+                mh.send_html_email("Increase quota", "info", {"title": "AAAA", "body": "BBB"}, "inf@fcs.pl",
+                                   [request.user.email])
+            except Exception:
+                raise
+            else:
+                _additional_priority_service is not None and _additional_priority_service.save()
+                _additional_links_service is not None and _additional_links_service.save()
+            messages.success(request, "Check your email and confirm operation.")
+            return redirect('/tasks/list/')
+    else:
+        form = forms.IncreaseQuotaForm()
+    return render(request, 'increase_quota.html', {'form': form})

@@ -1,6 +1,6 @@
 from django import forms
 from django.forms.widgets import PasswordInput, SplitDateTimeWidget, TextInput
-from models import CrawlingType, CRAWLING_TYPES_CHOICES, Task
+from models import CrawlingType, Task
 
 
 class RegistrationForm(forms.Form):
@@ -53,6 +53,11 @@ class CreateTaskForm(forms.Form):
     blacklist = forms.CharField(max_length=250)
     max_links = forms.IntegerField()
     expire = forms.DateTimeField(widget=SplitDateTimeWidget(date_format='%Y-%m-%d', time_format='%H:%M'))
-    type = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, choices=CRAWLING_TYPES_CHOICES)
+    type = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, choices=CrawlingType.CRAWLING_TYPES_CHOICES)
 
 
+class IncreaseQuotaForm(forms.Form):
+    max_priority = forms.IntegerField()
+    priority_pool = forms.IntegerField()
+    max_tasks = forms.IntegerField()
+    link_pool = forms.IntegerField()
