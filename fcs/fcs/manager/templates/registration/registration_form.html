@@ -5,8 +5,3 @@
 {% block form-title %}Please register{% endblock form-title %}
 {% block form-url %}{% url 'registration_register' %}{% endblock form-url %}
 {% block form-button %}Register{% endblock form-button %}
-
-{% block scripts %}
-    {{ block.super }}
-    <script src="{{ STATIC_URL }}js/registration-form.js"></script>
-{% endblock scripts %}

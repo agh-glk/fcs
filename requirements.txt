@@ -8,3 +8,4 @@ django-registration
 djangorestframework
 markdown
 django-filter
+django-widget-tweaks
