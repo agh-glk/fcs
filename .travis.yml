@@ -6,9 +6,8 @@ install:
   - pip install -r requirements.txt --use-mirrors
   - pip install -e .
 
-script:
-  python fcs/manage.py syncdb
-  coverage run --source fcs/fcs/manager -m py.test
+before_script: python fcs/manage.py syncdb
+script: coverage run --source fcs/fcs/manager -m py.test
 
 after_success:
   - coveralls
