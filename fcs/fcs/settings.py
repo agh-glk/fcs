@@ -45,6 +45,8 @@ INSTALLED_APPS = (
     'fcs.backend'
 )
 
+AUTH_USER_MODEL = 'manager.User'
+
 #Django-Registration BEGIN
 
 ACCOUNT_ACTIVATION_DAYS = 7

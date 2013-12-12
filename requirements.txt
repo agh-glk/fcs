@@ -4,7 +4,8 @@ south
 coverage
 coveralls
 django-nose
-django-registration
 djangorestframework
 markdown
 django-filter
+
+https://bitbucket.org/prjts/django-registration/get/tip.tar.gz
