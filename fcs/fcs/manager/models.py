@@ -1,25 +1,42 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.contrib.auth.models import User
-from registration import signals
-from threading import Lock
 from fcs.backend import keys_helper
 
 from django.utils import timezone
+import django.contrib.auth.models
 
 
-class UserData(models.Model):
-    user = models.OneToOneField(User, primary_key=True, related_name='user_data')
+class UserManager(django.contrib.auth.models.BaseUserManager):
+
+    def create_user(self, username, email, password):
+        key = keys_helper.KeysHelper.generate()
+        while User.objects.filter(key=key).count() != 0:
+                key = keys_helper.KeysHelper.generate()
+        user = self.model(username=username, email=self.normalize_email(email), key=key)
+        user.set_password(password)
+        user.is_active = False
+        user.save(using=self._db)
+        quota = Quota.objects.create(user=user)
+        quota.save()
+        return user
+
+    def create_superuser(self, username, email, password):
+        user = self.create_user(username=username, email=self.normalize_email(email), password=password)
+        user.is_active = True
+        user.is_admin = True
+        user.is_staff = True
+        user.is_superuser = True
+        user.save(using=self._db)
+        return user
+
+
+class User(django.contrib.auth.models.AbstractUser):
     key = models.CharField(max_length=100, unique=True, blank=False)
 
-    def clean(self):
-        if self.user is None:
-            raise ValidationError('UserData must be connected with User object.')
-        if self.key == '':
-            raise ValidationError('User key cannot be empty.')
+    objects = UserManager()
 
     def __unicode__(self):
-        return "User %s data" % self.user.__unicode__()
+        return "User %s" % self.username
 
 
 class Quota(models.Model):
@@ -36,38 +53,6 @@ class Quota(models.Model):
 
 class QuotaException(Exception):
     pass
-
-
-def initialise_user_object(user):
-    """
-    Function creates objects connected with User -
-    UserData and Quota after user account is activated.
-    """
-    lock = Lock()
-    lock.acquire()
-    try:
-        if Quota.objects.filter(user=user).count() == 0:
-            Quota.objects.create(user=user).save()
-        if UserData.objects.filter(user=user).count() == 0:
-            _key = keys_helper.KeysHelper.generate()
-            while UserData.objects.filter(key=_key).count() != 0:
-                _key = keys_helper.KeysHelper.generate()
-            UserData.objects.create(user=user, key=_key).save()
-    finally:
-        lock.release()
-
-
-def activate_user_callback(sender, **kwargs):
-    """
-    Function creates objects connected with User -
-    UserData and Quota after user account is activated.
-    """
-    _user = kwargs['user']
-    initialise_user_object(_user)
-
-
-signals.user_activated.connect(activate_user_callback, dispatch_uid="model")
-
 
 
 class CrawlingType(models.Model):

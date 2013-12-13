@@ -5,8 +5,8 @@ coverage
 coveralls
 pytest
 django-pytest
-django-registration
 djangorestframework
 markdown
 django-filter
 django-widget-tweaks
+https://bitbucket.org/prjts/django-registration/get/tip.tar.gz
