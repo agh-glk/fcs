@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
+{% load custom_tags %}
 
 {% block rels %}
     {{ block.super }}
@@ -10,7 +11,16 @@
     <h3>{% block form-title %}Form{% endblock form-title %}</h3>
     <form class="form-signin" action="{% block form-url %}#{% endblock form-url %}" method="post">{% csrf_token %}
         {% for field in form %}
-        {% render_field field class+="form-control" placeholder=field.label %}
+        {% if field|is_checkbox %}
+            {% for check in field %}
+                <label class="checkbox-inline">
+                    {{ check.tag }}
+                    {{ check.choice_label }}
+                </label>
+            {% endfor %}
+        {% else %}
+            {% render_field field class+="form-control" placeholder=field.label %}
+        {% endif %}
         {% for error in field.errors %}
         <div class="alert alert-danger field-alert">{{ error }}</div>
         {% endfor %}

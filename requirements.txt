@@ -3,6 +3,7 @@ django>=1.6
 south
 coverage
 coveralls
+pytest
 django-pytest
 django-registration
 djangorestframework
