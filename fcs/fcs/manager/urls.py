@@ -16,6 +16,7 @@ urlpatterns = patterns('',
     url(r'^tasks/show/(?P<task_id>\d+)/$', views.show_task, name='show_task'),
     
     url(r'^api/', include('fcs.manager.apiurls', namespace='api')),
+    url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 )
 
 urlpatterns += staticfiles_urlpatterns()

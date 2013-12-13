@@ -8,5 +8,6 @@ django-pytest
 djangorestframework
 markdown
 django-filter
+django-oauth-toolkit
 
 https://bitbucket.org/prjts/django-registration/get/tip.tar.gz
