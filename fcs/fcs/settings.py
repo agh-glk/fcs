@@ -110,7 +110,7 @@ STATIC_URL = '/static/'
 TEST_RUNNER = 'django_pytest.test_runner.TestRunner'
 
 # Database used for tests?
-#DATABASE_NAME = 'test_db'
+DATABASE_NAME = 'test_db'
 
 REST_FRAMEWORK = {
     # Use hyperlinked styles by default.
