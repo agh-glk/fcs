@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 import forms
 from models import Task, CrawlingType, Service
 from fcs.backend import mailing_helper, price_calculator
+from oauth2_provider.models import Application
 
 
 def index(request):
@@ -125,3 +126,12 @@ def increase_quota(request):
     else:
         form = forms.IncreaseQuotaForm()
     return render(request, 'increase_quota.html', {'form': form})
+
+
+def api_keys(request):
+    application = Application.objects.filter(user=request.user).first()
+    if request.method == 'POST':
+        Application.objects.create(user=request.user)
+        return redirect('api_keys')
+    return render(request, 'api_keys.html', {'application': application})
+

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}API Keys{% endblock title %}
+
+{% block content %}
+    {% if application == None %}
+        <form class="form-signin" action="." method="post">{% csrf_token %}
+            <button class="btn btn-lg btn-primary btn-block" type="">{% block form-button %}Generate{% endblock form-button %}</button>
+        </form>
+    {% else %}
+        <p>Secret key: {{ application.client_secret }}</p>
+        <p>Client id: {{ application.client_id }}</p>
+    {% endif %}
+{% endblock content %}
