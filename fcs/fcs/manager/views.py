@@ -51,7 +51,8 @@ def change_password(request):
                     request.user.set_password(passwd1)
                     request.user.save()
                     logout(request)
-                    return render(request, 'passwd_changed_scs.html')
+                    messages.success(request, "Password changed successfully. Please log-in again")
+                    return redirect('index')
         else:
             form = forms.ChangePasswordForm()
         return render(request, 'change_password.html', {'form': form})
