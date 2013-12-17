@@ -19,6 +19,8 @@ def add_task(request):
         return Response(e.message, status=status.HTTP_400_BAD_REQUEST)
     except QuotaException as e:
         return Response(e.message, status=status.HTTP_412_PRECONDITION_FAILED)
+    except Exception as e:
+        return Response(e.message, status=status.HTTP_400_BAD_REQUEST)
     return Response({'id': task.id}, status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])

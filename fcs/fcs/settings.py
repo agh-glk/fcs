@@ -43,7 +43,7 @@ INSTALLED_APPS = (
     'registration',
     'rest_framework',
     'fcs.backend',
-    'widget_tweaks'
+    'widget_tweaks',
     'oauth2_provider'
 )
 
