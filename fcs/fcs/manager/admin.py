@@ -7,7 +7,7 @@ class QuotaInline(admin.StackedInline):
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email')
+    list_display = ('id', 'username', 'email')
     search_fields = ('username', 'email')
     inlines = [QuotaInline]
 

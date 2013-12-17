@@ -3,10 +3,11 @@ django>=1.6
 south
 coverage
 coveralls
-pytest
+django-nose
 django-pytest
 djangorestframework
 markdown
 django-filter
+django-oauth-toolkit
 django-widget-tweaks
 https://bitbucket.org/prjts/django-registration/get/tip.tar.gz

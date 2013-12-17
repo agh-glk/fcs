@@ -1,18 +1,15 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from fcs.backend import keys_helper
 
 from django.utils import timezone
 import django.contrib.auth.models
+import oauth2_provider.models
 
 
 class UserManager(django.contrib.auth.models.BaseUserManager):
 
     def create_user(self, username, email, password):
-        key = keys_helper.KeysHelper.generate()
-        while User.objects.filter(key=key).count() != 0:
-                key = keys_helper.KeysHelper.generate()
-        user = self.model(username=username, email=self.normalize_email(email), key=key)
+        user = self.model(username=username, email=self.normalize_email(email))
         user.set_password(password)
         user.is_active = False
         user.save(using=self._db)
@@ -31,8 +28,6 @@ class UserManager(django.contrib.auth.models.BaseUserManager):
 
 
 class User(django.contrib.auth.models.AbstractUser):
-    key = models.CharField(max_length=100, unique=True, blank=False)
-
     objects = UserManager()
 
     def __unicode__(self):
@@ -138,7 +133,7 @@ class Task(models.Model):
         self.finished = True
         self.save()
 
-    def feedback(self,score_dict):
+    def feedback(self, score_dict):
         """Process feedback from client
 
         Update crawling process in order to satisfy client expectations

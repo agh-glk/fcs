@@ -1,4 +1,4 @@
-from models import User, Quota, User, QuotaException, Task, CrawlingType, ServiceUnitPrice, Service
+from models import Quota, User, QuotaException, Task, CrawlingType, ServiceUnitPrice, Service
 import models
 import datetime
 from fcs.backend.price_calculator import PriceCalculator

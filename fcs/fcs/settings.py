@@ -43,7 +43,8 @@ INSTALLED_APPS = (
     'registration',
     'rest_framework',
     'fcs.backend',
-    'widget_tweaks'
+    'widget_tweaks',
+    'oauth2_provider'
 )
 
 AUTH_USER_MODEL = 'manager.User'
@@ -112,6 +113,11 @@ TEST_RUNNER = 'django_pytest.test_runner.TestRunner'
 # Database used for tests?
 DATABASE_NAME = 'test_db'
 
+OAUTH2_PROVIDER = {
+    # this is the list of available scopes
+    'SCOPES': {'read': 'Read scope', 'write': 'Write scope'}
+}
+
 REST_FRAMEWORK = {
     # Use hyperlinked styles by default.
     # Only used if the `serializer_class` attribute is not set on a view.
@@ -120,8 +126,11 @@ REST_FRAMEWORK = {
 
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
-    'DEFAULT_PERMISSION_CLASSES': [
-        #'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly'
-    ]
+     'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'oauth2_provider.ext.rest_framework.OAuth2Authentication',
+    )
 }
