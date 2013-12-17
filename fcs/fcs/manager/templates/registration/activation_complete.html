@@ -1,9 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title></title>
-</head>
-<body>
-Your account is active now.
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block msgs %}
+{{ block.super }}
+<div class="alert alert-info">Your account is active now.</div>
+{% endblock msgs %}

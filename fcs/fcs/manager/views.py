@@ -25,7 +25,11 @@ def login_user(request):
             if user is not None and user.is_active:
                 login(request, user)
                 messages.success(request, "Login successful.")
-                return redirect('/')
+                return redirect('index')
+            elif user:
+                messages.error(request, "Account is not activated. Check your email.")
+            else:
+                messages.error(request, "Authentication failed. Incorrect username or password.")
     else:
         if request.user.is_authenticated():
             return HttpResponse('You are already logged in')
@@ -37,7 +41,7 @@ def login_user(request):
 def logout_user(request):
     logout(request)
     messages.success(request, "Logout successful.")
-    return redirect('/')
+    return redirect('index')
 
 
 @login_required()

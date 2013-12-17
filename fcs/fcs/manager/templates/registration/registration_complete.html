@@ -1,9 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title></title>
-</head>
-<body>
-Registration successful. Activation mail has been sent.
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block msgs %}
+{{ block.super }}
+<div class="alert alert-success">Registration successful. Activation mail has been sent.</div>
+{% endblock msgs %}

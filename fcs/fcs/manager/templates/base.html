@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+
+{% load custom_tags %}
 <html>
 <head>
     <title>{% block title %}Home{% endblock title %}</title>
@@ -14,8 +16,7 @@
 
     {% block msgs %}
     {% for message in messages %}
-    <div class="alert alert-info">{{ message }}</div>
-    <!--<div class="alert {% if message.tags %} {{ message.tags }} {% endif %}">{{ message }}</div> -->
+    <div class="alert {% if message.tags %} {{ message.tags|alert_tag }} {% endif %}">{{ message }}</div>
     {% endfor %}
     {% endblock msgs %}
 
