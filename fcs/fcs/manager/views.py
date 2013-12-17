@@ -82,7 +82,7 @@ def add_task(request):
             _crawling_types = CrawlingType.objects.filter(type__in=map(lambda x: int(x), types))
             Task.create_task(request.user, name, priority, expire, _crawling_types, whitelist, blacklist, max_links)
             messages.success(request, 'New task created.')
-            return redirect('/tasks/list/')
+            return redirect('list_tasks')
     else:
         form = forms.CreateTaskForm()
     return render(request, 'tasks/add.html', {'form': form})
@@ -95,7 +95,7 @@ def show_task(request, task_id):
     if form.is_valid():
         form.save()
         messages.success(request, "Task %s updated" % task.name)
-        return redirect('/tasks/list/')
+        return redirect('list_tasks')
     return render(request, 'tasks/show.html', {'task': task, 'form':form})
 
 
@@ -129,7 +129,7 @@ def increase_quota(request):
                 _additional_priority_service is not None and _additional_priority_service.save()
                 _additional_links_service is not None and _additional_links_service.save()
             messages.success(request, "Check your email and confirm operation.")
-            return redirect('/tasks/list/')
+            return redirect('list_tasks')
     else:
         form = forms.IncreaseQuotaForm()
     return render(request, 'increase_quota.html', {'form': form})
