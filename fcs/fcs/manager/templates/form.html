@@ -18,7 +18,7 @@
         <div class="form-group {% if field.errors %}has-error{% endif %}">
             <label for="{{ field.id_for_label }}" class="col-sm-3 control-label">{{ field.label }}</label>
             <div class="col-sm-6">
-            {% if field|is_checkbox %}
+            {% if field|is_class:"CheckboxSelectMultiple" %}
                 {% for check in field %}
                     <div class="col-sm-4">
                     <label class="checkbox-inline">

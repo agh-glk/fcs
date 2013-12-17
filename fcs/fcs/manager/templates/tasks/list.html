@@ -6,12 +6,13 @@
     {{ block.super }}
     <link href="{{ STATIC_URL }}css/task.css" rel="stylesheet">
 {% endblock rels %}
+
 {% block content %}
 <h3>Your tasks</h3>
-<ul class="list-unstyled">
+<div class="list-group">
     {% for task in tasks %}
-        <li><a href="{% url 'show_task' task.id %}">{{ task }}</a></li>
+        <a class="list-group-item" href="{% url 'show_task' task.id %}">{{ task }}</a>
     {% endfor %}
-</ul>
-<a href="{% url 'add_task' %}"><button class="btn btn-default">Add new</button></a>
+</div>
+<a href="{% url 'add_task' %}"><button class="btn btn-lg btn-primary">Add new</button></a>
 {% endblock content %}
