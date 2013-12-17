@@ -18,7 +18,7 @@ class ChangePasswordForm(forms.Form):
         password1 = self.cleaned_data.get('password')
         password2 = self.cleaned_data.get('password_again')
         if password1 != password2:
-            raise forms.ValidationError("Two different passwords!")
+            raise forms.ValidationError("Provided passwords are different!")
         return self.cleaned_data
 
 

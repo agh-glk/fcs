@@ -51,12 +51,14 @@ def change_password(request):
             if form.is_valid():
                 old_passwd, passwd1, passwd2 = \
                     [form.cleaned_data[x] for x in ['old_password', 'password', 'password_again']]
-                if request.user.check_password(old_passwd) and passwd1 == passwd2:
+                if request.user.check_password(old_passwd):
                     request.user.set_password(passwd1)
                     request.user.save()
                     logout(request)
-                    messages.success(request, "Password changed successfully. Please log-in again")
+                    messages.success(request, "Password changed successfully. Please log-in again.")
                     return redirect('index')
+                else:
+                    messages.error(request, "Old password is incorrect.")
         else:
             form = forms.ChangePasswordForm()
         return render(request, 'change_password.html', {'form': form})
