@@ -14,6 +14,11 @@ class TestTask:
 
     def setup(self):
         self.user = User.objects.create_user(username='test_user', password='test_pwd', email='test@gmail.pl')
+        self.get_user().quota.max_tasks = 1
+        self.get_user().quota.max_links = 1000
+        self.get_user().quota.max_priority = 10
+        self.get_user().quota.save()
+
         CrawlingType.objects.create(type=CrawlingType.TEXT)
         CrawlingType.objects.create(type=CrawlingType.LINKS)
         CrawlingType.objects.create(type=CrawlingType.PICTURES)
@@ -22,12 +27,12 @@ class TestTask:
         self.user.delete()
         CrawlingType.objects.all().delete()
 
-    def test_successful_task_creation(self):
+    def test_successful_task_creation(self, client):
         Task.create_task(self.get_user(), 'Task1', 3, timezone.now(),
                                 [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
         assert self.get_user().task_set.count() == 1, 'Task was not properly saved!'
 
-    def test_failed_task_creation(self):
+    def test_failed_task_creation(self, client):
         try:
             Task.create_task(self.get_user(), 'Task1', 15, timezone.now(),
                              [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
@@ -51,7 +56,7 @@ class TestTask:
         except QuotaException as e:
             assert e.message == 'User has too many opened tasks!', 'Wrong exception message!'
 
-    def test_change_priority(self):
+    def test_change_priority(self, client):
         task = Task.create_task(self.get_user(), 'Task1', 5, timezone.now(),
                                 [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
         assert 5 == task.priority
@@ -64,7 +69,7 @@ class TestTask:
             assert e.message == 'Task priority exceeds user quota!', 'Wrong exception message!'
         assert 10 == task.priority
 
-    def test_pause_and_resume(self):
+    def test_pause_and_resume(self, client):
         task = Task.create_task(self.get_user(), 'Task1', 5, timezone.now(),
                                 [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
         assert task.active
@@ -73,7 +78,7 @@ class TestTask:
         task.resume()
         assert task.active
 
-    def test_finish(self):
+    def test_finish(self, client):
         task = Task.create_task(self.get_user(), 'Task1', 5, timezone.now(),
                                 [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
 
@@ -87,33 +92,6 @@ class TestTask:
         assert task.finished
         Task.create_task(self.get_user(), 'Task2', 5, timezone.now(), [CrawlingType.objects.get(type=CrawlingType.TEXT)],
                          'onet.pl', max_links=400)
-
-
-class TestUserDataModel:
-    def get_user(self):
-        if self.user is None:
-            self.user = User.objects.get(username='test_user')
-        return self.user
-
-    def setup(self):
-        self.user = User.objects.create_user(username='test_user', password='test_pwd', email='test@gmail.pl')
-        CrawlingType.objects.create(type=CrawlingType.TEXT)
-        CrawlingType.objects.create(type=CrawlingType.LINKS)
-        CrawlingType.objects.create(type=CrawlingType.PICTURES)
-        Quota.objects.create(max_priority=10, max_tasks=1, max_links=1000, user=self.user)
-
-    def teardown(self):
-        self.user.delete()
-        CrawlingType.objects.all().delete()
-
-    def test_create_user_data(self):
-        _user = self.get_user()
-        try:
-            models.initialise_user_object(_user)
-        except ValidationError:
-            assert False, 'Exception occured'
-
-        assert _user.user_data.key != ''
 
 
 class TestPriceCalculator:
@@ -134,6 +112,6 @@ class TestPriceCalculator:
     def teardown(self):
         ServiceUnitPrice.objects.all().delete()
 
-    def test_price_calculator(self):
+    def test_price_calculator(self, client):
         _price_calculator = PriceCalculator()
         assert _price_calculator.get_current_price(Service.INCREASE_MAX_LINKS).price == 3

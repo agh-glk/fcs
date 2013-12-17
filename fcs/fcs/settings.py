@@ -43,6 +43,7 @@ INSTALLED_APPS = (
     'registration',
     'rest_framework',
     'fcs.backend',
+    'widget_tweaks'
     'oauth2_provider'
 )
 
@@ -110,7 +111,7 @@ STATIC_URL = '/static/'
 TEST_RUNNER = 'django_pytest.test_runner.TestRunner'
 
 # Database used for tests?
-#DATABASE_NAME = 'test_db'
+DATABASE_NAME = 'test_db'
 
 OAUTH2_PROVIDER = {
     # this is the list of available scopes

@@ -9,5 +9,5 @@ djangorestframework
 markdown
 django-filter
 django-oauth-toolkit
-
+django-widget-tweaks
 https://bitbucket.org/prjts/django-registration/get/tip.tar.gz

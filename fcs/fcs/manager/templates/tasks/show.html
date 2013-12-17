@@ -1,11 +1,7 @@
-{% extends "tasks/list.html" %}
+{% extends "form.html" %}
 
 {% block title %}Task details{% endblock title %}
 
-{% block content %}
-<h3>{{ task }}</h3>
-<form action="{% url 'show_task' task.id %}" method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Save changes" />
-</form>
-{% endblock content %}
+{% block form-title %}{{ task }}{% endblock form-title %}
+{% block form-url %}{% url 'show_task' task.id %}{% endblock form-url %}
+{% block form-button %}Save changes{% endblock form-button %}

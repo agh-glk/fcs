@@ -4,8 +4,8 @@ from models import CrawlingType, Task
 
 
 class LoginForm(forms.Form):
-    username = forms.CharField(max_length=50, widget=TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}))
-    password = forms.CharField(max_length=50, widget=PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}))
+    username = forms.CharField(max_length=50, widget=TextInput())
+    password = forms.CharField(max_length=50, widget=PasswordInput())
 
 
 class ChangePasswordForm(forms.Form):
