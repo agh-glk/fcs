@@ -10,9 +10,11 @@
 {% block content %}
 <h3>Your tasks</h3>
 <div class="list-group">
-    {% for task in tasks %}
-        <a class="list-group-item" href="{% url 'show_task' task.id %}">{{ task }}</a>
-    {% endfor %}
+    {% load render_table from django_tables2 %}
+    {% comment %}{% for task in tasks %}
+        <div class="list-group-item"><a href="{% url 'show_task' task.id %}">{{ task.name }}</a></div>
+    {% endfor %}{% endcomment %}
+    {% render_table tasks %}
 </div>
 <a href="{% url 'add_task' %}"><button class="btn btn-lg btn-primary">Add new</button></a>
 {% endblock content %}

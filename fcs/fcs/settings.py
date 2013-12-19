@@ -44,7 +44,8 @@ INSTALLED_APPS = (
     'rest_framework',
     'fcs.backend',
     'widget_tweaks',
-    'oauth2_provider'
+    'oauth2_provider',
+    'django_tables2'
 )
 
 AUTH_USER_MODEL = 'manager.User'
