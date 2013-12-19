@@ -1,9 +1,6 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title></title>
-</head>
-<body>
-Key: {{ activation_key }}
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block msgs %}
+{{ block.super }}
+<div class="alert alert-warning">Your account was already activated.</div>
+{% endblock msgs %}

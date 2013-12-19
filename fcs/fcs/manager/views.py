@@ -5,6 +5,7 @@ from django.contrib.auth import logout, authenticate, login
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
+
 import forms
 from models import Task, CrawlingType
 from oauth2_provider.models import Application
@@ -24,7 +25,11 @@ def login_user(request):
             if user is not None and user.is_active:
                 login(request, user)
                 messages.success(request, "Login successful.")
-                return redirect('/')
+                return redirect('index')
+            elif user:
+                messages.error(request, "Account is not activated. Check your email.")
+            else:
+                messages.error(request, "Authentication failed. Incorrect username or password.")
     else:
         if request.user.is_authenticated():
             return HttpResponse('You are already logged in')
@@ -36,7 +41,7 @@ def login_user(request):
 def logout_user(request):
     logout(request)
     messages.success(request, "Logout successful.")
-    return redirect('/')
+    return redirect('index')
 
 
 @login_required()
@@ -46,11 +51,14 @@ def change_password(request):
             if form.is_valid():
                 old_passwd, passwd1, passwd2 = \
                     [form.cleaned_data[x] for x in ['old_password', 'password', 'password_again']]
-                if request.user.check_password(old_passwd) and passwd1 == passwd2:
+                if request.user.check_password(old_passwd):
                     request.user.set_password(passwd1)
                     request.user.save()
                     logout(request)
-                    return render(request, 'passwd_changed_scs.html')
+                    messages.success(request, "Password changed successfully. Please log-in again.")
+                    return redirect('index')
+                else:
+                    messages.error(request, "Old password is incorrect.")
         else:
             form = forms.ChangePasswordForm()
         return render(request, 'change_password.html', {'form': form})
@@ -73,7 +81,7 @@ def add_task(request):
             _crawling_types = CrawlingType.objects.filter(type__in=map(lambda x: int(x), types))
             Task.create_task(request.user, name, priority, expire, _crawling_types, whitelist, blacklist, max_links)
             messages.success(request, 'New task created.')
-            return redirect('/tasks/list/')
+            return redirect('list_tasks')
     else:
         form = forms.CreateTaskForm()
     return render(request, 'tasks/add.html', {'form': form})
@@ -86,8 +94,8 @@ def show_task(request, task_id):
     if form.is_valid():
         form.save()
         messages.success(request, "Task %s updated" % task.name)
-        return redirect('/tasks/list/')
-    return render(request, 'tasks/show.html', {'task': task, 'form': form})
+        return redirect('list_tasks')
+    return render(request, 'tasks/show.html', {'task': task, 'form':form})
 
 
 @login_required()
