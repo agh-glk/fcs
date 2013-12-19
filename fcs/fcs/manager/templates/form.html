@@ -2,6 +2,11 @@
 {% load widget_tweaks %}
 {% load custom_tags %}
 
+{% block rels %}
+{{ block.super }}
+<link href="{{ STATIC_URL }}datetimepicker/css/bootstrap-datetimepicker.css" rel="stylesheet">
+{% endblock rels %}
+
 {% block msgs %}
 {{ block.super }}
 {% if form.errors %}
@@ -20,20 +25,41 @@
             <div class="col-sm-6">
             {% if field|is_class:"CheckboxSelectMultiple" %}
                 {% for check in field %}
-                    <div class="col-sm-4">
+                <div class="col-sm-4">
                     <label class="checkbox-inline">
                         {{ check.tag }}
                         <strong>{{ check.choice_label }}</strong>
                     </label>
-                    </div>
+                </div>
                 {% endfor %}
+            {% elif field|is_class:"DateTimeInput" %}
+                <div class="input-group date datetime-picker" data-date-format="yyyy-mm-dd hh:ii">
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                    {% render_field field class+="form-control" placeholder=field.label %}
+                </div>
             {% else %}
                 {% render_field field class+="form-control" placeholder=field.label %}
             {% endif %}
             </div>
-            <span class="help-block col-sm-3"><strong>{% for error in field.errors %}{{ error }}{% endfor %}</strong></span>
+            {% if field.errors %}
+            <span class="help-block"><strong>{% for error in field.errors %}{{ error }}{% endfor %}</strong></span>
+            {% endif %}
         </div>
         {% endfor %}
         <button class="btn btn-lg btn-primary col-sm-4 col-sm-offset-4" type="submit">{% block form-button %}Button{% endblock form-button %}</button>
     </form>
 {% endblock content %}
+
+{% block scripts %}
+{{ block.super }}
+<script src="{{ STATIC_URL }}datetimepicker/js/bootstrap-datetimepicker.js"></script>
+<script type="text/javascript">
+    $('.datetime-picker').datetimepicker({
+        maxView: 2,
+        viewSelect: 2,
+        startDate: new Date()
+    });
+</script>
+{% endblock scripts %}

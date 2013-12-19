@@ -1,5 +1,5 @@
 from django import forms
-from django.forms.widgets import PasswordInput, SplitDateTimeWidget, TextInput
+from django.forms.widgets import PasswordInput, DateTimeInput, TextInput
 from models import CrawlingType, Task
 
 
@@ -34,7 +34,7 @@ class CreateTaskForm(forms.Form):
     whitelist = forms.CharField(max_length=250)
     blacklist = forms.CharField(max_length=250)
     max_links = forms.IntegerField()
-    expire = forms.DateTimeField(widget=SplitDateTimeWidget(date_format='%Y-%m-%d', time_format='%H:%M'))
+    expire = forms.DateTimeField(widget=DateTimeInput())
     type = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, choices=CrawlingType.CRAWLING_TYPES_CHOICES)
 
 
