@@ -79,7 +79,7 @@ def add_task(request):
                 [form.cleaned_data[x] for x in ['name', 'priority', 'whitelist', 'blacklist',
                                                 'max_links', 'expire', 'type']]
             _crawling_types = CrawlingType.objects.filter(type__in=map(lambda x: int(x), types))
-            Task.create_task(request.user, name, priority, expire, _crawling_types, whitelist, blacklist, max_links)
+            Task.objects.create_task(request.user, name, priority, expire, _crawling_types, whitelist, blacklist, max_links)
             messages.success(request, 'New task created.')
             return redirect('list_tasks')
     else:
