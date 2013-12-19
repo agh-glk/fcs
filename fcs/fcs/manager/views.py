@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.contrib import messages
 from django.contrib.auth import logout, authenticate, login
 from django.shortcuts import redirect
@@ -106,4 +106,46 @@ def api_keys(request):
                                    authorization_grant_type=Application.GRANT_PASSWORD)
         return redirect('api_keys')
     return render(request, 'api_keys.html', {'application': application})
+
+
+@login_required()
+def pause_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if task.user != request.user:
+        raise Http404
+    if task.finished:
+        messages.error(request, u'Task already finished!')
+    elif not task.active:
+        messages.error(request, u'Task already paused!')
+    else:
+        task.pause()
+        messages.success(request, u'Task %s paused.' % task.name)
+    return redirect('list_tasks')
+
+
+@login_required()
+def resume_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if task.user != request.user:
+        raise Http404
+    if task.finished:
+        messages.error(request, u'Task already finished!')
+    elif task.active:
+        messages.error(request, u'Task already in progress!')
+    else:
+        task.resume()
+        messages.success(request, u'Task %s resumed.' % task.name)
+    return redirect('list_tasks')
+
+@login_required()
+def stop_task(request, task_id):
+    task = get_object_or_404(Task, id=task_id)
+    if task.user != request.user:
+        raise Http404
+    if task.finished:
+        messages.error(request, u'Task already finished!')
+    else:
+        task.stop()
+        messages.success(request, u'Task %s stopped.' % task.name)
+    return redirect('list_tasks')
 
