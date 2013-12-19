@@ -3,7 +3,6 @@ from django.db import models
 
 from django.utils import timezone
 import django.contrib.auth.models
-import oauth2_provider.models
 
 
 class UserManager(django.contrib.auth.models.BaseUserManager):
@@ -37,9 +36,9 @@ class User(django.contrib.auth.models.AbstractUser):
 class Quota(models.Model):
     max_priority = models.IntegerField(default=10)
     priority_pool = models.IntegerField(default=100)
-    max_tasks = models.IntegerField(default=50)
-    link_pool = models.IntegerField(default=10000)
-    max_links = models.IntegerField(default=10000)
+    max_tasks = models.IntegerField(default=5)
+    link_pool = models.IntegerField(default=1000000)
+    max_links = models.IntegerField(default=100000)
     user = models.OneToOneField(User)
 
     def __unicode__(self):
@@ -65,6 +64,28 @@ class CrawlingType(models.Model):
         return self.get_type_display()
 
 
+class TaskManager(models.Manager):
+
+    @staticmethod
+    def create_task(user, name, priority, expire, types, whitelist, blacklist='', max_links=1000):
+        """Return new task.
+
+        Raises QuotaException when user quota is exceeded.
+        """
+        if user.quota.max_priority < priority:
+            raise QuotaException('Task priority exceeds user quota!')
+        if user.quota.max_tasks == user.task_set.filter(finished=False).count():
+            raise QuotaException('User has too many opened tasks!')
+        if user.quota.max_links < max_links:
+            raise QuotaException('Task link limit exceeds user quota!')
+        task = Task(user=user, name=name, whitelist=whitelist, blacklist=blacklist, max_links=max_links,
+                    expire_date=expire, priority=priority)
+        task.save()
+        task.type.add(*list(types))
+        task.save()
+        return task
+
+
 class Task(models.Model):
     """Class representing crawling tasks defined by users"""
     user = models.ForeignKey(User, null=False)
@@ -79,24 +100,7 @@ class Task(models.Model):
     finished = models.BooleanField(default=False)
     created = models.DateTimeField(default=timezone.now, null=False)
 
-    @classmethod
-    def create_task(self, user, name, priority, expire, types, whitelist, blacklist='', max_links=1000):
-        """Return new task.
-
-        Raises QuotaException when user quota is exceeded.
-        """
-        if user.quota.max_priority < priority:
-            raise QuotaException('Task priority exceeds user quota!')
-        if user.quota.max_tasks == user.task_set.filter(finished=False).count():
-            raise QuotaException('User has too many opened tasks!')
-        if user.quota.max_links < max_links:
-            raise QuotaException('Task link limit exceeds user quota!')
-        task = Task.objects.create(user=user, name=name, whitelist=whitelist, blacklist=blacklist,
-                                   max_links=max_links, expire_date=expire, priority=priority)
-        task.save()
-        task.type.add(*list(types))
-        task.save()
-        return task
+    objects = TaskManager()
 
     def change_priority(self, priority):
         """Set task priority.
@@ -143,40 +147,6 @@ class Task(models.Model):
 
     def __unicode__(self):
         return "Task %s of user %s" % (self.name, self.user)
-
-
-class Service(models.Model):
-    CRAWLING = 0
-    INCREASE_MAX_LINKS = 1
-    INCREASE_MAX_PRIORITY = 2
-    INCREASE_PRIORITY_POOL = 3
-    INCREASE_LINKS_POOL = 4
-    SERVICES_TYPES_CHOICES = (
-        (0, 'CRAWLING'),
-        (1, 'INCREASE_MAX_LINKS'),
-        (2, 'INCREASE_MAX_PRIORITY'),
-        (3, 'INCREASE_PRIORITY_POOL'),
-        (4, 'INCREASE_LINKS_POOL')
-    )
-
-    user = models.ForeignKey(User)
-    type = models.IntegerField(max_length=2, choices=SERVICES_TYPES_CHOICES)
-    price = models.DecimalField(max_digits=12, decimal_places=2)
-    creation_date = models.DateTimeField(default=timezone.now)
-    confirmed = models.BooleanField(default=False)
-
-    def __unicode__(self):
-        return "%s %s, type: %s, price: %s" % (self.user, self.creation_date, self.get_type_display(), self.price)
-
-
-class ServiceUnitPrice(models.Model):
-    service_type = models.IntegerField(max_length=2, choices=Service.SERVICES_TYPES_CHOICES)
-    price = models.DecimalField(max_digits=12, decimal_places=2)
-    date_from = models.DateTimeField()
-    date_to = models.DateTimeField()
-
-    def __unicode__(self):
-        return "Unit price for %s from %s to %s" % (self.get_service_type_display(), self.date_from, self.date_to)
 
 
 
