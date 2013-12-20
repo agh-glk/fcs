@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 
 import forms
-from models import Task, CrawlingType
+from models import Task, CrawlingType, User
 from oauth2_provider.models import Application
 from tables import TaskTable
 from django_tables2 import RequestConfig
@@ -141,6 +141,7 @@ def resume_task(request, task_id):
         messages.success(request, u'Task %s resumed.' % task.name)
     return redirect('list_tasks')
 
+
 @login_required()
 def stop_task(request, task_id):
     task = get_object_or_404(Task, id=task_id)
@@ -152,4 +153,22 @@ def stop_task(request, task_id):
         task.stop()
         messages.success(request, u'Task %s stopped.' % task.name)
     return redirect('list_tasks')
+
+
+@login_required()
+def edit_user_data(request):
+    user = get_object_or_404(User, id=request.user.id)
+    form = forms.EditUserForm(request.POST or None, instance=user)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Your data updated!")
+        return redirect('index')
+    return render(request, 'edit_user_data.html', {'form':form})
+
+
+@login_required()
+def show_quota(request):
+    quota = request.user.quota
+    return render(request, 'show_quota.html', {'quota': quota})
+
 
