@@ -9,6 +9,8 @@ from django.shortcuts import get_object_or_404
 import forms
 from models import Task, CrawlingType
 from oauth2_provider.models import Application
+from tables import TaskTable
+from django_tables2 import RequestConfig
 
 
 def index(request):
@@ -67,7 +69,9 @@ def change_password(request):
 @login_required()
 def list_tasks(request):
     tasks = Task.objects.filter(user=request.user)
-    return render(request, 'tasks/list.html', {'tasks': tasks})
+    table = TaskTable(tasks)
+    RequestConfig(request).configure(table)
+    return render(request, 'tasks/list.html', {'table': table})
 
 
 @login_required()

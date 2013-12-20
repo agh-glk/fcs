@@ -82,7 +82,6 @@ class TaskManager(models.Manager):
                     expire_date=expire, priority=priority)
         task.save()
         task.type.add(*list(types))
-        task.save()
         return task
 
 
