@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.aggregates import Sum
 
 from django.utils import timezone
 import django.contrib.auth.models
@@ -72,14 +73,9 @@ class TaskManager(models.Manager):
 
         Raises QuotaException when user quota is exceeded.
         """
-        if user.quota.max_priority < priority:
-            raise QuotaException('Task priority exceeds user quota!')
-        if user.quota.max_tasks == user.task_set.filter(finished=False).count():
-            raise QuotaException('User has too many opened tasks!')
-        if user.quota.max_links < max_links:
-            raise QuotaException('Task link limit exceeds user quota!')
         task = Task(user=user, name=name, whitelist=whitelist, blacklist=blacklist, max_links=max_links,
                     expire_date=expire, priority=priority)
+        task.clean()
         task.save()
         task.type.add(*list(types))
         task.save()
@@ -89,7 +85,7 @@ class TaskManager(models.Manager):
 class Task(models.Model):
     """Class representing crawling tasks defined by users"""
     user = models.ForeignKey(User, null=False)
-    name = models.CharField(max_length=100, null=False, unique=True)
+    name = models.CharField(max_length=100, null=False)
     priority = models.IntegerField(default=1, null=False)
     whitelist = models.CharField(max_length=250, null=False)
     blacklist = models.CharField(max_length=250, null=False)
@@ -102,15 +98,40 @@ class Task(models.Model):
 
     objects = TaskManager()
 
+    def clean(self):
+        if self.finished:
+            self.active = False
+
+        if self.user.quota.max_priority < self.priority:
+            raise QuotaException('Task priority exceeds user quota! Limit: ' + str(self.user.quota.max_priority))
+        if self.pk is None and self.user.quota.max_tasks <= self.user.task_set.filter(finished=False).count():
+            raise QuotaException('User has too many opened tasks! Limit: ' + str(self.user.quota.max_tasks))
+        if self.user.quota.max_links < self.max_links:
+            raise QuotaException('Task link limit exceeds user quota! Limit: ' + str(self.user.quota.max_links))
+
+        priorities = self.user.task_set.filter(active=True).exclude(pk=self.pk).aggregate(Sum('priority'))['priority__sum']
+        if self.user.quota.priority_pool < (priorities + self.priority if priorities else self.priority):
+            raise QuotaException("User priority pool exceeded! Limit: " + str(self.user.quota.priority_pool))
+
+        links = self.user.task_set.filter(finished=False).exclude(pk=self.pk).aggregate(Sum('max_links'))['max_links__sum']
+        if self.user.quota.link_pool < (links + self.max_links if links else self.max_links):
+            raise QuotaException("User link pool exceeded! Limit: " + str(self.user.quota.link_pool))
+
+        #TODO: expire_date and finished flag?
+
     def change_priority(self, priority):
         """Set task priority.
 
         Task with higher priority crawls more links at the same time than those with lower priority.
         Task priority cannot exceed quota of user which owns this task. In other case QuotaException is raised.
         """
-        if self.user.quota.max_priority < priority:
-            raise QuotaException('Task priority exceeds user quota!')
+        old = self.priority
         self.priority = priority
+        try:
+            self.clean()
+        except Exception as e:
+            self.priority = old
+            raise e
         self.save()
 
     def pause(self):
@@ -118,7 +139,13 @@ class Task(models.Model):
 
         Paused task does not crawl any links until it is resumed.
         """
+        old = self.active
         self.active = False
+        try:
+            self.clean()
+        except Exception as e:
+            self.active = old
+            raise e
         self.save()
 
     def resume(self):
@@ -126,7 +153,13 @@ class Task(models.Model):
 
         Task becomes active so it can crawl links.
         """
+        old = self.active
         self.active = True
+        try:
+            self.clean()
+        except Exception as e:
+            self.active = old
+            raise e
         self.save()
 
     def stop(self):
@@ -134,7 +167,13 @@ class Task(models.Model):
 
         Finished tasks do not count to user max_tasks quota.
         """
+        old = self.finished
         self.finished = True
+        try:
+            self.clean()
+        except Exception as e:
+            self.finished = old
+            raise e
         self.save()
 
     def feedback(self, score_dict):

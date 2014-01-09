@@ -1,10 +1,7 @@
-from models import Quota, User, QuotaException, Task, CrawlingType, ServiceUnitPrice, Service
-import models
-import datetime
-from fcs.backend.price_calculator import PriceCalculator
-from django.core.exceptions import ValidationError
+from models import Quota, User, QuotaException, Task, CrawlingType
 from django.utils import timezone
 from django_pytest.conftest import pytest_funcarg__client, pytest_funcarg__django_client
+
 
 class TestTask:
     def get_user(self):
@@ -14,9 +11,11 @@ class TestTask:
 
     def setup(self):
         self.user = User.objects.create_user(username='test_user', password='test_pwd', email='test@gmail.pl')
-        self.get_user().quota.max_tasks = 1
+        self.get_user().quota.max_tasks = 2
         self.get_user().quota.max_links = 1000
         self.get_user().quota.max_priority = 10
+        self.get_user().quota.link_pool = 1500
+        self.get_user().quota.priority_pool = 15
         self.get_user().quota.save()
 
         CrawlingType.objects.create(type=CrawlingType.TEXT)
@@ -28,49 +27,50 @@ class TestTask:
         CrawlingType.objects.all().delete()
 
     def test_successful_task_creation(self, client):
-        Task.create_task(self.get_user(), 'Task1', 3, timezone.now(),
+        Task.objects.create_task(self.get_user(), 'Task1', 3, timezone.now(),
                                 [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
         assert self.get_user().task_set.count() == 1, 'Task was not properly saved!'
 
     def test_failed_task_creation(self, client):
         try:
-            Task.create_task(self.get_user(), 'Task1', 15, timezone.now(),
+            Task.objects.create_task(self.get_user(), 'Task1', 12, timezone.now(),
                              [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
             assert False, 'Exception should be raised!'
         except QuotaException as e:
-            assert e.message == 'Task priority exceeds user quota!', 'Wrong exception message!'
+            assert e.message.startswith('Task priority exceeds user quota!'), 'Wrong exception message!'
 
         try:
-            Task.create_task(self.get_user(), 'Task1', 5, timezone.now(),
+            Task.objects.create_task(self.get_user(), 'Task1', 5, timezone.now(),
                              [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=1400)
             assert False, 'Exception should be raised!'
         except QuotaException as e:
-            assert e.message == 'Task link limit exceeds user quota!', 'Wrong exception message!'
-
-        try:
-            Task.create_task(self.get_user(), 'Task1', 5, timezone.now(),
-                             [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
-            Task.create_task(self.get_user(), 'Task2', 5, timezone.now(),
-                             [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
-            assert False, 'Exception should be raised!'
-        except QuotaException as e:
-            assert e.message == 'User has too many opened tasks!', 'Wrong exception message!'
+            assert e.message.startswith('Task link limit exceeds user quota!'), 'Wrong exception message!'
 
     def test_change_priority(self, client):
-        task = Task.create_task(self.get_user(), 'Task1', 5, timezone.now(),
+        task = Task.objects.create_task(self.get_user(), 'Task1', 5, timezone.now(),
                                 [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
-        assert 5 == task.priority
-        task.change_priority(10)
-        assert 10 == task.priority
+        assert task.priority == 5
+        task.change_priority(7)
+        assert task.priority == 7
         try:
-            task.change_priority(15)
+            task.change_priority(12)
             assert False, 'Exception should be raised!'
         except QuotaException as e:
-            assert e.message == 'Task priority exceeds user quota!', 'Wrong exception message!'
-        assert 10 == task.priority
+            assert str(e).startswith('Task priority exceeds user quota!'), 'Wrong exception message!'
+        assert task.priority == 7
+
+        Task.objects.create_task(self.get_user(), 'Task2', 7, timezone.now(),
+                         [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
+        try:
+            task.change_priority(9)
+            assert False, 'Exception should be raised!'
+        except QuotaException as e:
+            assert str(e).startswith('User priority pool exceeded!'), 'Wrong exception message!' + str(e)
+        assert task.priority == 7
+
 
     def test_pause_and_resume(self, client):
-        task = Task.create_task(self.get_user(), 'Task1', 5, timezone.now(),
+        task = Task.objects.create_task(self.get_user(), 'Task1', 5, timezone.now(),
                                 [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
         assert task.active
         task.pause()
@@ -79,39 +79,20 @@ class TestTask:
         assert task.active
 
     def test_finish(self, client):
-        task = Task.create_task(self.get_user(), 'Task1', 5, timezone.now(),
+        task = Task.objects.create_task(self.get_user(), 'Task1', 5, timezone.now(),
                                 [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
 
         try:
-            Task.create_task(self.get_user(), 'Task1', 5, timezone.now(),
+            Task.objects.create_task(self.get_user(), 'Task2', 5, timezone.now(),
                              [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
+            Task.objects.create_task(self.get_user(), 'Task3', 5, timezone.now(),
+                                     [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
             assert False, 'Exception should be raised!'
         except QuotaException as e:
-            assert e.message == 'User has too many opened tasks!', 'Wrong exception message!'
+            assert str(e).startswith('User has too many opened tasks!'), 'Wrong exception message!'
         task.stop()
         assert task.finished
-        Task.create_task(self.get_user(), 'Task2', 5, timezone.now(), [CrawlingType.objects.get(type=CrawlingType.TEXT)],
+        Task.objects.create_task(self.get_user(), 'Task3', 5, timezone.now(), [CrawlingType.objects.get(type=CrawlingType.TEXT)],
                          'onet.pl', max_links=400)
 
 
-class TestPriceCalculator:
-
-    def setup(self):
-        ServiceUnitPrice.objects.create(service_type=Service.INCREASE_MAX_LINKS,
-                                        date_from=(timezone.now() - datetime.timedelta(days=4)),
-                                        date_to=(timezone.now() - datetime.timedelta(minutes=1)),
-                                                                      price=1).save()
-        ServiceUnitPrice.objects.create(service_type=Service.INCREASE_MAX_LINKS,
-                                        date_from=(timezone.now() + datetime.timedelta(minutes=10)),
-                                        date_to=(timezone.now() + datetime.timedelta(minutes=30)),
-                                                                      price=2).save()
-        ServiceUnitPrice.objects.create(service_type=Service.INCREASE_MAX_LINKS,
-                                        date_from=timezone.now() - datetime.timedelta(days=5),
-                                        date_to=timezone.now() + datetime.timedelta(days=1, minutes=1), price=3).save()
-
-    def teardown(self):
-        ServiceUnitPrice.objects.all().delete()
-
-    def test_price_calculator(self, client):
-        _price_calculator = PriceCalculator()
-        assert _price_calculator.get_current_price(Service.INCREASE_MAX_LINKS).price == 3
