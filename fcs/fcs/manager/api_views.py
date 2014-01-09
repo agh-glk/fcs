@@ -12,7 +12,7 @@ def add_task(request):
     user = request.user
     try:
         _crawling_types = CrawlingType.objects.filter(type__in=map(lambda x: int(x), data['types']))
-        task = Task.create_task(user=user, name=data['name'], priority=data['priority'], expire=data['expire'],
+        task = Task.objects.create_task(user=user, name=data['name'], priority=data['priority'], expire=data['expire'],
                             types=_crawling_types, whitelist=data['whitelist'], blacklist=data['blacklist'],
                             max_links=data['max_links'])
     except KeyError as e:

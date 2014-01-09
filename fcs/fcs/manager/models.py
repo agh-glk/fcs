@@ -87,7 +87,7 @@ class Task(models.Model):
     name = models.CharField(max_length=100, null=False)
     priority = models.IntegerField(default=1, null=False)
     whitelist = models.CharField(max_length=250, null=False)
-    blacklist = models.CharField(max_length=250, null=False)
+    blacklist = models.CharField(max_length=250, null=False, blank=True)
     max_links = models.IntegerField(default=1000, null=False)
     expire_date = models.DateTimeField(null=False)
     type = models.ManyToManyField(CrawlingType)
@@ -100,6 +100,12 @@ class Task(models.Model):
     def clean(self):
         if self.finished:
             self.active = False
+        if self.priority <= 0:
+            raise ValidationError('Priority must be positive')
+        if self.max_links <= 0:
+            raise ValidationError('Links amount must be positive')
+#        if self.expire_date < timezone.now():
+#            raise ValidationError('Expire date cannot be earlier than current date')
 
         if self.user.quota.max_priority < self.priority:
             raise QuotaException('Task priority exceeds user quota! Limit: ' + str(self.user.quota.max_priority))
@@ -166,13 +172,8 @@ class Task(models.Model):
 
         Finished tasks do not count to user max_tasks quota.
         """
-        old = self.finished
         self.finished = True
-        try:
-            self.clean()
-        except Exception as e:
-            self.finished = old
-            raise e
+        self.active = False
         self.save()
 
     def feedback(self, score_dict):

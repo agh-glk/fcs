@@ -30,10 +30,10 @@ class EditTaskForm(forms.ModelForm):
 
 class CreateTaskForm(forms.Form):
     name = forms.CharField(max_length=100)
-    priority = forms.IntegerField()
+    priority = forms.IntegerField(min_value=1)
     whitelist = forms.CharField(max_length=250)
-    blacklist = forms.CharField(max_length=250)
-    max_links = forms.IntegerField()
+    blacklist = forms.CharField(max_length=250, required=False)
+    max_links = forms.IntegerField(min_value=1)
     expire = forms.DateTimeField(widget=DateTimeInput())
     type = forms.MultipleChoiceField(widget=forms.CheckboxSelectMultiple, choices=CrawlingType.CRAWLING_TYPES_CHOICES)
 
