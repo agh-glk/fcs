@@ -104,8 +104,8 @@ class Task(models.Model):
             raise ValidationError('Priority must be positive')
         if self.max_links <= 0:
             raise ValidationError('Links amount must be positive')
-        if self.expire_date < timezone.now():
-            raise ValidationError('Expire date cannot be earlier than current date')
+#        if self.expire_date < timezone.now():
+#            raise ValidationError('Expire date cannot be earlier than current date')
 
         if self.user.quota.max_priority < self.priority:
             raise QuotaException('Task priority exceeds user quota! Limit: ' + str(self.user.quota.max_priority))
