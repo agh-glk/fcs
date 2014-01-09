@@ -28,6 +28,6 @@ class TaskTable(tables.Table):
         model = Task
         attrs = {"class": "table"}
         order_by = "created"
-        fields = ('row_number', 'name', 'priority', 'whitelist', 'blacklist', 'max_links', 'type', 'created',
+        fields = ('row_number', 'name', 'id', 'priority', 'whitelist', 'blacklist', 'max_links', 'type', 'created',
                   'expire_date', 'active', 'finished')
 

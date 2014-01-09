@@ -3,12 +3,15 @@
 {% block title %}API Keys{% endblock title %}
 
 {% block content %}
+    <h3 class="title">{% block form-title %}API keys{% endblock form-title %}</h3>
     {% if application == None %}
-        <form class="form-signin" action="." method="post">{% csrf_token %}
+        <form class="form-signin col-sm-6 col-sm-offset-3" action="." method="post">{% csrf_token %}
             <button class="btn btn-lg btn-primary btn-block" type="">{% block form-button %}Generate{% endblock form-button %}</button>
         </form>
     {% else %}
-        <p>Secret key: {{ application.client_secret }}</p>
-        <p>Client id: {{ application.client_id }}</p>
+        <table type="table" class="table">
+            <tr><td>Secret key:</td> <td> {{ application.client_secret }}</td></tr>
+            <tr><td>Client id:</td> <td> {{ application.client_id }}</td></tr>
+        </table>
     {% endif %}
 {% endblock content %}
