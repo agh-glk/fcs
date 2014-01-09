@@ -2,7 +2,6 @@ from models import Quota, User, QuotaException, Task, CrawlingType
 from django.utils import timezone
 from django_pytest.conftest import pytest_funcarg__client, pytest_funcarg__django_client
 
-
 class TestTask:
     def get_user(self):
         if self.user is None:
@@ -67,7 +66,6 @@ class TestTask:
         except QuotaException as e:
             assert str(e).startswith('User priority pool exceeded!'), 'Wrong exception message!' + str(e)
         assert task.priority == 7
-
 
     def test_pause_and_resume(self, client):
         task = Task.objects.create_task(self.get_user(), 'Task1', 5, timezone.now(),

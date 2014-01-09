@@ -78,7 +78,6 @@ class TaskManager(models.Manager):
         task.clean()
         task.save()
         task.type.add(*list(types))
-        task.save()
         return task
 
 

@@ -5,5 +5,19 @@
 {% block form-title %}{{ task }}{% endblock form-title %}
 {% block form-url %}{% url 'show_task' task.id %}{% endblock form-url %}
 {% block form-button %}Save changes{% endblock form-button %}
-<a class="glyphicon-pause" href="/ala">Check It Ou</a>
-AAAAAAAAAAAAAAAAAAAAAAA
+{% block other_content %}
+    {% if not task.finished %}
+        <script type="text/javascript" src="{{ STATIC_URL }}js/confirm_operation.js"></script>
+        <div class="btn-group col-sm-4 col-sm-offset-4">
+            {% if task.active %}
+                <button  type="button" onclick="confirmOperation('{% url 'pause_task' task.id %}')" class="btn btn-lg btn-primary  col-sm-6">
+                    <span class="glyphicon glyphicon-pause"></span>Pause</button>
+            {% else %}
+                <button  type="button" onclick="confirmOperation('{% url 'resume_task' task.id %}')" class="btn btn-lg btn-primary  col-sm-6">
+                    <span class="glyphicon glyphicon-play"></span>Resume</button>
+            {% endif %}
+            <button type="button" onclick="confirmOperation('{% url 'stop_task' task.id %}')" class="btn btn-lg btn-primary col-sm-6">
+                <span class="glyphicon glyphicon-stop"></span>Stop</button>
+        </div>
+    {% endif %}
+{% endblock other_content %}

@@ -3,7 +3,6 @@ from django.template import Context, Template
 import os
 
 
-
 class MailingHelper():
 
     def __init__(self, path):

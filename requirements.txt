@@ -10,4 +10,5 @@ markdown
 django-filter
 django-oauth-toolkit
 django-widget-tweaks
+django-tables2
 https://bitbucket.org/prjts/django-registration/get/tip.tar.gz

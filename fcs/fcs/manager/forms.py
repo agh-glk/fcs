@@ -1,6 +1,6 @@
 from django import forms
 from django.forms.widgets import PasswordInput, DateTimeInput, TextInput
-from models import CrawlingType, Task
+from models import CrawlingType, Task, User
 
 
 class LoginForm(forms.Form):
@@ -43,3 +43,17 @@ class IncreaseQuotaForm(forms.Form):
     priority_pool = forms.IntegerField()
     max_tasks = forms.IntegerField()
     link_pool = forms.IntegerField()
+
+
+class EditUserForm(forms.ModelForm):
+
+    def clean(self):
+        super(forms.ModelForm, self).clean()
+        if not self.cleaned_data.get('email'):
+            raise forms.ValidationError('Email cannot be empty!')
+        return self.cleaned_data
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+
