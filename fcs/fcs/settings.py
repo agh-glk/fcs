@@ -45,7 +45,7 @@ INSTALLED_APPS = (
     'fcs.backend',
     'widget_tweaks',
     'oauth2_provider',
-    'django_tables2'
+    'django_tables2',
 )
 
 AUTH_USER_MODEL = 'manager.User'
@@ -127,7 +127,7 @@ REST_FRAMEWORK = {
 
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
-     'DEFAULT_PERMISSION_CLASSES': (
+    'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
 

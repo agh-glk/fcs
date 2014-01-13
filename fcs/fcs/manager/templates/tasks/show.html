@@ -7,7 +7,8 @@
 {% block form-button %}Save changes{% endblock form-button %}
 {% block other_content %}
     {% if not task.finished %}
-        <script type="text/javascript" src="{{ STATIC_URL }}js/confirm_operation.js"></script>
+        <script type="text/javascript" src="{{ STATIC_URL }}js/confirm_operation.js"
+                xmlns="http://www.w3.org/1999/html"></script>
         <div class="btn-group col-sm-4 col-sm-offset-4">
             {% if task.active %}
                 <button  type="button" onclick="confirmOperation('{% url 'pause_task' task.id %}')" class="btn btn-lg btn-primary  col-sm-6">
@@ -19,5 +20,32 @@
             <button type="button" onclick="confirmOperation('{% url 'stop_task' task.id %}')" class="btn btn-lg btn-primary col-sm-6">
                 <span class="glyphicon glyphicon-stop"></span>Stop</button>
         </div>
+
+
+        <div class="col-sm-4 col-sm-offset-4">
+            <br>
+            <a  type="button" href="{% url 'get_data' task.id %}" class="btn btn-lg btn-primary col-sm-12">
+                        <span class="glyphicon glyphicon-download-alt"></span>Get data</a>
+
+            <div class="panel panel-default">
+              <div class="panel-heading">Feedback</div>
+              <div class="panel-body">
+                    <div class="input-group">
+                      <label>Link</label><input type="text" class="form-control"/>
+                            <label>Rating</label><select name="rating">
+                                {% for rating in ratings %}
+                                    {% ifequal rating.id selected_rating.id %}
+                                        <option value="{{rating}}" selected="selected">{{rating}}</option>
+                                    {% else %}
+                                        <option value="{{rating}}" >{{rating}}</option>
+                                    {% endifequal %}
+                                {% endfor %}
+                            </select>
+                        <button class="btn btn-default" type="button">Send feedback</button>
+                    </div>
+              </div>
+            </div>
+        </div>
+
     {% endif %}
 {% endblock other_content %}
