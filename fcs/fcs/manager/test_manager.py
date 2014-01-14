@@ -2,6 +2,7 @@ from oauth2_provider.models import Application
 from models import User, QuotaException, Task, CrawlingType
 from django.utils import timezone
 from django.test.client import Client
+from django.core.urlresolvers import reverse
 import json
 from django_pytest.conftest import pytest_funcarg__client, pytest_funcarg__django_client
 
@@ -123,7 +124,7 @@ class TestREST:
                                          authorization_grant_type=Application.GRANT_PASSWORD)
         app.save()
 
-        resp = self.client.post('/o/token/', {'grant_type': 'password', 'username': 'test_user',
+        resp = self.client.post(reverse('oauth2_provider:token'), {'grant_type': 'password', 'username': 'test_user',
                                 'password': 'test_pwd', 'client_id': app.client_id,
                                 'client_secret': app.client_secret})
         resp_json = json.loads(resp.content)
@@ -135,25 +136,25 @@ class TestREST:
         CrawlingType.objects.all().delete()
 
     def test_add_task(self, client):
-        resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 11, 'expire': timezone.now(),
+        resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 11, 'expire': timezone.now(),
                                 'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 412
         assert self.user.task_set.count() == 0
 
-        resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
+        resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
                                 'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': -100},
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 412
         assert self.user.task_set.count() == 0
 
-        resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
+        resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
                                 'types': [1], 'whitelist': 'onet', 'blacklist': 'wp'},
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 400
         assert self.user.task_set.count() == 0
 
-        resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
+        resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
                                 'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 201
@@ -161,82 +162,82 @@ class TestREST:
         assert self.user.task_set.count() == 1
 
     def test_pause_resume_task(self, client):
-        resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 10, 'expire': timezone.now(),
+        resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 10, 'expire': timezone.now(),
                                 'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         task_id = json.loads(resp.content)['id']
         assert resp.status_code == 201
         assert Task.objects.filter(id=task_id).first().active, resp.content
 
-        resp = self.client.post('/api/task/pause/' + str(task_id) + '/',
+        resp = self.client.post(reverse('api:pause_task', kwargs={'task_id': task_id}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 200
         assert not Task.objects.filter(id=task_id).first().active, resp.content
 
-        resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 8, 'expire': timezone.now(),
+        resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 8, 'expire': timezone.now(),
                                 'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         task2_id = json.loads(resp.content)['id']
         assert resp.status_code == 201
 
-        resp = self.client.post('/api/task/resume/' + str(task_id) + '/',
+        resp = self.client.post(reverse('api:resume_task', kwargs={'task_id': task_id}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 412
         assert not Task.objects.filter(id=task_id).first().active, resp.content
 
-        resp = self.client.post('/api/task/delete/' + str(task2_id) + '/',
+        resp = self.client.post(reverse('api:delete_task', kwargs={'task_id': task2_id}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 200
 
-        resp = self.client.post('/api/task/resume/' + str(task_id) + '/',
+        resp = self.client.post(reverse('api:resume_task', kwargs={'task_id': task_id}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 200
         assert Task.objects.filter(id=task_id).first().active, resp.content
 
-        resp = self.client.post('/api/task/pause/' + str(self.user2_task.id) + '/',
+        resp = self.client.post(reverse('api:pause_task', kwargs={'task_id': self.user2_task.id}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 403
         assert Task.objects.filter(id=self.user2_task.id).first().active, resp.content
 
-        resp = self.client.post('/api/task/resume/' + str(self.user2_task.id) + '/',
+        resp = self.client.post(reverse('api:resume_task', kwargs={'task_id': self.user2_task.id}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 403
         assert Task.objects.filter(id=self.user2_task.id).first().active, resp.content
 
-        resp = self.client.post('/api/task/pause/500/',
+        resp = self.client.post(reverse('api:pause_task', kwargs={'task_id': '500'}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 404
 
-        resp = self.client.post('/api/task/resume/500/',
+        resp = self.client.post(reverse('api:resume_task', kwargs={'task_id': '500'}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 404
 
     def test_stop_task(self, client):
-        resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
-                                                   'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
+        resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
+                                'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 201
         task_id = json.loads(resp.content)['id']
         assert Task.objects.filter(id=task_id).first().active
         assert not Task.objects.filter(id=task_id).first().finished
 
-        resp = self.client.post('/api/task/delete/' + str(task_id) + '/',
+        resp = self.client.post(reverse('api:delete_task', kwargs={'task_id': task_id}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 200
         assert not Task.objects.filter(id=task_id).first().active
         assert Task.objects.filter(id=task_id).first().finished
 
-        resp = self.client.post('/api/task/resume/' + str(task_id) + '/',
+        resp = self.client.post(reverse('api:resume_task', kwargs={'task_id': task_id}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 200
         assert not Task.objects.filter(id=task_id).first().active
 
-        resp = self.client.post('/api/task/delete/' + str(self.user2_task.id) + '/',
+        resp = self.client.post(reverse('api:delete_task', kwargs={'task_id': self.user2_task.id}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 403
         assert not Task.objects.filter(id=self.user2_task.id).first().finished
 
-        resp = self.client.post('/api/task/delete/500/',
+        resp = self.client.post(reverse('api:delete_task', kwargs={'task_id': '500'}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 404
 
