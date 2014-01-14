@@ -26,23 +26,35 @@
             <br>
             <a  type="button" href="{% url 'get_data' task.id %}" class="btn btn-lg btn-primary col-sm-12">
                         <span class="glyphicon glyphicon-download-alt"></span>Get data</a>
-
+            <div><br></div>
             <div class="panel panel-default">
               <div class="panel-heading">Feedback</div>
               <div class="panel-body">
-                    <div class="input-group">
-                      <label>Link</label><input type="text" class="form-control"/>
-                            <label>Rating</label><select name="rating">
-                                {% for rating in ratings %}
-                                    {% ifequal rating.id selected_rating.id %}
-                                        <option value="{{rating}}" selected="selected">{{rating}}</option>
-                                    {% else %}
-                                        <option value="{{rating}}" >{{rating}}</option>
-                                    {% endifequal %}
-                                {% endfor %}
-                            </select>
-                        <button class="btn btn-default" type="button">Send feedback</button>
+               <form class="form-horizontal">
+                    <div class="col-sm-12">
+                        <div class="form-group col-sm-12">
+                            <label  class="col-sm-4">Link</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control"/>
+                            </div>
+                        </div>
+                        <div class="form-group col-sm-12">
+                            <label class="col-sm-4">Rating</label>
+                            <div class="col-sm-4 col-lg-offset-3">
+                                <select name="rating">
+                                    {% for rating in ratings %}
+                                        {% ifequal rating.id selected_rating.id %}
+                                            <option value="{{rating}}" selected="selected">{{rating}}</option>
+                                        {% else %}
+                                            <option value="{{rating}}" >{{rating}}</option>
+                                        {% endifequal %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <button class="btn btn-default col-sm-6 col-lg-offset-3" type="button">Send feedback</button>
                     </div>
+               </form>
               </div>
             </div>
         </div>
