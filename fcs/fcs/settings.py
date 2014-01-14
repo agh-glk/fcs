@@ -75,6 +75,9 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.messages.context_processors.messages'
 )
 
+#Celery
+BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+
 #Time in minutes until inactive user is logged out
 AUTO_LOGOUT_DELAY = 1
 
