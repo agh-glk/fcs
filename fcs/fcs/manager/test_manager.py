@@ -1,5 +1,8 @@
-from models import Quota, User, QuotaException, Task, CrawlingType
+from oauth2_provider.models import Application
+from models import User, QuotaException, Task, CrawlingType
 from django.utils import timezone
+from django.test.client import Client
+import json
 from django_pytest.conftest import pytest_funcarg__client, pytest_funcarg__django_client
 
 class TestTask:
@@ -94,3 +97,85 @@ class TestTask:
                          'onet.pl', max_links=400)
 
 
+class TestREST:
+    def setup(self):
+        self.user = User.objects.create_user(username='test_user', password='test_pwd', email='test@gmail.pl')
+        self.user.is_active = True
+        self.user.save()
+        self.user.quota.max_tasks = 2
+        self.user.quota.max_links = 1000
+        self.user.quota.max_priority = 10
+        self.user.quota.link_pool = 1500
+        self.user.quota.priority_pool = 15
+        self.user.quota.save()
+
+        CrawlingType.objects.create(type=CrawlingType.TEXT)
+        CrawlingType.objects.create(type=CrawlingType.LINKS)
+        CrawlingType.objects.create(type=CrawlingType.PICTURES)
+
+        self.client = Client()
+        app = Application.objects.create(user=self.user, client_type=Application.CLIENT_CONFIDENTIAL,
+                                         authorization_grant_type=Application.GRANT_PASSWORD)
+        app.save()
+
+        resp = self.client.post('/o/token/', {'grant_type': 'password', 'username': 'test_user',
+                                'password': 'test_pwd', 'client_id': app.client_id,
+                                'client_secret': app.client_secret})
+        resp_json = json.loads(resp.content)
+        self.token = resp_json['access_token']
+        self.token_type = resp_json['token_type']
+
+    def teardown(self):
+        self.user.delete()
+        CrawlingType.objects.all().delete()
+
+    def test_add_task(self, client):
+        resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 11, 'expire': timezone.now(),
+                                'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert resp.content.startswith('"Task priority exceeds user quota!')
+        assert self.user.task_set.count() == 0
+
+        resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
+                                'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': -100},
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert resp.content.startswith('"Links amount must be positive')
+        assert self.user.task_set.count() == 0
+
+        resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
+                                'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert json.loads(resp.content)['id'] > 0
+        assert self.user.task_set.count() == 1
+
+    def test_pause_resume_task(self, client):
+        resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
+                                'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        id = json.loads(resp.content)['id']
+        assert Task.objects.filter(id=id).first().active, resp.content
+
+        resp = self.client.post('/api/task/pause/' + str(id) + '/',
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert not Task.objects.filter(id=id).first().active, resp.content
+
+        resp = self.client.post('/api/task/resume/' + str(id) + '/',
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert Task.objects.filter(id=id).first().active, resp.content
+
+    def test_stop_task(self, client):
+        resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
+                                                   'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        id = json.loads(resp.content)['id']
+        assert Task.objects.filter(id=id).first().active
+        assert not Task.objects.filter(id=id).first().finished
+
+        resp = self.client.post('/api/task/delete/' + str(id) + '/',
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert not Task.objects.filter(id=id).first().active
+        assert Task.objects.filter(id=id).first().finished
+
+        resp = self.client.post('/api/task/resume/' + str(id) + '/',
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert not Task.objects.filter(id=id).first().active
