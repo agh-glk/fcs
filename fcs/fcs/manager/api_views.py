@@ -12,9 +12,9 @@ def add_task(request):
     user = request.user
     try:
         _crawling_types = CrawlingType.objects.filter(type__in=map(lambda x: int(x), data['types']))
-        task = Task.objects.create_task(user=user, name=data['name'], priority=data['priority'], expire=data['expire'],
+        task = Task.objects.create_task(user=user, name=data['name'], priority=int(data['priority']), expire=data['expire'],
                             types=_crawling_types, whitelist=data['whitelist'], blacklist=data['blacklist'],
-                            max_links=data['max_links'])
+                            max_links=int(data['max_links']))
     except KeyError as e:
         return Response(e.message, status=status.HTTP_400_BAD_REQUEST)
     except QuotaException as e:
