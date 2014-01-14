@@ -145,13 +145,7 @@ class Task(models.Model):
 
         Paused task does not crawl any links until it is resumed.
         """
-        old = self.active
         self.active = False
-        try:
-            self.clean()
-        except Exception as e:
-            self.active = old
-            raise e
         self.save()
 
     def resume(self):

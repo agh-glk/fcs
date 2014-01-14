@@ -207,7 +207,7 @@ class TestREST:
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 404
 
-        resp = self.client.post('/api/task/resume/bad_id/',
+        resp = self.client.post('/api/task/resume/500/',
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 404
 
