@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.response import Response
@@ -21,7 +22,7 @@ def add_task(request):
                             max_links=int(data['max_links']))
     except KeyError as e:
         return Response(e.message, status=status.HTTP_400_BAD_REQUEST)
-    except QuotaException as e:
+    except (QuotaException, ValidationError) as e:
         return Response(e.message, status=status.HTTP_412_PRECONDITION_FAILED)
     except Exception as e:
         return Response(e.message, status=status.HTTP_400_BAD_REQUEST)
@@ -39,8 +40,6 @@ def delete_task(request, task_id):
         task = Task.objects.get(id=task_id)
         if user != task.user:
             return Response("User is not owner of this task!", status=status.HTTP_403_FORBIDDEN)
-    except KeyError as e:
-        return Response(e.message, status=status.HTTP_400_BAD_REQUEST)
     except Task.DoesNotExist:
         return Response("There is no task with specified id!", status=status.HTTP_404_NOT_FOUND)
     task.stop()
@@ -58,11 +57,9 @@ def pause_task(request, task_id):
         task = Task.objects.get(id=task_id)
         if user != task.user:
             return Response("User is not owner of this task!", status=status.HTTP_403_FORBIDDEN)
-    except KeyError as e:
-        return Response(e.message, status=status.HTTP_400_BAD_REQUEST)
+        task.pause()
     except Task.DoesNotExist:
         return Response("There is no task with specified id!", status=status.HTTP_404_NOT_FOUND)
-    task.pause()
     return Response(status=status.HTTP_200_OK)
 
 
@@ -77,11 +74,11 @@ def resume_task(request, task_id):
         task = Task.objects.get(id=task_id)
         if user != task.user:
             return Response("User is not owner of this task!", status=status.HTTP_403_FORBIDDEN)
-    except KeyError as e:
-        return Response(e.message, status=status.HTTP_400_BAD_REQUEST)
+        task.resume()
+    except (QuotaException, ValidationError) as e:
+        return Response(e.message, status=status.HTTP_412_PRECONDITION_FAILED)
     except Task.DoesNotExist:
         return Response("There is no task with specified id!", status=status.HTTP_404_NOT_FOUND)
-    task.resume()
     return Response(status=status.HTTP_200_OK)
 
 

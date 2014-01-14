@@ -113,6 +113,11 @@ class TestREST:
         CrawlingType.objects.create(type=CrawlingType.LINKS)
         CrawlingType.objects.create(type=CrawlingType.PICTURES)
 
+        self.user2 = User.objects.create_user(username='test_user2', password='test_pwd2', email='test@gmail.pl')
+        self.user2_task = Task.objects.create_task(self.user2, 'Task test_user2', 5, timezone.now(),
+                                                   [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl',
+                                                   max_links=400)
+
         self.client = Client()
         app = Application.objects.create(user=self.user, client_type=Application.CLIENT_CONFIDENTIAL,
                                          authorization_grant_type=Application.GRANT_PASSWORD)
@@ -133,49 +138,105 @@ class TestREST:
         resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 11, 'expire': timezone.now(),
                                 'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
-        assert resp.content.startswith('"Task priority exceeds user quota!')
+        assert resp.status_code == 412
         assert self.user.task_set.count() == 0
 
         resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
                                 'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': -100},
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
-        assert resp.content.startswith('"Links amount must be positive')
+        assert resp.status_code == 412
+        assert self.user.task_set.count() == 0
+
+        resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
+                                'types': [1], 'whitelist': 'onet', 'blacklist': 'wp'},
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert resp.status_code == 400
         assert self.user.task_set.count() == 0
 
         resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
                                 'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert resp.status_code == 201
         assert json.loads(resp.content)['id'] > 0
         assert self.user.task_set.count() == 1
 
     def test_pause_resume_task(self, client):
-        resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
+        resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 10, 'expire': timezone.now(),
                                 'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
-        id = json.loads(resp.content)['id']
-        assert Task.objects.filter(id=id).first().active, resp.content
+        task_id = json.loads(resp.content)['id']
+        assert resp.status_code == 201
+        assert Task.objects.filter(id=task_id).first().active, resp.content
 
-        resp = self.client.post('/api/task/pause/' + str(id) + '/',
+        resp = self.client.post('/api/task/pause/' + str(task_id) + '/',
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
-        assert not Task.objects.filter(id=id).first().active, resp.content
+        assert resp.status_code == 200
+        assert not Task.objects.filter(id=task_id).first().active, resp.content
 
-        resp = self.client.post('/api/task/resume/' + str(id) + '/',
+        resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 8, 'expire': timezone.now(),
+                                'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
-        assert Task.objects.filter(id=id).first().active, resp.content
+        task2_id = json.loads(resp.content)['id']
+        assert resp.status_code == 201
+
+        resp = self.client.post('/api/task/resume/' + str(task_id) + '/',
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert resp.status_code == 412
+        assert not Task.objects.filter(id=task_id).first().active, resp.content
+
+        resp = self.client.post('/api/task/delete/' + str(task2_id) + '/',
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert resp.status_code == 200
+
+        resp = self.client.post('/api/task/resume/' + str(task_id) + '/',
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert resp.status_code == 200
+        assert Task.objects.filter(id=task_id).first().active, resp.content
+
+        resp = self.client.post('/api/task/pause/' + str(self.user2_task.id) + '/',
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert resp.status_code == 403
+        assert Task.objects.filter(id=self.user2_task.id).first().active, resp.content
+
+        resp = self.client.post('/api/task/resume/' + str(self.user2_task.id) + '/',
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert resp.status_code == 403
+        assert Task.objects.filter(id=self.user2_task.id).first().active, resp.content
+
+        resp = self.client.post('/api/task/pause/500/',
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert resp.status_code == 404
+
+        resp = self.client.post('/api/task/resume/bad_id/',
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert resp.status_code == 404
 
     def test_stop_task(self, client):
         resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
                                                    'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
-        id = json.loads(resp.content)['id']
-        assert Task.objects.filter(id=id).first().active
-        assert not Task.objects.filter(id=id).first().finished
+        assert resp.status_code == 201
+        task_id = json.loads(resp.content)['id']
+        assert Task.objects.filter(id=task_id).first().active
+        assert not Task.objects.filter(id=task_id).first().finished
 
-        resp = self.client.post('/api/task/delete/' + str(id) + '/',
+        resp = self.client.post('/api/task/delete/' + str(task_id) + '/',
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
-        assert not Task.objects.filter(id=id).first().active
-        assert Task.objects.filter(id=id).first().finished
+        assert resp.status_code == 200
+        assert not Task.objects.filter(id=task_id).first().active
+        assert Task.objects.filter(id=task_id).first().finished
 
-        resp = self.client.post('/api/task/resume/' + str(id) + '/',
+        resp = self.client.post('/api/task/resume/' + str(task_id) + '/',
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
-        assert not Task.objects.filter(id=id).first().active
+        assert resp.status_code == 200
+        assert not Task.objects.filter(id=task_id).first().active
+
+        resp = self.client.post('/api/task/delete/' + str(self.user2_task.id) + '/',
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert resp.status_code == 403
+        assert not Task.objects.filter(id=self.user2_task.id).first().finished
+
+        resp = self.client.post('/api/task/delete/500/',
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert resp.status_code == 404
+
