@@ -11,6 +11,8 @@ from models import Task, CrawlingType, User
 from oauth2_provider.models import Application
 from tables import TaskTable
 from django_tables2 import RequestConfig
+from django.http import StreamingHttpResponse
+from datetime import datetime
 
 
 def index(request):
@@ -99,7 +101,7 @@ def show_task(request, task_id):
         form.save()
         messages.success(request, "Task %s updated" % task.name)
         return redirect('list_tasks')
-    return render(request, 'tasks/show.html', {'task': task, 'form':form})
+    return render(request, 'tasks/show.html', {'task': task, 'form': form, 'ratings': range(1, 6)})
 
 
 @login_required()
@@ -156,6 +158,14 @@ def stop_task(request, task_id):
 
 
 @login_required()
+def get_data(request, task_id):
+    task = get_object_or_404(Task, id=task_id, user=request.user)
+    task.last_data_download = datetime.now()
+    task.save()
+    return StreamingHttpResponse("Data From Crawler")
+
+
+@login_required()
 def edit_user_data(request):
     user = get_object_or_404(User, id=request.user.id)
     form = forms.EditUserForm(request.POST or None, instance=user)
@@ -163,7 +173,7 @@ def edit_user_data(request):
         form.save()
         messages.success(request, "Your data updated!")
         return redirect('index')
-    return render(request, 'edit_user_data.html', {'form':form})
+    return render(request, 'edit_user_data.html', {'form': form})
 
 
 @login_required()

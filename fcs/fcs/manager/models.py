@@ -94,6 +94,7 @@ class Task(models.Model):
     active = models.BooleanField(default=True)
     finished = models.BooleanField(default=False)
     created = models.DateTimeField(default=timezone.now, null=False)
+    last_data_download = models.DateTimeField(null=True, blank=True)
 
     objects = TaskManager()
 

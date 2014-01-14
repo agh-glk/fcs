@@ -25,7 +25,7 @@ class ChangePasswordForm(forms.Form):
 class EditTaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        exclude = ['name', 'user', 'type', 'active', 'finished', 'created']
+        exclude = ['name', 'user', 'type', 'active', 'finished', 'created', 'last_data_download']
 
 
 class CreateTaskForm(forms.Form):
