@@ -153,15 +153,15 @@ class TestREST:
                                 'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         id = json.loads(resp.content)['id']
-        assert Task.objects.filter(id=id).first().active == True
+        assert Task.objects.filter(id=id).first().active, resp.content
 
-        resp = self.client.post('/api/task/pause/', {'id': id},
+        resp = self.client.post('/api/task/pause/' + str(id) + '/',
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
-        assert Task.objects.filter(id=id).first().active == False
+        assert not Task.objects.filter(id=id).first().active, resp.content
 
-        resp = self.client.post('/api/task/resume/', {'id': id},
+        resp = self.client.post('/api/task/resume/' + str(id) + '/',
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
-        assert Task.objects.filter(id=id).first().active == True
+        assert Task.objects.filter(id=id).first().active, resp.content
 
     def test_stop_task(self, client):
         resp = self.client.post('/api/task/add/', {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
@@ -171,11 +171,11 @@ class TestREST:
         assert Task.objects.filter(id=id).first().active
         assert not Task.objects.filter(id=id).first().finished
 
-        resp = self.client.post('/api/task/delete/', {'id': id},
+        resp = self.client.post('/api/task/delete/' + str(id) + '/',
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert not Task.objects.filter(id=id).first().active
         assert Task.objects.filter(id=id).first().finished
 
-        resp = self.client.post('/api/task/resume/', {'id': id},
+        resp = self.client.post('/api/task/resume/' + str(id) + '/',
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert not Task.objects.filter(id=id).first().active
