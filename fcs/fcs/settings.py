@@ -65,6 +65,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'fcs.manager.middleware.AutoLogout',
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -73,6 +74,9 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.static',
     'django.contrib.messages.context_processors.messages'
 )
+
+#Time in minutes until inactive user is logged out
+AUTO_LOGOUT_DELAY = 1
 
 ROOT_URLCONF = 'fcs.urls'
 
