@@ -46,6 +46,7 @@ INSTALLED_APPS = (
     'widget_tweaks',
     'oauth2_provider',
     'django_tables2',
+    'huey.djhuey',
 )
 
 AUTH_USER_MODEL = 'manager.User'
@@ -75,11 +76,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.messages.context_processors.messages'
 )
 
-#Celery
-BROKER_URL = 'amqp://guest:guest@localhost:5672//'
-
 #Time in minutes until inactive user is logged out
-AUTO_LOGOUT_DELAY = 1
+AUTO_LOGOUT_DELAY = 15
 
 ROOT_URLCONF = 'fcs.urls'
 
@@ -141,4 +139,14 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'oauth2_provider.ext.rest_framework.OAuth2Authentication',
     )
+}
+
+HUEY = {
+    'backend': 'huey.backends.redis_backend',  # required.
+    'name': 'unique name',
+    'connection': {'host': 'localhost', 'port': 7897},
+    'always_eager': False, # Defaults to False when running via manage.py run_huey
+
+    # Options to pass into the consumer when running ``manage.py run_huey``
+    'consumer_options': {'workers': 4},
 }

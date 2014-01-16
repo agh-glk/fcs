@@ -31,7 +31,7 @@ class User(django.contrib.auth.models.AbstractUser):
     objects = UserManager()
 
     def __unicode__(self):
-        return "User %s" % self.username
+        return self.username
 
 
 class Quota(models.Model):

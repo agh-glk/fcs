@@ -1,0 +1,3 @@
+Dear user {{ user }},
+
+Remember about task(s): {{ tasks }}

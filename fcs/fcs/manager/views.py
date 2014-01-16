@@ -12,7 +12,7 @@ from oauth2_provider.models import Application
 from tables import TaskTable
 from django_tables2 import RequestConfig
 from django.http import StreamingHttpResponse
-from django.utils import timezone
+from datetime import datetime
 
 
 def index(request):
@@ -160,7 +160,7 @@ def stop_task(request, task_id):
 @login_required()
 def get_data(request, task_id):
     task = get_object_or_404(Task, id=task_id, user=request.user)
-    task.last_data_download = timezone.now()
+    task.last_data_download = datetime.now()
     task.save()
     return StreamingHttpResponse("Data From Crawler")
 
