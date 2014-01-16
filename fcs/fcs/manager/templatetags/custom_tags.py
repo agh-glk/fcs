@@ -1,11 +1,10 @@
 from django import template
-from django.forms import CheckboxSelectMultiple
 
 register = template.Library()
 
 
 @register.filter(name='is_class')
-def is_class(field,classname):
+def is_class(field, classname):
     return field.field.widget.__class__.__name__ == classname
 
 
