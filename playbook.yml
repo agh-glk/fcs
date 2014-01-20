@@ -12,6 +12,10 @@
       action: service name=postgresql state=reloaded
       sudo: yes
 
+    - name: restart redis-server
+      action: service name=redis-server state=restarted enabled=yes
+      sudo: yes
+
   tasks:
     - name: ensure apt cache is up to date
       action: apt update_cache=yes
@@ -60,6 +64,13 @@
       sudo: yes
       sudo_user: postgres
 
+    - name: configure redis
+      action: copy src=redis.conf dest=/etc/redis/redis.conf
+      sudo: yes
+
+    - name: ensure redis-server is running
+      action: service name=redis-server state=started enabled=yes
+      sudo: yes
 
     - name: creating virtualenv
       action: command virtualenv /home/vagrant/{{ project_name }} creates=/home/vagrant/{{ project_name }}/bin/activate
@@ -70,10 +81,11 @@
       action: pip name=pip virtualenv=/home/vagrant/{{ project_name }} state=latest
       
     - name: installing python packages to virtualenv
-      action: pip virtualenv=/home/vagrant/{{ project_name }} requirements=/vagrant/requirements.txt
+      action: pip virtualenv=/home/vagrant/{{ project_name }} requirements=/vagrant/requirements.txt extra_args='--no-use-wheel'
+      sudo: yes
 
     - name: installing python dev packages to virtualenv
-      action: pip virtualenv=/home/vagrant/{{ project_name }} requirements=/vagrant/requirements_dev.txt
+      action: pip virtualenv=/home/vagrant/{{ project_name }} requirements=/vagrant/requirements_dev.txt extra_args='--no-use-wheel'
 
     - name: django syncdb
       action: django_manage command=syncdb app_path=/vagrant/{{ project_name }}/

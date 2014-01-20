@@ -120,8 +120,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
 
   config.vm.provision :ansible do |ansible|
-    ansible.verbose = "v"
+    ansible.verbose = "vvvv"
     ansible.playbook = "playbook.yml"
+    ansible.host_key_checking = false
   end
 
 
