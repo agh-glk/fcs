@@ -143,7 +143,8 @@ class Task(models.Model):
     def pause(self):
         """Pause task.
 
-        Paused task does not crawl any links until it is resumed.
+        Paused task does not crawl any links until it is resumed. It temporarily releases resources
+        used by this task (such as priority)
         """
         self.active = False
         self.save()
@@ -151,7 +152,9 @@ class Task(models.Model):
     def resume(self):
         """Resume task.
 
-        Task becomes active so it can crawl links.
+        Task becomes active so it can crawl links. QuotaException may be thrown if user has not enough
+        free priority resources to run this task. Then, user should decrease priority of this
+        or other active task.
         """
         old = self.active
         self.active = True
@@ -165,7 +168,7 @@ class Task(models.Model):
     def stop(self):
         """Mark task as finished.
 
-        Finished tasks do not count to user max_tasks quota.
+        Finished tasks cannot be resumed and they do not count to user max_tasks quota.
         """
         self.finished = True
         self.active = False

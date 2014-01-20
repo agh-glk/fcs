@@ -6,12 +6,21 @@ from models import Task, QuotaException, CrawlingType
 from oauth2_provider.decorators import protected_resource
 from django.shortcuts import get_object_or_404
 
-
 @protected_resource()
 @api_view(['POST'])
 def add_task(request):
     """
     Create new task
+
+    Handles REST request for task creation. Request must be authenticated with OAuth2 Token.
+    Required POST parameters:\n
+    *name* - name of task\n
+    *priority* - task priority\n
+    *expire* - datetime of task expiration\n
+    *types* - list of numbers indicating CrawlingType\n
+    *whitelist* - urls which should be crawled first, crawling start point\n
+    *blacklist* - urls (regexp) which should not be crawled\n
+    *max_links* - size of task
     """
     data = request.DATA
     user = request.user
@@ -34,6 +43,10 @@ def add_task(request):
 def delete_task(request, task_id):
     """
     Finish task
+
+    Handles REST request for task finish. Request must be authenticated with OAuth2 Token.
+    Required POST parameters:\n
+    *id* - task id
     """
     user = request.user
     try:
@@ -51,6 +64,10 @@ def delete_task(request, task_id):
 def pause_task(request, task_id):
     """
     Pause task
+
+    Handles REST request for task deactivation. Request must be authenticated with OAuth2 Token.
+    Required POST parameters:\n
+    *id* - task id
     """
     user = request.user
     try:
@@ -68,6 +85,10 @@ def pause_task(request, task_id):
 def resume_task(request, task_id):
     """
     Resume task
+
+    Handles REST request for task activation. Request must be authenticated with OAuth2 Token.
+    Required POST parameters:\n
+    *id* - task id
     """
     user = request.user
     try:
@@ -85,5 +106,10 @@ def resume_task(request, task_id):
 @protected_resource()
 @api_view(['POST'])
 def get_data_from_crawler(request, task_id, size):
-        task = get_object_or_404(Task, id=task_id, user=request.user)
-        return Response(status = status.HTTP_200_OK)
+    """
+    Download gathered data
+
+    Not implemented yet
+    """
+    task = get_object_or_404(Task, id=task_id, user=request.user)
+    return Response(status = status.HTTP_200_OK)
