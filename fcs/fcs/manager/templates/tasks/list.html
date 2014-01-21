@@ -10,8 +10,8 @@
 {% block content %}
 <h3>Your tasks</h3>
 <div class="list-group">
-    {% load render_table from django_tables2 %}
-    {% render_table table %}
+   {% comment %} {% load render_table from  %}
+    {% render_table table %}{% endcomment %}
 </div>
 <a href="{% url 'add_task' %}"><button class="btn btn-lg btn-primary">Add new</button></a>
 {% endblock content %}
