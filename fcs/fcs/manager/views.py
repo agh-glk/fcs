@@ -29,19 +29,21 @@ def login_user(request):
             if user is not None and user.is_active:
                 login(request, user)
                 messages.success(request, "Login successful.")
-                return redirect('index')
+                return redirect(request.GET.get('next', 'index'))
             elif user:
                 messages.error(request, "Account is not activated. Check your email.")
             else:
                 messages.error(request, "Authentication failed. Incorrect username or password.")
     else:
         if request.user.is_authenticated():
-            return HttpResponse('You are already logged in')
+            messages.info(request, 'You are already logged in.')
+            return redirect(request.GET.get('next', 'index'))
         else:
             form = forms.LoginForm()
     return render(request, 'login.html', {'form': form})
 
 
+@login_required()
 def logout_user(request):
     logout(request)
     messages.success(request, "Logout successful.")
@@ -50,22 +52,22 @@ def logout_user(request):
 
 @login_required()
 def change_password(request):
-        if request.method == 'POST':
-            form = forms.ChangePasswordForm(request.POST)
-            if form.is_valid():
-                old_passwd, passwd1, passwd2 = \
-                    [form.cleaned_data[x] for x in ['old_password', 'password', 'password_again']]
-                if request.user.check_password(old_passwd):
-                    request.user.set_password(passwd1)
-                    request.user.save()
-                    logout(request)
-                    messages.success(request, "Password changed successfully. Please log-in again.")
-                    return redirect('index')
-                else:
-                    messages.error(request, "Old password is incorrect.")
-        else:
-            form = forms.ChangePasswordForm()
-        return render(request, 'change_password.html', {'form': form})
+    if request.method == 'POST':
+        form = forms.ChangePasswordForm(request.POST)
+        if form.is_valid():
+            old_passwd, passwd1, passwd2 = \
+                [form.cleaned_data[x] for x in ['old_password', 'password', 'password_again']]
+            if request.user.check_password(old_passwd):
+                request.user.set_password(passwd1)
+                request.user.save()
+                logout(request)
+                messages.success(request, "Password changed successfully. Please log-in again.")
+                return redirect('login')
+            else:
+                messages.error(request, "Old password is incorrect.")
+    else:
+        form = forms.ChangePasswordForm()
+    return render(request, 'change_password.html', {'form': form})
 
 
 @login_required()

@@ -262,3 +262,114 @@ class TestTemplateTags:
         assert alert_tag('warning') == 'alert-warning'
         assert alert_tag('error') == 'alert-danger'
         assert alert_tag('bad_tag') == 'alert-info'
+
+
+class TestViews:
+    def setup(self):
+        self.user = User.objects.create_user(username='test_user', password='test_pwd', email='test@gmail.pl')
+        self.user.is_active = True
+        self.user.save()
+
+        self.client = Client()
+        self.client.login(username='test_user', password='test_pwd')
+
+    def teardown(self):
+        self.user.delete()
+
+    def test_index(self, client):
+        resp = self.client.get(reverse('index'))
+        assert resp.status_code == 200
+
+    def test_login(self, client):
+        self.client.logout()
+        resp = self.client.get(reverse('login'), follow=True)
+        assert resp.status_code == 200
+
+        resp = self.client.post(reverse('login'), {'password': 'test_pwd'}, follow=True)
+        assert not resp.context['user'].id
+
+        self.user.is_active = False
+        self.user.save()
+        resp = self.client.post(reverse('login'), {'username': 'test_user', 'password': 'test_pwd'}, follow=True)
+        assert 'Account is not activated. Check your email.' in self.messages(resp)
+        assert not resp.context['user'].id
+        self.user.is_active = True
+        self.user.save()
+
+        resp = self.client.post(reverse('login'), {'username': 'bad_user', 'password': 'test_pwd'}, follow=True)
+        assert 'Authentication failed. Incorrect username or password.' in self.messages(resp)
+        assert not resp.context['user'].id
+
+        resp = self.client.post(reverse('login'), {'username': 'test_user', 'password': 'test_pwd'}, follow=True)
+        assert 'Login successful.' in self.messages(resp)
+        assert resp.context['user'].id
+
+        resp = self.client.get(reverse('login'), follow=True)
+        assert 'You are already logged in.' in self.messages(resp)
+        assert resp.context['user'].id
+
+    def test_logout(self, client):
+        resp = self.client.get(reverse('index'), follow=True)
+        assert resp.context['user'].id
+
+        resp = self.client.get(reverse('logout'), follow=True)
+        assert 'Logout successful.' in self.messages(resp)
+        assert not resp.context['user'].id
+
+    def test_change_password(self, client):
+        resp = self.client.get(reverse('change_password'), follow=True)
+        assert resp.status_code == 200
+        assert resp.context['user'].id
+
+        resp = self.client.post(reverse('change_password'), {'old_password': 'bad_pwd', 'password': 't',
+                                'password_again': 't'}, follow=True)
+        assert 'Old password is incorrect.' in self.messages(resp)
+        assert resp.context['user'].id
+
+        resp = self.client.post(reverse('change_password'), {'old_password': 'test_pwd', 'password': 't',
+                                'password_again': 't'}, follow=True)
+        assert 'Password changed successfully. Please log-in again.' in self.messages(resp)
+        assert not resp.context['user'].id
+
+        assert not self.client.login(username='test_user', password='test_pwd')
+        assert self.client.login(username='test_user', password='t')
+
+    def test_list_tasks(self, client):
+        resp = self.client.get(reverse('list_tasks'), follow=True)
+        assert resp.status_code == 200
+
+    def test_add_task(self, client):
+        resp = self.client.get(reverse('add_task'), follow=True)
+        assert resp.status_code == 200
+
+        assert self.user.task_set.count() == 0
+        resp = self.client.post(reverse('add_task'), {'name': 'Task1', 'priority': '20', 'whitelist': 'onet',
+                                'blacklist': 'wp', 'max_links': '100', 'expire': timezone.now(), 'type': ['0']},
+                                follow=True)
+        assert self.user.task_set.count() == 0, resp
+        resp = self.client.post(reverse('add_task'), {'name': 'Task1', 'priority': '10', 'whitelist': 'onet',
+                                'blacklist': 'wp', 'max_links': '100', 'expire': timezone.datetime.now(), 'type': ['0']},
+                                follow=True)
+        assert self.user.task_set.count() == 1, resp
+        assert 'New task created.' in self.messages(resp)
+
+    def test_show_task(self, client):
+        resp = self.client.get(reverse('show_task', kwargs={'task_id': '1'}), follow=True)
+        assert resp.status_code == 404
+
+        task = Task.objects.create_task(self.user, 'task', 10, timezone.now(),
+                                 [], 'onet.pl',
+                                 max_links=400)
+        assert Task.objects.filter(id=1).first().priority == 10
+
+        resp = self.client.get(reverse('show_task', kwargs={'task_id': '1'}), follow=True)
+        assert resp.status_code == 200
+
+        resp = self.client.post(reverse('show_task', kwargs={'task_id': '1'}),
+                                {'priority': '5', 'whitelist': 'onet', 'blacklist': 'wp',
+                                'max_links': '10', 'expire_date': timezone.datetime.now()}, follow=True)
+        assert Task.objects.filter(id=1).first().priority == 5, resp
+        assert 'Task %s updated' % task.name in self.messages(resp)
+
+    def messages(self, resp):
+        return [msg.message for msg in resp.context['messages'].__iter__()]
