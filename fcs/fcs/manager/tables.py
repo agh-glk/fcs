@@ -24,8 +24,10 @@ class ColoredRowsTable(tables.Table):
 
 
 class TaskTable(ColoredRowsTable):
-    row_number = tables.Column(empty_values=())
+    row_number = tables.Column(empty_values=(), orderable=False)
     name = tables.LinkColumn('show_task', args=[A('id')])
+    active = tables.Column(visible=False)
+    finished = tables.Column(visible=False)
 
     def __init__(self, *args, **kwargs):
         super(TaskTable, self).__init__(*args, **kwargs)
