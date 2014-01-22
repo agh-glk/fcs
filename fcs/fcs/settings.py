@@ -50,6 +50,9 @@ INSTALLED_APPS = (
 
 AUTH_USER_MODEL = 'manager.User'
 
+LOGIN_URL = 'login'
+LOGOUT_URL = 'logout'
+
 #Django-Registration BEGIN
 
 ACCOUNT_ACTIVATION_DAYS = 7
@@ -76,7 +79,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 #Time in minutes until inactive user is logged out
-AUTO_LOGOUT_DELAY = 1
+AUTO_LOGOUT_DELAY = 30
 
 ROOT_URLCONF = 'fcs.urls'
 
