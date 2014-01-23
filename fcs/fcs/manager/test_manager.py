@@ -1,7 +1,6 @@
 from django.forms.forms import BoundField
 from django.forms.widgets import PasswordInput
 from oauth2_provider.models import Application
-from fcs.manager.forms import LoginForm
 from models import User, QuotaException, Task, CrawlingType
 from django.utils import timezone
 from django.test.client import Client
@@ -9,9 +8,14 @@ from django.core.urlresolvers import reverse
 import json
 from django import forms
 from templatetags.custom_tags import is_class, alert_tag
-from django_pytest.conftest import pytest_funcarg__client, pytest_funcarg__django_client
+from accounts.forms import LoginForm
+
 
 class TestTask:
+    def __init__(self):
+        self.user = None
+        self.client = None
+
     def get_user(self):
         if self.user is None:
             self.user = User.objects.get(username='test_user')
@@ -104,6 +108,10 @@ class TestTask:
 
 
 class TestREST:
+    def __init__(self):
+        self.user = None
+        self.client = None
+
     def setup(self):
         self.user = User.objects.create_user(username='test_user', password='test_pwd', email='test@gmail.pl')
         self.user.is_active = True
@@ -265,6 +273,10 @@ class TestTemplateTags:
 
 
 class TestViews:
+    def __init__(self):
+        self.user = None
+        self.client = None
+
     def setup(self):
         self.user = User.objects.create_user(username='test_user', password='test_pwd', email='test@gmail.pl')
         self.user.is_active = True
@@ -274,7 +286,8 @@ class TestViews:
         self.client.login(username='test_user', password='test_pwd')
 
     def teardown(self):
-        self.user.delete()
+            pass
+        #self.user.delete()
 
     def test_index(self, client):
         resp = self.client.get(reverse('index'))
