@@ -369,7 +369,103 @@ class TestViews:
                                 {'priority': '5', 'whitelist': 'onet', 'blacklist': 'wp',
                                 'max_links': '10', 'expire_date': timezone.datetime.now()}, follow=True)
         assert Task.objects.filter(id=1).first().priority == 5, resp
-        assert 'Task %s updated' % task.name in self.messages(resp)
+        assert 'Task %s updated.' % task.name in self.messages(resp)
+
+    def test_api_keys(self, client):
+        resp = self.client.get(reverse('api_keys'), follow=True)
+        assert resp.status_code == 200
+        assert Application.objects.all().count() == 0
+
+        resp = self.client.post(reverse('api_keys'), follow=True)
+        assert resp.status_code == 200
+        assert Application.objects.all().count() == 1
+
+    def test_pause_task(self, client):
+        task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
+                                        [], 'onet.pl', max_links=400)
+        assert Task.objects.get(id=task.id).active
+
+        resp = self.client.get(reverse('pause_task', kwargs={'task_id': '2'}), follow=True)
+        assert resp.status_code == 404
+
+        resp = self.client.get(reverse('pause_task', kwargs={'task_id': '1'}), follow=True)
+        assert not Task.objects.get(id=task.id).active
+        assert 'Task %s paused.' % task.name in self.messages(resp)
+
+        resp = self.client.get(reverse('pause_task', kwargs={'task_id': '1'}), follow=True)
+        assert not Task.objects.get(id=task.id).active
+        assert 'Task already paused!' in self.messages(resp)
+
+        task.stop()
+        resp = self.client.get(reverse('pause_task', kwargs={'task_id': '1'}), follow=True)
+        assert not Task.objects.get(id=task.id).active
+        assert 'Task already finished!' in self.messages(resp)
+
+    def test_resume_task(self, client):
+        task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
+                                        [], 'onet.pl', max_links=400)
+        assert Task.objects.get(id=task.id).active
+
+        resp = self.client.get(reverse('resume_task', kwargs={'task_id': '2'}), follow=True)
+        assert resp.status_code == 404
+
+        resp = self.client.get(reverse('resume_task', kwargs={'task_id': '1'}), follow=True)
+        assert Task.objects.get(id=task.id).active
+        assert 'Task already in progress!' in self.messages(resp)
+
+        task.pause()
+        resp = self.client.get(reverse('resume_task', kwargs={'task_id': '1'}), follow=True)
+        assert Task.objects.get(id=task.id).active
+        assert 'Task %s resumed.' % task.name in self.messages(resp)
+
+        task.stop()
+        resp = self.client.get(reverse('resume_task', kwargs={'task_id': '1'}), follow=True)
+        assert not Task.objects.get(id=task.id).active
+        assert 'Task already finished!' in self.messages(resp)
+
+    def test_stop_task(self, client):
+        task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
+                                        [], 'onet.pl', max_links=400)
+        assert not Task.objects.get(id=task.id).finished
+
+        resp = self.client.get(reverse('stop_task', kwargs={'task_id': '2'}), follow=True)
+        assert resp.status_code == 404
+
+        resp = self.client.get(reverse('stop_task', kwargs={'task_id': '1'}), follow=True)
+        assert Task.objects.get(id=task.id).finished
+        assert 'Task %s stopped.' % task.name in self.messages(resp)
+
+        resp = self.client.get(reverse('stop_task', kwargs={'task_id': '1'}), follow=True)
+        assert Task.objects.get(id=task.id).finished
+        assert 'Task already finished!' in self.messages(resp)
+
+    def test_get_data(self, client):
+        task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
+                                        [], 'onet.pl', max_links=400)
+
+        resp = self.client.get(reverse('get_data', kwargs={'task_id': '2'}), follow=True)
+        assert resp.status_code == 404
+
+        resp = self.client.get(reverse('get_data', kwargs={'task_id': '1'}), follow=True)
+        assert resp.status_code == 200
+        old_date = Task.objects.get(id=task.id).last_data_download
+        resp = self.client.get(reverse('get_data', kwargs={'task_id': '1'}), follow=True)
+        assert resp.status_code == 200
+        new_date = Task.objects.get(id=task.id).last_data_download
+        assert new_date > old_date
+
+    def test_edit_user_data(self, client):
+        resp = self.client.get(reverse('edit_user_data'), follow=True)
+        assert resp.status_code == 200
+
+        resp = self.client.post(reverse('edit_user_data'), {'last_name': 'last', 'first_name': 'first',
+                                                            'email': 'mail@mail.pl'}, follow=True)
+        assert resp.status_code == 200
+        assert 'Your data updated!' in self.messages(resp)
+
+    def test_show_quota(self, client):
+        resp = self.client.get(reverse('show_quota'), follow=True)
+        assert resp.status_code == 200
 
     def messages(self, resp):
         return [msg.message for msg in resp.context['messages'].__iter__()]
