@@ -19,3 +19,8 @@ def alert_tag(message_tags):
         return tag_map[message_tags]
     except KeyError:
         return 'alert-info'
+
+@register.filter
+def is_true(arg):
+    return arg is True
+

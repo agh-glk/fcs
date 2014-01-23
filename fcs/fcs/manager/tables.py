@@ -2,11 +2,32 @@ import django_tables2 as tables
 from models import Task
 import itertools
 from django_tables2.utils import A
+import django_tables2.rows
 
 
-class TaskTable(tables.Table):
-    row_number = tables.Column(empty_values=())
+class ColoredBoundRows(django_tables2.rows.BoundRows):
+    def __iter__(self):
+        for record in self.data:
+            row = django_tables2.rows.BoundRow(record, table=self.table)
+            row.style = 'some_class'
+            yield row
+
+    def __getitem__(self, key):
+        container = ColoredBoundRows if isinstance(key, slice) else django_tables2.rows.BoundRow
+        return container(self.data[key], table=self.table)
+
+
+class ColoredRowsTable(tables.Table):
+    def __init__(self, *args, **kwargs):
+        super(ColoredRowsTable, self).__init__(*args, **kwargs)
+        self.rows = ColoredBoundRows(data=self.data, table=self)
+
+
+class TaskTable(ColoredRowsTable):
+    row_number = tables.Column(empty_values=(), orderable=False)
     name = tables.LinkColumn('show_task', args=[A('id')])
+    active = tables.Column(visible=False)
+    finished = tables.Column(visible=False)
 
     def __init__(self, *args, **kwargs):
         super(TaskTable, self).__init__(*args, **kwargs)

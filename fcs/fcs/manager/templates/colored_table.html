@@ -1,0 +1,16 @@
+{% extends "django_tables2/table.html" %}
+{% load custom_tags %}
+
+{% block table.tbody.row %}
+    {% if row.finished|is_true %}
+    <tr class="success {{ row.style }}">
+    {% elif not row.active|is_true %}
+    <tr class="active {{ row.style }}">
+    {% else %}
+    <tr class="warning {{ row.style }}">
+    {% endif %}
+      {% for column, cell in row.items %}
+        <td {{ column.attrs.td.as_html }}>{{ cell }}</td>
+      {% endfor %}
+    </tr>
+{% endblock table.tbody.row %}
