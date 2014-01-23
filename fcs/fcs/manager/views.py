@@ -101,7 +101,7 @@ def show_task(request, task_id):
     form = forms.EditTaskForm(request.POST or None, instance=task)
     if form.is_valid():
         form.save()
-        messages.success(request, "Task %s updated" % task.name)
+        messages.success(request, "Task %s updated." % task.name)
         return redirect('list_tasks')
     return render(request, 'tasks/show.html', {'task': task, 'form': form, 'ratings': range(1, 6)})
 
@@ -118,50 +118,44 @@ def api_keys(request):
 
 @login_required()
 def pause_task(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
-    if task.user != request.user:
-        raise Http404
+    task = get_object_or_404(Task, id=task_id, user=request.user.id)
     if task.finished:
-        messages.error(request, u'Task already finished!')
+        messages.error(request, 'Task already finished!')
     elif not task.active:
-        messages.error(request, u'Task already paused!')
+        messages.error(request, 'Task already paused!')
     else:
         task.pause()
-        messages.success(request, u'Task %s paused.' % task.name)
+        messages.success(request, 'Task %s paused.' % task.name)
     return redirect('list_tasks')
 
 
 @login_required()
 def resume_task(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
-    if task.user != request.user:
-        raise Http404
+    task = get_object_or_404(Task, id=task_id, user=request.user.id)
     if task.finished:
-        messages.error(request, u'Task already finished!')
+        messages.error(request, 'Task already finished!')
     elif task.active:
-        messages.error(request, u'Task already in progress!')
+        messages.error(request, 'Task already in progress!')
     else:
         task.resume()
-        messages.success(request, u'Task %s resumed.' % task.name)
+        messages.success(request, 'Task %s resumed.' % task.name)
     return redirect('list_tasks')
 
 
 @login_required()
 def stop_task(request, task_id):
-    task = get_object_or_404(Task, id=task_id)
-    if task.user != request.user:
-        raise Http404
+    task = get_object_or_404(Task, id=task_id, user=request.user.id)
     if task.finished:
-        messages.error(request, u'Task already finished!')
+        messages.error(request, 'Task already finished!')
     else:
         task.stop()
-        messages.success(request, u'Task %s stopped.' % task.name)
+        messages.success(request, 'Task %s stopped.' % task.name)
     return redirect('list_tasks')
 
 
 @login_required()
 def get_data(request, task_id):
-    task = get_object_or_404(Task, id=task_id, user=request.user)
+    task = get_object_or_404(Task, id=task_id, user=request.user.id)
     task.last_data_download = datetime.now()
     task.save()
     return StreamingHttpResponse("Data From Crawler")
