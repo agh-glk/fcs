@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 
 import forms
-from models import Task, CrawlingType, User
+from models import Task, CrawlingType
 from oauth2_provider.models import Application
 from tables import TaskTable
 from django_tables2 import RequestConfig
@@ -165,17 +165,6 @@ def get_data(request, task_id):
     task.last_data_download = datetime.now()
     task.save()
     return StreamingHttpResponse("Data From Crawler")
-
-
-@login_required()
-def edit_user_data(request):
-    user = get_object_or_404(User, id=request.user.id)
-    form = forms.EditUserForm(request.POST or None, instance=user)
-    if form.is_valid():
-        form.save()
-        messages.success(request, "Your data updated!")
-        return redirect('index')
-    return render(request, 'edit_user_data.html', {'form': form})
 
 
 @login_required()
