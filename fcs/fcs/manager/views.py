@@ -109,10 +109,6 @@ def show_task(request, task_id):
 @login_required()
 def api_keys(request):
     application = Application.objects.filter(user=request.user).first()
-    if request.method == 'POST':
-        Application.objects.create(user=request.user, client_type=Application.CLIENT_CONFIDENTIAL,
-                                   authorization_grant_type=Application.GRANT_PASSWORD)
-        return redirect('api_keys')
     return render(request, 'api_keys.html', {'application': application})
 
 
