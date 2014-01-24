@@ -1,0 +1,30 @@
+{
+   "basePath":"{{ host }}",
+   "swaggerVersion":"1.2",
+   "apis":[
+      {
+         "path":"/task/resume",
+         "description":"Resume crawling task"
+      },
+      {
+         "path":"/task/get",
+         "description":"Download gathered data"
+      },
+      {
+         "path":"/task/add",
+         "description":"Create new task"
+      },
+      {
+         "path":"/task/delete",
+         "description":"Stop crawling task"
+      },
+      {
+         "path":"/task/pause",
+         "description":"Pause crawling task"
+      },
+      {
+         "path":"/oauth/token",
+         "description":"Get authorization token"
+      }
+   ]
+}

@@ -1,10 +1,10 @@
-from django.shortcuts import render
-from django.http import HttpResponse, Http404
+from django.shortcuts import render, render_to_response
 from django.contrib import messages
 from django.contrib.auth import logout, authenticate, login
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
+from rest_framework_swagger import SWAGGER_SETTINGS
 
 import forms
 from models import Task, CrawlingType, User
@@ -178,3 +178,13 @@ def show_quota(request):
     return render(request, 'show_quota.html', {'quota': quota})
 
 
+def api_docs_resources(request):
+    host = request.build_absolute_uri()
+    return render_to_response('api_docs/resources.json', {"host": host.rstrip('/')}, mimetype='application/json')
+
+
+def api_docs_declaration(request, path):
+    protocol = "https" if request.is_secure() else "http"
+    api_path = SWAGGER_SETTINGS['api_path']
+    api_full_uri = "%s://%s%s" % (protocol, request.get_host(), api_path)
+    return render_to_response('api_docs/' + path + '.json', {"host": api_full_uri.rstrip('/')}, mimetype='application/json')

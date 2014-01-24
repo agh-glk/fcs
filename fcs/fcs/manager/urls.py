@@ -1,5 +1,6 @@
 from django.conf.urls import patterns, url, include
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from rest_framework_swagger.views import SwaggerUIView
 import views
 
 urlpatterns = patterns('',
@@ -19,11 +20,16 @@ urlpatterns = patterns('',
     url(r'^tasks/pause/(?P<task_id>\d+)/$', views.pause_task, name='pause_task'),
     url(r'^tasks/resume/(?P<task_id>\d+)/$', views.resume_task, name='resume_task'),
     url(r'^tasks/stop/(?P<task_id>\d+)/$', views.stop_task, name='stop_task'),
-    
+    url(r'^tasks/get_data/(?P<task_id>\d+)/$', views.get_data, name='get_data'),
+
     url(r'^api/', include('fcs.manager.apiurls', namespace='api')),
     url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 
-    url(r'^tasks/get_data/(?P<task_id>\d+)/$', views.get_data, name='get_data')
+    #url(r'^docs/', include('rest_framework_swagger.urls', namespace='swagger')),
+    url(r'^docs/$', SwaggerUIView.as_view(), name='api_docs_ui'),
+    url(r'^docs/api-docs/$', views.api_docs_resources, name='api_docs_resources'),
+    url(r'^docs/api-docs/(?P<path>.*)/?$', views.api_docs_declaration, name='api_docs_declaration')
+
 )
 
 urlpatterns += staticfiles_urlpatterns()

@@ -1,0 +1,38 @@
+{
+   "models":{
+
+   },
+   "basePath":"{{ host }}",
+   "apis":[
+      {
+         "operations":[
+            {
+               "httpMethod":"POST",
+               "notes":"Finish crawling task<br/>Request must be authenticated with OAuth authorization token",
+               "nickname":"Stop_task",
+               "summary":"Stop task",
+               "parameters":[
+                  {
+                    "paramType": "path",
+                    "name": "id",
+                    "description": "Task id",
+                    "dataType": "integer",
+                    "format": "integer",
+                    "required": true
+                  },
+                  {
+                    "paramType": "header",
+                    "name": "Authorization",
+                    "description": "Put here obtained token_type and token separated with space",
+                    "dataType": "string",
+                    "format": "string",
+                    "required": true
+                  }
+                ]
+            }
+         ],
+         "path":"/api/task/delete/{id}/",
+         "description":"Stop task"
+      }
+   ]
+}

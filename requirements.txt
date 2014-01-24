@@ -6,6 +6,7 @@ coveralls
 django-nose
 django-pytest
 djangorestframework
+django-rest-swagger
 markdown
 django-filter
 django-oauth-toolkit

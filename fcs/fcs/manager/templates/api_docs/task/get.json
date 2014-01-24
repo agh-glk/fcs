@@ -1,0 +1,46 @@
+{
+   "models":{
+
+   },
+   "basePath":"{{ host }}",
+   "apis":[
+      {
+         "operations":[
+            {
+               "httpMethod":"POST",
+               "notes":"Get gathered data<br/>Request must be authenticated with OAuth authorization token",
+               "nickname":"Get_data",
+               "summary":"Not implemented!",
+               "parameters":[
+                  {
+                    "paramType": "path",
+                    "name": "id",
+                    "description": "Task id",
+                    "dataType": "integer",
+                    "format": "integer",
+                    "required": true
+                  },
+                  {
+                    "paramType": "path",
+                    "name": "size",
+                    "description": "Size of data to download",
+                    "dataType": "integer",
+                    "format": "integer",
+                    "required": true
+                  },
+                  {
+                    "paramType": "header",
+                    "name": "Authorization",
+                    "description": "Put here obtained token_type and token separated with space",
+                    "dataType": "string",
+                    "format": "string",
+                    "required": true
+                  }
+                ]
+            }
+         ],
+         "path":"/api/task/resume/{id}/{size}/",
+         "description":"Get data"
+      }
+   ]
+}

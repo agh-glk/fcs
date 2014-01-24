@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'registration',
     'rest_framework',
+    'rest_framework_swagger',
     'fcs.backend',
     'widget_tweaks',
     'oauth2_provider',

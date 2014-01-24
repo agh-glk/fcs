@@ -1,0 +1,81 @@
+{
+   "models":{
+      "Task":{
+         "id":"Task",
+         "required":[
+            "name",
+            "priority",
+            "expire",
+            "types",
+            "whitelist",
+            "blacklist",
+            "max_links"
+         ],
+         "properties":{
+            "name":{
+               "type":"string",
+               "description":"Name of task"
+            },
+            "priority":{
+               "type":"integer",
+               "description":"Task priority"
+            },
+            "expire":{
+               "type":"dateTime",
+               "description":"Datetime of task expiration"
+            },
+            "types":{
+               "type":"array",
+               "items":{
+                  "type":"integer"
+               },
+               "description":"List of numbers indicating CrawlingType"
+            },
+            "whitelist":{
+               "type":"string",
+               "description":"Urls which should be crawled first, crawling start point"
+            },
+            "blacklist":{
+               "type":"string",
+               "description":"Urls (regexp) which should not be crawled"
+            },
+            "max_links":{
+               "type":"integer",
+               "description":"Size of task"
+            }
+         }
+      }
+   },
+   "basePath":"{{ host }}",
+   "apis":[
+      {
+         "operations":[
+            {
+               "httpMethod":"POST",
+               "notes":"Create new crawling task<br/>Request must be authenticated with OAuth authorization token<br/>Returns id of created task",
+               "nickname":"Add_task",
+               "summary":"Create new task",
+               "parameters":[
+                  {
+                     "paramType":"body",
+                     "name":"task",
+                     "description":"Task definition",
+                     "dataType":"Task",
+                     "required":true
+                  },
+                  {
+                     "paramType":"header",
+                     "name":"Authorization",
+                     "description":"Put here obtained token_type and token separated with space",
+                     "dataType":"string",
+                     "format":"string",
+                     "required":true
+                  }
+               ]
+            }
+         ],
+         "path":"/api/task/add/",
+         "description":"Create new task"
+      }
+   ]
+}
