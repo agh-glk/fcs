@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework_swagger import SWAGGER_SETTINGS
 
 import forms
-from models import Task, CrawlingType, User
+from models import Task, CrawlingType
 from oauth2_provider.models import Application
 from tables import TaskTable
 from django_tables2 import RequestConfig
@@ -109,10 +109,6 @@ def show_task(request, task_id):
 @login_required()
 def api_keys(request):
     application = Application.objects.filter(user=request.user).first()
-    if request.method == 'POST':
-        Application.objects.create(user=request.user, client_type=Application.CLIENT_CONFIDENTIAL,
-                                   authorization_grant_type=Application.GRANT_PASSWORD)
-        return redirect('api_keys')
     return render(request, 'api_keys.html', {'application': application})
 
 
@@ -159,17 +155,6 @@ def get_data(request, task_id):
     task.last_data_download = datetime.now()
     task.save()
     return StreamingHttpResponse("Data From Crawler")
-
-
-@login_required()
-def edit_user_data(request):
-    user = get_object_or_404(User, id=request.user.id)
-    form = forms.EditUserForm(request.POST or None, instance=user)
-    if form.is_valid():
-        form.save()
-        messages.success(request, "Your data updated!")
-        return redirect('index')
-    return render(request, 'edit_user_data.html', {'form': form})
 
 
 @login_required()

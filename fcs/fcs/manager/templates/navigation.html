@@ -5,7 +5,7 @@
     <ul class="nav navbar-nav">
         <li><a href="{% url 'index' %}">Home</a></li>
         {% if not user.is_authenticated %}
-        <li><a href="{% url 'registration_register' %}">Register</a></li>
+        <li><a href="{% url 'register' %}">Register</a></li>
         <li><a href="{% url 'login' %}">Login</a></li>
         {% else %}
         <li><a href="{% url 'list_tasks' %}">Tasks</a></li>
@@ -16,8 +16,8 @@
         <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">{{ user.username }}</a>
             <ul class="dropdown-menu">
-                <li><a href="{% url 'change_password' %}">Change password</a></li>
-                <li><a href="{% url 'edit_user_data' %}">Change your data</a></li>
+                <li><a href="{% url 'change_password' user.username  %}">Change password</a></li>
+                <li><a href="{% url 'edit_user_data' user.username %}">Change your data</a></li>
                 <li><a href="{% url 'show_quota' %}">Show quota</a></li>
                 <li><a href="{% url 'api_keys' %}">API keys</a></li>
                 <li class="divider" ></li>

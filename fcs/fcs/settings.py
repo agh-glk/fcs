@@ -40,7 +40,9 @@ INSTALLED_APPS = (
     'fcs.manager',
     'django_pytest',
     'django.contrib.sites',
-    'registration',
+    'accounts',
+    'userena',
+    'guardian',
     'rest_framework',
     'rest_framework_swagger',
     'fcs.backend',
@@ -50,9 +52,6 @@ INSTALLED_APPS = (
 )
 
 AUTH_USER_MODEL = 'manager.User'
-
-LOGIN_URL = 'login'
-LOGOUT_URL = 'logout'
 
 #Django-Registration BEGIN
 
@@ -143,3 +142,24 @@ REST_FRAMEWORK = {
         'oauth2_provider.ext.rest_framework.OAuth2Authentication',
     )
 }
+
+#Userena
+AUTHENTICATION_BACKENDS = (
+    'userena.backends.UserenaAuthenticationBackend',
+    'guardian.backends.ObjectPermissionBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+ANONYMOUS_USER_ID = -1
+
+AUTH_PROFILE_MODULE = "accounts.UserProfile"
+
+LOGIN_REDIRECT_URL = '/'
+
+USERENA_ACTIVATION_REQUIRED = True
+USERENA_DISABLE_PROFILE_LIST = True
+
+USERENA_SIGNIN_REDIRECT_URL = '/'
+
+LOGIN_URL = 'login'
+LOGOUT_URL = 'logout'

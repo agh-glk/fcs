@@ -4,6 +4,8 @@ from django.db.models.aggregates import Sum
 
 from django.utils import timezone
 import django.contrib.auth.models
+from userena.signals import activation_complete
+from oauth2_provider.models import Application
 
 
 class UserManager(django.contrib.auth.models.BaseUserManager):
@@ -186,5 +188,10 @@ class Task(models.Model):
         return "Task %s of user %s" % (self.name, self.user)
 
 
+def create_quota(sender, **kwargs):
+    user = kwargs['user']
+    Application.objects.create(user=user, client_type=Application.CLIENT_CONFIDENTIAL,
+                               authorization_grant_type=Application.GRANT_PASSWORD)
 
 
+activation_complete.connect(create_quota)
