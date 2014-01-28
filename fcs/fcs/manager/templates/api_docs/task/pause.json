@@ -28,7 +28,17 @@
                     "format": "string",
                     "required": true
                   }
-                ]
+                ],
+               "responseMessages":[
+                  {
+                    "code": 200,
+                    "message": "Task paused"
+                  },
+                  {
+                    "code": 403,
+                    "message": "Authorization failed"
+                  }
+               ]
             }
          ],
          "path":"/api/task/pause/{id}/",

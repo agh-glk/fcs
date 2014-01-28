@@ -36,7 +36,17 @@
                     "format": "string",
                     "required": true
                   }
-                ]
+                ],
+               "responseMessages":[
+                  {
+                    "code": 403,
+                    "message": "Authorization failed"
+                  },
+                  {
+                    "code": 501,
+                    "message": "Not implemented yet"
+                  }
+               ]
             }
          ],
          "path":"/api/task/resume/{id}/{size}/",

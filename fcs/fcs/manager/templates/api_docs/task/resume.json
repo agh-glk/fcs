@@ -28,7 +28,21 @@
                     "format": "string",
                     "required": true
                   }
-                ]
+                ],
+               "responseMessages":[
+                  {
+                    "code": 200,
+                    "message": "Task resumed"
+                  },
+                  {
+                    "code": 403,
+                    "message": "Authorization failed"
+                  },
+                  {
+                    "code": 412,
+                    "message": "Cannot resume task due to limits. Check quota"
+                  }
+               ]
             }
          ],
          "path":"/api/task/resume/{id}/",

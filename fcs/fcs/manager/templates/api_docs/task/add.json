@@ -71,6 +71,24 @@
                      "format":"string",
                      "required":true
                   }
+               ],
+               "responseMessages":[
+                  {
+                    "code": 201,
+                    "message": "Task created"
+                  },
+                  {
+                    "code": 400,
+                    "message": "Cannot create task. Probably bad parameters"
+                  },
+                  {
+                    "code": 403,
+                    "message": "Authorization failed"
+                  },
+                  {
+                    "code": 412,
+                    "message": "Cannot create task due to limits. Check quota"
+                  }
                ]
             }
          ],

@@ -112,4 +112,4 @@ def get_data_from_crawler(request, task_id, size):
     Not implemented yet
     """
     task = get_object_or_404(Task, id=task_id, user=request.user)
-    return Response(status = status.HTTP_200_OK)
+    return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
