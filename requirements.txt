@@ -13,3 +13,5 @@ django-oauth-toolkit
 django-widget-tweaks
 django-tables2
 django-userena
+redis
+huey

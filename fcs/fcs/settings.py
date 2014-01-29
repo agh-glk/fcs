@@ -49,6 +49,7 @@ INSTALLED_APPS = (
     'widget_tweaks',
     'oauth2_provider',
     'django_tables2',
+    'huey.djhuey',
 )
 
 AUTH_USER_MODEL = 'manager.User'
@@ -79,7 +80,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 #Time in minutes until inactive user is logged out
-AUTO_LOGOUT_DELAY = 30
+AUTO_LOGOUT_DELAY = 15
 
 ROOT_URLCONF = 'fcs.urls'
 
@@ -163,3 +164,14 @@ USERENA_SIGNIN_REDIRECT_URL = '/'
 
 LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
+
+#Huey - periodic tasks
+HUEY = {
+    'backend': 'huey.backends.redis_backend',  
+    'name': 'unique name',
+    'connection': {'host': 'localhost', 'port': 6379},
+    'always_eager': False, 
+
+    # Options to pass into the consumer when running ``manage.py run_huey``
+    'consumer_options': {'workers': 4},
+}

@@ -12,6 +12,10 @@
       action: service name=postgresql state=reloaded
       sudo: yes
 
+    - name: restart redis-server
+      action: service name=redis-server state=restarted
+      sudo: yes
+
   tasks:
     - name: ensure apt cache is up to date
       action: apt update_cache=yes
@@ -22,7 +26,6 @@
       sudo: yes
       with_items:
         - postgresql
-        - redis-server
         - libpq-dev
         - python-dev
         - python-psycopg2
@@ -30,6 +33,19 @@
         - python-virtualenv
         - git
         - vim
+        - python-software-properties
+
+    - name: add apt repositories
+      command: apt-add-repository -y ppa:rwky/redis
+      sudo: yes
+
+    - name: update apt-get
+      command: apt-get update
+      sudo: yes
+
+    - name: install redis
+      command: apt-get install redis-server
+      sudo: yes
 
     - name: postgres listen *
       lineinfile: regexp="^listen_addresses = '*'" line="listen_addresses = '*'" dest=/etc/postgresql/9.1/main/postgresql.conf
@@ -60,6 +76,13 @@
       sudo: yes
       sudo_user: postgres
 
+    - name: configure redis
+      action: copy src=redis.conf dest=/etc/redis/7897.conf
+      sudo: yes
+
+    - name: ensure redis-server is running
+      action: service name=redis-server state=started
+      sudo: yes
 
     - name: creating virtualenv
       action: command virtualenv /home/vagrant/{{ project_name }} creates=/home/vagrant/{{ project_name }}/bin/activate
@@ -70,10 +93,11 @@
       action: pip name=pip virtualenv=/home/vagrant/{{ project_name }} state=latest
       
     - name: installing python packages to virtualenv
-      action: pip virtualenv=/home/vagrant/{{ project_name }} requirements=/vagrant/requirements.txt
+      action: pip virtualenv=/home/vagrant/{{ project_name }} requirements=/vagrant/requirements.txt extra_args='--no-use-wheel'
+      sudo: yes
 
     - name: installing python dev packages to virtualenv
-      action: pip virtualenv=/home/vagrant/{{ project_name }} requirements=/vagrant/requirements_dev.txt
+      action: pip virtualenv=/home/vagrant/{{ project_name }} requirements=/vagrant/requirements_dev.txt extra_args='--no-use-wheel'
 
     - name: django syncdb
       action: django_manage command=syncdb app_path=/vagrant/{{ project_name }}/

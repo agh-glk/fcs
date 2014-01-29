@@ -31,10 +31,6 @@ class TaskTable(ColoredRowsTable):
 
     def __init__(self, *args, **kwargs):
         super(TaskTable, self).__init__(*args, **kwargs)
-        self.counter = itertools.count(1)
-
-    def render_row_number(self):
-        return '%d' % next(self.counter)
 
     def render_type(self, value):
         return ', '.join(map(lambda x: str(x), value.all()))
@@ -49,6 +45,6 @@ class TaskTable(ColoredRowsTable):
         model = Task
         attrs = {"class": "table"}
         order_by = "created"
-        fields = ('row_number', 'name', 'id', 'priority', 'whitelist', 'blacklist', 'max_links', 'type', 'created',
+        fields = ('id', 'name', 'priority', 'whitelist', 'blacklist', 'max_links', 'type', 'created',
                   'expire_date', 'active', 'finished')
 
