@@ -54,12 +54,6 @@ INSTALLED_APPS = (
 
 AUTH_USER_MODEL = 'manager.User'
 
-#Django-Registration BEGIN
-
-ACCOUNT_ACTIVATION_DAYS = 7
-
-#Django-Registration END
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 MIDDLEWARE_CLASSES = (

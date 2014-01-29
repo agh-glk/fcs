@@ -1,12 +1,11 @@
-from huey.djhuey import crontab, periodic_task
+from huey.djhuey import crontab, db_periodic_task, db_task
 from models import Task
 from datetime import timedelta
 from django.utils import timezone
 from fcs.backend.mailing_helper import MailingHelper
-import os
 
 
-@periodic_task(crontab(minute='*'))
+@db_periodic_task(crontab(minute='*/'))
 def notify_about_crawler_data():
     t0 = timezone.now() - timedelta(hours=23)
     tasks = list(Task.objects.filter(active=True, last_data_download__lte=t0))
@@ -30,4 +29,3 @@ def notify_about_crawler_data():
         mh.send_html_email('Yor crawler data is waiting', 'crawler_data',
                            {'user': str(lst[0].user), 'tasks': ", ".join([x.name for x in lst])}, 'mailbot@fcs.com',
                            [lst[0].user.email])
-    print 'ok'

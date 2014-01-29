@@ -27,7 +27,6 @@ urlpatterns = patterns('',
     url(r'^accounts/signin/$', handler404),
     url(r'^accounts/signout/$', handler404),
     url(r'^accounts/(?P<username>[\.\w-]+)/email', handler404),
-    url(r'^accounts/(?P<username>[\.\w-]+)/password', handler404),
     url(r'^accounts/', include('userena.urls')),
 
     url(r'^api_keys/', views.api_keys, name='api_keys'),
