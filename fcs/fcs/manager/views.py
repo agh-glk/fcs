@@ -1,6 +1,5 @@
 from django.shortcuts import render, render_to_response
 from django.contrib import messages
-from django.contrib.auth import logout, authenticate, login
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
@@ -17,57 +16,6 @@ from datetime import datetime
 
 def index(request):
     return render(request, 'index.html')
-
-
-def login_user(request):
-    if request.method == 'POST':
-        form = forms.LoginForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            passwd = form.cleaned_data['password']
-            user = authenticate(username=username, password=passwd)
-            if user is not None and user.is_active:
-                login(request, user)
-                messages.success(request, "Login successful.")
-                return redirect(request.GET.get('next', 'index'))
-            elif user:
-                messages.error(request, "Account is not activated. Check your email.")
-            else:
-                messages.error(request, "Authentication failed. Incorrect username or password.")
-    else:
-        if request.user.is_authenticated():
-            messages.info(request, 'You are already logged in.')
-            return redirect(request.GET.get('next', 'index'))
-        else:
-            form = forms.LoginForm()
-    return render(request, 'login.html', {'form': form})
-
-
-@login_required()
-def logout_user(request):
-    logout(request)
-    messages.success(request, "Logout successful.")
-    return redirect('index')
-
-
-@login_required()
-def change_password(request):
-    if request.method == 'POST':
-        form = forms.ChangePasswordForm(request.POST)
-        if form.is_valid():
-            old_passwd, passwd1, passwd2 = \
-                [form.cleaned_data[x] for x in ['old_password', 'password', 'password_again']]
-            if request.user.check_password(old_passwd):
-                request.user.set_password(passwd1)
-                request.user.save()
-                logout(request)
-                messages.success(request, "Password changed successfully. Please log-in again.")
-                return redirect('login')
-            else:
-                messages.error(request, "Old password is incorrect.")
-    else:
-        form = forms.ChangePasswordForm()
-    return render(request, 'change_password.html', {'form': form})
 
 
 @login_required()

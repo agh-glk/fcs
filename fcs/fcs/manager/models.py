@@ -195,3 +195,8 @@ def create_quota(sender, **kwargs):
 
 
 activation_complete.connect(create_quota)
+
+
+class MailSent(models.Model):
+    tasks = models.ManyToManyField(Task)
+    date = models.DateTimeField(null=False)

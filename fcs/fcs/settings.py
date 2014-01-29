@@ -169,3 +169,24 @@ HUEY = {
     # Options to pass into the consumer when running ``manage.py run_huey``
     'consumer_options': {'workers': 4},
 }
+
+MAIL_BOT_EMAIL = 'mailbot@fcs.com'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'syslog': {
+            'level':'INFO',
+            'class':'logging.StreamHandler',
+        }
+    },
+    'loggers': {
+       'huey.consumer': {
+            'handlers': ['syslog'],
+            'level': 'INFO',
+            'propagate': True,
+       }
+    }
+}
+

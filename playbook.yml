@@ -107,3 +107,7 @@
       action: django_manage command=migrate app_path=/vagrant/{{ project_name }}/
                             settings={{ project_name }}.settings_dev virtualenv=/home/vagrant/{{ project_name }}
 
+    - name: userena check permissions
+      action: django_manage command=check_permissions app_path=/vagrant/{{ project_name }}/
+                            settings={{ project_name }}.settings_dev virtualenv=/home/vagrant/{{ project_name }}
+
