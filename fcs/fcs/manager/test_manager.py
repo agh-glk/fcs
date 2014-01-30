@@ -9,13 +9,11 @@ import json
 from django import forms
 from templatetags.custom_tags import is_class, alert_tag
 from accounts.forms import LoginForm
+from django_pytest.conftest import pytest_funcarg__client, pytest_funcarg__django_client
+#Do not remove previous line
 
 
 class TestTask:
-    def __init__(self):
-        self.user = None
-        self.client = None
-
     def get_user(self):
         if self.user is None:
             self.user = User.objects.get(username='test_user')
@@ -108,10 +106,6 @@ class TestTask:
 
 
 class TestREST:
-    def __init__(self):
-        self.user = None
-        self.client = None
-
     def setup(self):
         self.user = User.objects.create_user(username='test_user', password='test_pwd', email='test@gmail.pl')
         self.user.is_active = True
@@ -146,6 +140,7 @@ class TestREST:
 
     def teardown(self):
         self.user.delete()
+        self.user2.delete()
         CrawlingType.objects.all().delete()
 
     def test_add_task(self, client):
@@ -273,10 +268,6 @@ class TestTemplateTags:
 
 
 class TestViews:
-    def __init__(self):
-        self.user = None
-        self.client = None
-
     def setup(self):
         self.user = User.objects.create_user(username='test_user', password='test_pwd', email='test@gmail.pl')
         self.user.is_active = True
@@ -286,8 +277,7 @@ class TestViews:
         self.client.login(username='test_user', password='test_pwd')
 
     def teardown(self):
-            pass
-        #self.user.delete()
+        self.user.delete()
 
     def test_index(self, client):
         resp = self.client.get(reverse('index'))
