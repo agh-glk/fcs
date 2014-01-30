@@ -1,6 +1,7 @@
 from django.forms.forms import BoundField
 from django.forms.widgets import PasswordInput
 from oauth2_provider.models import Application
+from fcs.manager.models import create_quota
 from models import User, QuotaException, Task, CrawlingType
 from django.utils import timezone
 from django.test.client import Client
@@ -271,6 +272,7 @@ class TestViews:
     def setup(self):
         self.user = User.objects.create_user(username='test_user', password='test_pwd', email='test@gmail.pl')
         self.user.is_active = True
+        create_quota(None, user=self.user)
         self.user.save()
 
         self.client = Client()
@@ -282,60 +284,6 @@ class TestViews:
     def test_index(self, client):
         resp = self.client.get(reverse('index'))
         assert resp.status_code == 200
-
-    def test_login(self, client):
-        self.client.logout()
-        resp = self.client.get(reverse('login'), follow=True)
-        assert resp.status_code == 200
-
-        resp = self.client.post(reverse('login'), {'password': 'test_pwd'}, follow=True)
-        assert not resp.context['user'].id
-
-        self.user.is_active = False
-        self.user.save()
-        resp = self.client.post(reverse('login'), {'username': 'test_user', 'password': 'test_pwd'}, follow=True)
-        assert 'Account is not activated. Check your email.' in self.messages(resp)
-        assert not resp.context['user'].id
-        self.user.is_active = True
-        self.user.save()
-
-        resp = self.client.post(reverse('login'), {'username': 'bad_user', 'password': 'test_pwd'}, follow=True)
-        assert 'Authentication failed. Incorrect username or password.' in self.messages(resp)
-        assert not resp.context['user'].id
-
-        resp = self.client.post(reverse('login'), {'username': 'test_user', 'password': 'test_pwd'}, follow=True)
-        assert 'Login successful.' in self.messages(resp)
-        assert resp.context['user'].id
-
-        resp = self.client.get(reverse('login'), follow=True)
-        assert 'You are already logged in.' in self.messages(resp)
-        assert resp.context['user'].id
-
-    def test_logout(self, client):
-        resp = self.client.get(reverse('index'), follow=True)
-        assert resp.context['user'].id
-
-        resp = self.client.get(reverse('logout'), follow=True)
-        assert 'Logout successful.' in self.messages(resp)
-        assert not resp.context['user'].id
-
-    def test_change_password(self, client):
-        resp = self.client.get(reverse('change_password'), follow=True)
-        assert resp.status_code == 200
-        assert resp.context['user'].id
-
-        resp = self.client.post(reverse('change_password'), {'old_password': 'bad_pwd', 'password': 't',
-                                'password_again': 't'}, follow=True)
-        assert 'Old password is incorrect.' in self.messages(resp)
-        assert resp.context['user'].id
-
-        resp = self.client.post(reverse('change_password'), {'old_password': 'test_pwd', 'password': 't',
-                                'password_again': 't'}, follow=True)
-        assert 'Password changed successfully. Please log-in again.' in self.messages(resp)
-        assert not resp.context['user'].id
-
-        assert not self.client.login(username='test_user', password='test_pwd')
-        assert self.client.login(username='test_user', password='t')
 
     def test_list_tasks(self, client):
         resp = self.client.get(reverse('list_tasks'), follow=True)
@@ -376,10 +324,6 @@ class TestViews:
 
     def test_api_keys(self, client):
         resp = self.client.get(reverse('api_keys'), follow=True)
-        assert resp.status_code == 200
-        assert Application.objects.all().count() == 0
-
-        resp = self.client.post(reverse('api_keys'), follow=True)
         assert resp.status_code == 200
         assert Application.objects.all().count() == 1
 
@@ -458,10 +402,10 @@ class TestViews:
         assert new_date > old_date
 
     def test_edit_user_data(self, client):
-        resp = self.client.get(reverse('edit_user_data'), follow=True)
+        resp = self.client.get(reverse('edit_user_data', kwargs={'username': 'test_user'}), follow=True)
         assert resp.status_code == 200
 
-        resp = self.client.post(reverse('edit_user_data'), {'last_name': 'last', 'first_name': 'first',
+        resp = self.client.post(reverse('edit_user_data', kwargs={'username': 'test_user'}), {'last_name': 'last', 'first_name': 'first',
                                                             'email': 'mail@mail.pl'}, follow=True)
         assert resp.status_code == 200
         assert 'Your data updated!' in self.messages(resp)
