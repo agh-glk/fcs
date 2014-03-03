@@ -31,7 +31,6 @@ class TestTask:
 
     def teardown(self):
         self.user.delete()
-        CrawlingType.objects.all().delete()
 
     def test_successful_task_creation(self, client):
         Task.objects.create_task(self.get_user(), 'Task1', 3, timezone.now(),
@@ -113,10 +112,6 @@ class TestREST:
         self.user.quota.link_pool = 1500
         self.user.quota.priority_pool = 15
         self.user.quota.save()
-
-        CrawlingType.objects.create(type=CrawlingType.TEXT)
-        CrawlingType.objects.create(type=CrawlingType.LINKS)
-        CrawlingType.objects.create(type=CrawlingType.PICTURES)
 
         self.user2 = User.objects.create_user(username='test_user2', password='test_pwd2', email='test@gmail.pl')
         self.user2_task = Task.objects.create_task(self.user2, 'Task test_user2', 5, timezone.now(),

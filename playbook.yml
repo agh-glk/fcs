@@ -96,8 +96,9 @@
       action: pip virtualenv=/home/vagrant/{{ project_name }} requirements=/vagrant/requirements.txt extra_args='--no-use-wheel'
       sudo: yes
 
-    - name: installing python dev packages to virtualenv
+    - name: installing python dev packages to virtualenv - dev
       action: pip virtualenv=/home/vagrant/{{ project_name }} requirements=/vagrant/requirements_dev.txt extra_args='--no-use-wheel'
+      sudo: yes
 
     - name: django syncdb
       action: django_manage command=syncdb app_path=/vagrant/{{ project_name }}/
