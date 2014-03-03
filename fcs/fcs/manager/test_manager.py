@@ -29,10 +29,6 @@ class TestTask:
         self.get_user().quota.priority_pool = 15
         self.get_user().quota.save()
 
-        CrawlingType.objects.create(type=CrawlingType.TEXT)
-        CrawlingType.objects.create(type=CrawlingType.LINKS)
-        CrawlingType.objects.create(type=CrawlingType.PICTURES)
-
     def teardown(self):
         self.user.delete()
         CrawlingType.objects.all().delete()
