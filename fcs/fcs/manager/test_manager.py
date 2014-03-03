@@ -31,8 +31,10 @@ class TestTask:
 
     def teardown(self):
         self.user.delete()
+        CrawlingType.objects.all().delete()
 
     def test_successful_task_creation(self, client):
+        CrawlingType.objects.create(type=CrawlingType.TEXT)
         Task.objects.create_task(self.get_user(), 'Task1', 3, timezone.now(),
                                 [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
         assert self.get_user().task_set.count() == 1, 'Task was not properly saved!'
