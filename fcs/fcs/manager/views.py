@@ -29,7 +29,7 @@ def list_tasks(request):
 @login_required()
 def add_task(request):
     if request.method == 'POST':
-        form = forms.CreateTaskForm(request.POST)
+        form = forms.CreateTaskForm(data=request.POST, user=request.user)
         if form.is_valid():
             name, priority, whitelist, blacklist, max_links, expire, types = \
                 [form.cleaned_data[x] for x in ['name', 'priority', 'whitelist', 'blacklist',
@@ -39,7 +39,7 @@ def add_task(request):
             messages.success(request, 'New task created.')
             return redirect('list_tasks')
     else:
-        form = forms.CreateTaskForm()
+        form = forms.CreateTaskForm(user=request.user)
     return render(request, 'tasks/add.html', {'form': form})
 
 

@@ -11,13 +11,13 @@
                 xmlns="http://www.w3.org/1999/html"></script>
         <div class="btn-group col-sm-4 col-sm-offset-4">
             {% if task.active %}
-                <button  type="button" onclick="confirmOperation('{% url 'pause_task' task.id %}')" class="btn btn-lg btn-primary  col-sm-6">
+                <button  type="button" onclick="confirmOperation('{% url 'pause_task' task.id %}', 'Task will be paused.')" class="btn btn-lg btn-primary  col-sm-6">
                     <span class="glyphicon glyphicon-pause"></span>Pause</button>
             {% else %}
-                <button  type="button" onclick="confirmOperation('{% url 'resume_task' task.id %}')" class="btn btn-lg btn-primary  col-sm-6">
+                <button  type="button" onclick="confirmOperation('{% url 'resume_task' task.id %}', 'Task will be resumed.')" class="btn btn-lg btn-primary  col-sm-6">
                     <span class="glyphicon glyphicon-play"></span>Resume</button>
             {% endif %}
-            <button type="button" onclick="confirmOperation('{% url 'stop_task' task.id %}')" class="btn btn-lg btn-primary col-sm-6">
+            <button type="button" onclick="confirmOperation('{% url 'stop_task' task.id %}', 'Task will be stopped.')" class="btn btn-lg btn-primary col-sm-6">
                 <span class="glyphicon glyphicon-stop"></span>Stop</button>
         </div>
 

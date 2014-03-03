@@ -1,5 +1,5 @@
-function confirmOperation(url) {
-    var res = confirm("Are you sure?");
+function confirmOperation(url, text) {
+    var res = confirm(text+"\nAre you sure?");
     if (res == true) {
         window.location = url;
     }

@@ -107,23 +107,23 @@ class Task(models.Model):
             raise ValidationError('Priority must be positive')
         if self.max_links <= 0:
             raise ValidationError('Links amount must be positive')
-#        if self.expire_date < timezone.now():
-#            raise ValidationError('Expire date cannot be earlier than current date')
+        if self.expire_date < timezone.now():
+            raise ValidationError('Expire date cannot be earlier than current date')
 
         if self.user.quota.max_priority < self.priority:
-            raise QuotaException('Task priority exceeds user quota! Limit: ' + str(self.user.quota.max_priority))
+            raise ValidationError('Task priority exceeds user quota! Limit: ' + str(self.user.quota.max_priority))
         if self.pk is None and self.user.quota.max_tasks <= self.user.task_set.filter(finished=False).count():
-            raise QuotaException('User has too many opened tasks! Limit: ' + str(self.user.quota.max_tasks))
+            raise ValidationError('User has too many opened tasks! Limit: ' + str(self.user.quota.max_tasks))
         if self.user.quota.max_links < self.max_links:
-            raise QuotaException('Task link limit exceeds user quota! Limit: ' + str(self.user.quota.max_links))
+            raise ValidationError('Task link limit exceeds user quota! Limit: ' + str(self.user.quota.max_links))
 
         priorities = self.user.task_set.filter(active=True).exclude(pk=self.pk).aggregate(Sum('priority'))['priority__sum']
         if self.user.quota.priority_pool < (priorities + self.priority if priorities else self.priority):
-            raise QuotaException("User priority pool exceeded! Limit: " + str(self.user.quota.priority_pool))
+            raise ValidationError("User priority pool exceeded! Limit: " + str(self.user.quota.priority_pool))
 
         links = self.user.task_set.filter(finished=False).exclude(pk=self.pk).aggregate(Sum('max_links'))['max_links__sum']
         if self.user.quota.link_pool < (links + self.max_links if links else self.max_links):
-            raise QuotaException("User link pool exceeded! Limit: " + str(self.user.quota.link_pool))
+            raise ValidationError("User link pool exceeded! Limit: " + str(self.user.quota.link_pool))
 
         #TODO: expire_date and finished flag?
 

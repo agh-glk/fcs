@@ -41,9 +41,8 @@ urlpatterns = patterns('',
     url(r'^tasks/get_data/(?P<task_id>\d+)/$', views.get_data, name='get_data'),
 
     url(r'^api/', include('fcs.manager.apiurls', namespace='api')),
-    url(r'^o/', include('oauth2_provider.urls', namespace='oauth2_provider')),
+    url(r'^auth/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 
-    #url(r'^docs/', include('rest_framework_swagger.urls', namespace='swagger')),
     url(r'^docs/$', SwaggerUIView.as_view(), name='api_docs_ui'),
     url(r'^docs/api-docs/$', views.api_docs_resources, name='api_docs_resources'),
     url(r'^docs/api-docs/(?P<path>.*)/?$', views.api_docs_declaration, name='api_docs_declaration')

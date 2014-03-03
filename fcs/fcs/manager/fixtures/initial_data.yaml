@@ -1,0 +1,22 @@
+#Poprawna nazwa domeny dla maila po rejestracji.
+- model: sites.site
+  pk: 1
+  fields:
+    domain: localhost:8080
+    name: localhost:8080
+
+#Potrzebne dla CrawlingType. Docelowo będzie zmienione, kiedy ustalimy dokładne działanie polityk crawlingu.
+- model: manager.CrawlingType
+  pk: 1
+  fields:
+    type: 0
+
+- model: manager.CrawlingType
+  pk: 2
+  fields:
+    type: 1
+
+- model: manager.CrawlingType
+  pk: 3
+  fields:
+    type: 2
