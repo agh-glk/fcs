@@ -32,8 +32,8 @@
     is_staff: True
     is_superuser: True
 
--model: accounts.UserProfile
+- model: accounts.UserProfile
   pk: 1
   fields:
     privacy: registered
-    user_id: 1
+    user: 1
