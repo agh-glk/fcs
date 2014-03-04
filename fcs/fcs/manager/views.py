@@ -47,11 +47,13 @@ def add_task(request):
 def show_task(request, task_id):
     task = get_object_or_404(Task, id=task_id, user=request.user.id)
     form = forms.EditTaskForm(request.POST or None, instance=task)
+    fieldset_value = task.finished and 'disabled' or ''
     if form.is_valid():
         form.save()
         messages.success(request, "Task %s updated." % task.name)
         return redirect('list_tasks')
-    return render(request, 'tasks/show.html', {'task': task, 'form': form, 'ratings': range(1, 6)})
+    return render(request, 'tasks/show.html', {'task': task, 'form': form, 'ratings': range(1, 6),
+                  'fieldset_value': fieldset_value})
 
 
 @login_required()

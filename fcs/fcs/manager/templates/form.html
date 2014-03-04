@@ -19,6 +19,7 @@
 {% block content %}
     <h3 class="title">{% block form-title %}Form{% endblock form-title %}</h3>
     <form class="form-horizontal" action="{% block form-url %}#{% endblock form-url %}" method="post">{% csrf_token %}
+    <fieldset {{ fieldset_value }}>
         {% for field in form %}
         <div class="form-group {% if field.errors %}has-error{% endif %}">
             <label for="{{ field.id_for_label }}" class="col-sm-3 control-label">{{ field.label }}</label>
@@ -49,8 +50,9 @@
         </div>
         {% endfor %}
         <div class="col-sm-4 col-sm-offset-4">
-            <button class="btn btn-lg btn-primary col-sm-12" type="submit">{% block form-button %}Button{% endblock form-button %}</button>
+            <button class="btn btn-lg btn-primary col-sm-12 {% block form-hidden-button %}  {% endblock form-hidden-button %}" type="submit">{% block form-button %}Button{% endblock form-button %}</button>
         </div>
+      </fieldset>
     </form>
     {% block other_content %}
 
@@ -66,5 +68,8 @@
         viewSelect: 2,
         startDate: new Date()
     });
+    {% if fieldset_value == 'disabled' %}
+        $('.datetime-picker').datetimepicker("remove");
+    {% endif %}
 </script>
 {% endblock scripts %}

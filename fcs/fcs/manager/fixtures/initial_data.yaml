@@ -20,3 +20,20 @@
   pk: 3
   fields:
     type: 2
+
+#Administrator. Hasło: "admin".
+- model: manager.User
+  pk: 1
+  fields:
+    username: admin
+    email: admin@fcs.com
+    password: pbkdf2_sha256$12000$6iX97nBJH5f2$RCrZprST6EiqPQZU/QAJ2a0lruiUnQZSvImOYChlEok=
+    is_active: True
+    is_staff: True
+    is_superuser: True
+
+-model: accounts.UserProfile
+  pk: 1
+  fields:
+    privacy: registered
+    user_id: 1

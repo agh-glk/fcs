@@ -4,6 +4,7 @@
 
 {% block form-title %}Task {{ task.name }} (ID: {{ task.id }}){% endblock form-title %}
 {% block form-url %}{% url 'show_task' task.id %}{% endblock form-url %}
+{% block form-hidden-button %}  {% if task.finished %} hidden {% endif %} {% endblock form-hidden-button %}
 {% block form-button %}Save changes{% endblock form-button %}
 {% block other_content %}
     {% if not task.finished %}
