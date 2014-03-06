@@ -1,4 +1,4 @@
-from fcs.manager.models import create_quota, User, Task
+from fcs.manager.models import User, Task, create_api_keys
 from oauth2_provider.models import Application
 from django.test.client import Client
 from django.core.urlresolvers import reverse
@@ -11,7 +11,7 @@ class TestViews:
     def setup(self):
         self.user = User.objects.create_user(username='test_user', password='test_pwd', email='test@gmail.pl')
         self.user.is_active = True
-        create_quota(None, user=self.user)
+        create_api_keys(None, user=self.user)
         self.user.save()
 
         self.client = Client()
