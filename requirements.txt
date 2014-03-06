@@ -15,3 +15,4 @@ django-tables2
 django-userena
 redis
 huey
+pyyaml

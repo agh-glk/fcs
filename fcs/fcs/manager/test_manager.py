@@ -28,18 +28,18 @@ class TestTask:
         self.get_user().quota.link_pool = 1500
         self.get_user().quota.priority_pool = 15
         self.get_user().quota.save()
+        CrawlingType.objects.all().delete()
+        CrawlingType.objects.create(type=CrawlingType.TEXT)
 
     def teardown(self):
         self.user.delete()
-        CrawlingType.objects.all().delete()
 
     def test_successful_task_creation(self, client):
-        CrawlingType.objects.create(type=CrawlingType.TEXT)
         Task.objects.create_task(self.get_user(), 'Task1', 3, timezone.now(),
                                 [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
         assert self.get_user().task_set.count() == 1, 'Task was not properly saved!'
 
-    def test_failed_task_creation(self, client):
+    def test_failed_task_creation_priority_quota(self, client):
         try:
             Task.objects.create_task(self.get_user(), 'Task1', 12, timezone.now(),
                              [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
@@ -47,6 +47,7 @@ class TestTask:
         except QuotaException as e:
             assert e.message.startswith('Task priority exceeds user quota!'), 'Wrong exception message!'
 
+    def test_failed_task_creation_link_quota(self, client):
         try:
             Task.objects.create_task(self.get_user(), 'Task1', 5, timezone.now(),
                              [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=1400)
@@ -54,19 +55,26 @@ class TestTask:
         except QuotaException as e:
             assert e.message.startswith('Task link limit exceeds user quota!'), 'Wrong exception message!'
 
-    def test_change_priority(self, client):
+    def test_change_priority_success(self, client):
         task = Task.objects.create_task(self.get_user(), 'Task1', 5, timezone.now(),
                                 [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
         assert task.priority == 5
         task.change_priority(7)
-        assert task.priority == 7
+
+    def test_change_priority_failed_priority_quota(self, client):
+        task = Task.objects.create_task(self.get_user(), 'Task1', 5, timezone.now(),
+                                        [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
+        assert task.priority == 5
         try:
             task.change_priority(12)
             assert False, 'Exception should be raised!'
         except QuotaException as e:
             assert str(e).startswith('Task priority exceeds user quota!'), 'Wrong exception message!'
-        assert task.priority == 7
+        assert task.priority == 5
 
+    def test_change_priority_failed_priority_pool_quota(self, client):
+        task = Task.objects.create_task(self.get_user(), 'Task1', 7, timezone.now(),
+                                        [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
         Task.objects.create_task(self.get_user(), 'Task2', 7, timezone.now(),
                          [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
         try:
@@ -76,11 +84,18 @@ class TestTask:
             assert str(e).startswith('User priority pool exceeded!'), 'Wrong exception message!' + str(e)
         assert task.priority == 7
 
-    def test_pause_and_resume(self, client):
+    def test_pause(self, client):
         task = Task.objects.create_task(self.get_user(), 'Task1', 5, timezone.now(),
                                 [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
         assert task.active
         task.pause()
+        assert not task.active
+
+    def test_resume(self, client):
+        task = Task.objects.create_task(self.get_user(), 'Task1', 5, timezone.now(),
+                                        [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
+        task.active = False
+        task.save()
         assert not task.active
         task.resume()
         assert task.active
@@ -88,7 +103,6 @@ class TestTask:
     def test_finish(self, client):
         task = Task.objects.create_task(self.get_user(), 'Task1', 5, timezone.now(),
                                 [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
-
         try:
             Task.objects.create_task(self.get_user(), 'Task2', 5, timezone.now(),
                              [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
@@ -135,27 +149,8 @@ class TestREST:
     def teardown(self):
         self.user.delete()
         self.user2.delete()
-        CrawlingType.objects.all().delete()
 
-    def test_add_task(self, client):
-        resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 11, 'expire': timezone.now(),
-                                'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
-                                AUTHORIZATION=self.token_type + ' ' + self.token)
-        assert resp.status_code == 412
-        assert self.user.task_set.count() == 0
-
-        resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
-                                'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': -100},
-                                AUTHORIZATION=self.token_type + ' ' + self.token)
-        assert resp.status_code == 412
-        assert self.user.task_set.count() == 0
-
-        resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
-                                'types': [1], 'whitelist': 'onet', 'blacklist': 'wp'},
-                                AUTHORIZATION=self.token_type + ' ' + self.token)
-        assert resp.status_code == 400
-        assert self.user.task_set.count() == 0
-
+    def test_add_task_success(self, client):
         resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
                                 'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
@@ -163,82 +158,116 @@ class TestREST:
         assert json.loads(resp.content)['id'] > 0
         assert self.user.task_set.count() == 1
 
-    def test_pause_resume_task(self, client):
-        resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 10, 'expire': timezone.now(),
-                                'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
-                                AUTHORIZATION=self.token_type + ' ' + self.token)
-        task_id = json.loads(resp.content)['id']
-        assert resp.status_code == 201
-        assert Task.objects.filter(id=task_id).first().active, resp.content
-
-        resp = self.client.post(reverse('api:pause_task', kwargs={'task_id': task_id}),
-                                AUTHORIZATION=self.token_type + ' ' + self.token)
-        assert resp.status_code == 200
-        assert not Task.objects.filter(id=task_id).first().active, resp.content
-
-        resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 8, 'expire': timezone.now(),
-                                'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
-                                AUTHORIZATION=self.token_type + ' ' + self.token)
-        task2_id = json.loads(resp.content)['id']
-        assert resp.status_code == 201
-
-        resp = self.client.post(reverse('api:resume_task', kwargs={'task_id': task_id}),
+    def test_add_task_failed_priority_quota(self, client):
+        resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 11, 'expire': timezone.now(),
+                                                          'types': [1], 'whitelist': 'onet', 'blacklist': 'wp',
+                                                          'max_links': 100},
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 412
-        assert not Task.objects.filter(id=task_id).first().active, resp.content
+        assert self.user.task_set.count() == 0
 
-        resp = self.client.post(reverse('api:delete_task', kwargs={'task_id': task2_id}),
+    def test_add_task_failed_incorrect_links(self, client):
+        resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
+                                                          'types': [1], 'whitelist': 'onet', 'blacklist': 'wp',
+                                                          'max_links': -100},
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert resp.status_code == 412
+        assert self.user.task_set.count() == 0
+
+    def test_add_task_failed_incorrect_dataset(self, client):
+        resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
+                                                          'types': [1], 'whitelist': 'onet', 'blacklist': 'wp'},
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert resp.status_code == 400
+        assert self.user.task_set.count() == 0
+
+    def test_pause_task_success(self, client):
+        task = Task.objects.create_task(self.user, 'Task1', 10, timezone.now(),
+                                        [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
+        assert Task.objects.filter(id=task.id).first().active
+
+        resp = self.client.post(reverse('api:pause_task', kwargs={'task_id': task.id}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 200
+        assert not Task.objects.filter(id=task.id).first().active, resp.content
 
-        resp = self.client.post(reverse('api:resume_task', kwargs={'task_id': task_id}),
+    def test_resume_task_success(self, client):
+        task = Task.objects.create_task(self.user, 'Task1', 10, timezone.now(),
+                                        [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
+        task.pause()
+        assert not Task.objects.filter(id=task.id).first().active
+
+        resp = self.client.post(reverse('api:resume_task', kwargs={'task_id': task.id}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 200
-        assert Task.objects.filter(id=task_id).first().active, resp.content
+        assert Task.objects.filter(id=task.id).first().active, resp.content
 
+    def test_resume_task_failed_priority_pool(self, client):
+        task = Task.objects.create_task(self.user, 'Task1', 10, timezone.now(),
+                                        [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
+        task.pause()
+        Task.objects.create_task(self.user, 'Task2', 7, timezone.now(),
+                                 [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
+        assert not Task.objects.filter(id=task.id).first().active
+
+        resp = self.client.post(reverse('api:resume_task', kwargs={'task_id': task.id}),
+                                AUTHORIZATION=self.token_type + ' ' + self.token)
+        assert resp.status_code == 412
+        assert not Task.objects.filter(id=task.id).first().active, resp.content
+
+    def test_pause_task_failed_authorization(self, client):
         resp = self.client.post(reverse('api:pause_task', kwargs={'task_id': self.user2_task.id}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 403
         assert Task.objects.filter(id=self.user2_task.id).first().active, resp.content
 
+    def test_resume_task_failed_authorization(self, client):
         resp = self.client.post(reverse('api:resume_task', kwargs={'task_id': self.user2_task.id}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 403
         assert Task.objects.filter(id=self.user2_task.id).first().active, resp.content
 
+    def test_pause_task_failed_incorrect_id(self, client):
         resp = self.client.post(reverse('api:pause_task', kwargs={'task_id': '500'}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 404
 
+    def test_resume_task_failed_incorrect_id(self, client):
         resp = self.client.post(reverse('api:resume_task', kwargs={'task_id': '500'}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 404
 
-    def test_stop_task(self, client):
-        resp = self.client.post(reverse('api:add_task'), {'name': 'Task1', 'priority': 2, 'expire': timezone.now(),
-                                'types': [1], 'whitelist': 'onet', 'blacklist': 'wp', 'max_links': 100},
-                                AUTHORIZATION=self.token_type + ' ' + self.token)
-        assert resp.status_code == 201
-        task_id = json.loads(resp.content)['id']
-        assert Task.objects.filter(id=task_id).first().active
-        assert not Task.objects.filter(id=task_id).first().finished
+    def test_resume_task_failed_finished(self, client):
+        task = Task.objects.create_task(self.user, 'Task1', 2, timezone.now(),
+                                        [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
+        task.stop()
+        assert not Task.objects.filter(id=task.id).first().active
+        assert Task.objects.filter(id=task.id).first().finished
 
-        resp = self.client.post(reverse('api:delete_task', kwargs={'task_id': task_id}),
+        resp = self.client.post(reverse('api:resume_task', kwargs={'task_id': task.id}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 200
-        assert not Task.objects.filter(id=task_id).first().active
-        assert Task.objects.filter(id=task_id).first().finished
+        assert not Task.objects.filter(id=task.id).first().active
 
-        resp = self.client.post(reverse('api:resume_task', kwargs={'task_id': task_id}),
+    def test_stop_task_success(self, client):
+        task = Task.objects.create_task(self.user, 'Task1', 2, timezone.now(),
+                                        [CrawlingType.objects.get(type=CrawlingType.TEXT)], 'onet.pl', max_links=400)
+        assert Task.objects.filter(id=task.id).first().active
+        assert not Task.objects.filter(id=task.id).first().finished
+
+        resp = self.client.post(reverse('api:delete_task', kwargs={'task_id': task.id}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 200
-        assert not Task.objects.filter(id=task_id).first().active
+        assert not Task.objects.filter(id=task.id).first().active
+        assert Task.objects.filter(id=task.id).first().finished
 
+    def test_stop_task_failed_authorization(self, client):
         resp = self.client.post(reverse('api:delete_task', kwargs={'task_id': self.user2_task.id}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 403
         assert not Task.objects.filter(id=self.user2_task.id).first().finished
 
+    def test_stop_task_failed_incorrect_id(self, client):
         resp = self.client.post(reverse('api:delete_task', kwargs={'task_id': '500'}),
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 404
@@ -282,37 +311,43 @@ class TestViews:
         resp = self.client.get(reverse('list_tasks'), follow=True)
         assert resp.status_code == 200
 
-    def test_add_task(self, client):
+    def test_add_task_get(self, client):
         resp = self.client.get(reverse('add_task'), follow=True)
         assert resp.status_code == 200
 
+    def test_add_task_post_failed(self, client):
         assert self.user.task_set.count() == 0
         resp = self.client.post(reverse('add_task'), {'name': 'Task1', 'priority': '20', 'whitelist': 'onet',
                                 'blacklist': 'wp', 'max_links': '100', 'expire': timezone.now(), 'type': ['0']},
                                 follow=True)
         assert self.user.task_set.count() == 0, resp
+
+    def test_add_task_post_success(self, client):
+        assert self.user.task_set.count() == 0
         resp = self.client.post(reverse('add_task'), {'name': 'Task1', 'priority': '10', 'whitelist': 'onet',
                                 'blacklist': 'wp', 'max_links': '100', 'expire': timezone.datetime.now(), 'type': ['0']},
                                 follow=True)
         assert self.user.task_set.count() == 1, resp
         assert 'New task created.' in self.messages(resp)
 
-    def test_show_task(self, client):
-        resp = self.client.get(reverse('show_task', kwargs={'task_id': '1'}), follow=True)
+    def test_show_task_get_failed_incorrect_id(self, client):
+        resp = self.client.get(reverse('show_task', kwargs={'task_id': '500'}), follow=True)
         assert resp.status_code == 404
 
-        task = Task.objects.create_task(self.user, 'task', 10, timezone.now(),
-                                 [], 'onet.pl',
-                                 max_links=400)
-        assert Task.objects.filter(id=1).first().priority == 10
+    def test_show_task_get_success(self, client):
+        task = Task.objects.create_task(self.user, 'task', 10, timezone.now(), [], 'onet.pl', max_links=400)
 
-        resp = self.client.get(reverse('show_task', kwargs={'task_id': '1'}), follow=True)
+        resp = self.client.get(reverse('show_task', kwargs={'task_id': task.id}), follow=True)
         assert resp.status_code == 200
 
-        resp = self.client.post(reverse('show_task', kwargs={'task_id': '1'}),
+    def test_show_task_post_success(self, client):
+        task = Task.objects.create_task(self.user, 'task', 10, timezone.now(), [], 'onet.pl', max_links=400)
+        assert Task.objects.filter(id=task.id).first().priority == 10
+
+        resp = self.client.post(reverse('show_task', kwargs={'task_id': task.id}),
                                 {'priority': '5', 'whitelist': 'onet', 'blacklist': 'wp',
                                 'max_links': '10', 'expire_date': timezone.datetime.now()}, follow=True)
-        assert Task.objects.filter(id=1).first().priority == 5, resp
+        assert Task.objects.filter(id=task.id).first().priority == 5, resp
         assert 'Task %s updated.' % task.name in self.messages(resp)
 
     def test_api_keys(self, client):
@@ -320,62 +355,92 @@ class TestViews:
         assert resp.status_code == 200
         assert Application.objects.all().count() == 1
 
-    def test_pause_task(self, client):
+    def test_pause_task_success(self, client):
         task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
                                         [], 'onet.pl', max_links=400)
         assert Task.objects.get(id=task.id).active
 
-        resp = self.client.get(reverse('pause_task', kwargs={'task_id': '2'}), follow=True)
-        assert resp.status_code == 404
-
-        resp = self.client.get(reverse('pause_task', kwargs={'task_id': '1'}), follow=True)
+        resp = self.client.get(reverse('pause_task', kwargs={'task_id': task.id}), follow=True)
         assert not Task.objects.get(id=task.id).active
         assert 'Task %s paused.' % task.name in self.messages(resp)
 
-        resp = self.client.get(reverse('pause_task', kwargs={'task_id': '1'}), follow=True)
+    def test_pause_task_failed_incorrect_id(self, client):
+        resp = self.client.get(reverse('pause_task', kwargs={'task_id': '500'}), follow=True)
+        assert resp.status_code == 404
+
+    def test_pause_task_failed_already_paused(self, client):
+        task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
+                                        [], 'onet.pl', max_links=400)
+        task.pause()
+        assert not Task.objects.get(id=task.id).active
+
+        resp = self.client.get(reverse('pause_task', kwargs={'task_id': task.id}), follow=True)
         assert not Task.objects.get(id=task.id).active
         assert 'Task already paused!' in self.messages(resp)
 
+    def test_pause_task_failed_finished(self, client):
+        task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
+                                        [], 'onet.pl', max_links=400)
         task.stop()
-        resp = self.client.get(reverse('pause_task', kwargs={'task_id': '1'}), follow=True)
+
+        resp = self.client.get(reverse('pause_task', kwargs={'task_id': task.id}), follow=True)
         assert not Task.objects.get(id=task.id).active
         assert 'Task already finished!' in self.messages(resp)
 
-    def test_resume_task(self, client):
+    def test_resume_task_success(self, client):
+        task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
+                                        [], 'onet.pl', max_links=400)
+        task.pause()
+        assert not Task.objects.get(id=task.id).active
+
+        resp = self.client.get(reverse('resume_task', kwargs={'task_id': task.id}), follow=True)
+        assert Task.objects.get(id=task.id).active
+        assert 'Task %s resumed.' % task.name in self.messages(resp)
+
+    def test_resume_task_failed_incorrect_id(self, client):
+        resp = self.client.get(reverse('resume_task', kwargs={'task_id': '500'}), follow=True)
+        assert resp.status_code == 404
+
+    def test_resume_task_failed_already_running(self, client):
         task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
                                         [], 'onet.pl', max_links=400)
         assert Task.objects.get(id=task.id).active
 
-        resp = self.client.get(reverse('resume_task', kwargs={'task_id': '2'}), follow=True)
-        assert resp.status_code == 404
-
-        resp = self.client.get(reverse('resume_task', kwargs={'task_id': '1'}), follow=True)
+        resp = self.client.get(reverse('resume_task', kwargs={'task_id': task.id}), follow=True)
         assert Task.objects.get(id=task.id).active
         assert 'Task already in progress!' in self.messages(resp)
 
-        task.pause()
-        resp = self.client.get(reverse('resume_task', kwargs={'task_id': '1'}), follow=True)
-        assert Task.objects.get(id=task.id).active
-        assert 'Task %s resumed.' % task.name in self.messages(resp)
-
+    def test_resume_task_failed_finished(self, client):
+        task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
+                                        [], 'onet.pl', max_links=400)
         task.stop()
-        resp = self.client.get(reverse('resume_task', kwargs={'task_id': '1'}), follow=True)
+        assert not Task.objects.get(id=task.id).active
+        assert Task.objects.get(id=task.id).finished
+
+        resp = self.client.get(reverse('resume_task', kwargs={'task_id': task.id}), follow=True)
         assert not Task.objects.get(id=task.id).active
         assert 'Task already finished!' in self.messages(resp)
 
-    def test_stop_task(self, client):
+    def test_stop_task_success(self, client):
         task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
                                         [], 'onet.pl', max_links=400)
         assert not Task.objects.get(id=task.id).finished
 
-        resp = self.client.get(reverse('stop_task', kwargs={'task_id': '2'}), follow=True)
-        assert resp.status_code == 404
-
-        resp = self.client.get(reverse('stop_task', kwargs={'task_id': '1'}), follow=True)
+        resp = self.client.get(reverse('stop_task', kwargs={'task_id': task.id}), follow=True)
         assert Task.objects.get(id=task.id).finished
         assert 'Task %s stopped.' % task.name in self.messages(resp)
 
-        resp = self.client.get(reverse('stop_task', kwargs={'task_id': '1'}), follow=True)
+    def test_stop_task_failed_incorrect_id(self, client):
+        resp = self.client.get(reverse('stop_task', kwargs={'task_id': '500'}), follow=True)
+        assert resp.status_code == 404
+
+    def test_stop_task_failed_already_finished(self, client):
+        task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
+                                        [], 'onet.pl', max_links=400)
+        task.stop()
+        assert Task.objects.get(id=task.id).finished
+
+        resp = self.client.get(reverse('stop_task', kwargs={'task_id': task.id}), follow=True)
         assert Task.objects.get(id=task.id).finished
         assert 'Task already finished!' in self.messages(resp)
 
@@ -383,21 +448,24 @@ class TestViews:
         task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
                                         [], 'onet.pl', max_links=400)
 
-        resp = self.client.get(reverse('get_data', kwargs={'task_id': '2'}), follow=True)
-        assert resp.status_code == 404
-
-        resp = self.client.get(reverse('get_data', kwargs={'task_id': '1'}), follow=True)
+        resp = self.client.get(reverse('get_data', kwargs={'task_id': task.id}), follow=True)
         assert resp.status_code == 200
         old_date = Task.objects.get(id=task.id).last_data_download
-        resp = self.client.get(reverse('get_data', kwargs={'task_id': '1'}), follow=True)
+
+        resp = self.client.get(reverse('get_data', kwargs={'task_id': task.id}), follow=True)
         assert resp.status_code == 200
         new_date = Task.objects.get(id=task.id).last_data_download
         assert new_date > old_date
 
-    def test_edit_user_data(self, client):
+    def test_get_data_failed_incorrect_id(self, client):
+        resp = self.client.get(reverse('get_data', kwargs={'task_id': '500'}), follow=True)
+        assert resp.status_code == 404
+
+    def test_edit_user_data_get(self, client):
         resp = self.client.get(reverse('edit_user_data', kwargs={'username': 'test_user'}), follow=True)
         assert resp.status_code == 200
 
+    def test_edit_user_data_post(self, client):
         resp = self.client.post(reverse('edit_user_data', kwargs={'username': 'test_user'}), {'last_name': 'last', 'first_name': 'first',
                                                             'email': 'mail@mail.pl'}, follow=True)
         assert resp.status_code == 200
