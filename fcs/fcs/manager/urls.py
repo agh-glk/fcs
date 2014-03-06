@@ -13,13 +13,16 @@ urlpatterns = patterns('',
 
                        url(r'^login', userena_views.signin, {'template_name': 'login.html'},
                            name='login'),
+                       url(r'^logout', userena_views.signout, {'next_page': 'index'}, name='logout'),
+
+                       #Registration
                        url(r'^registration_complete', account_views.registration_complete,
                            name='registration_complete'),
                        url(r'^register', userena_views.signup, {'template_name': 'registration_form.html',
                                                                 'success_url': 'registration_complete'},
                            name='register'),
-                       url(r'^logout', userena_views.signout, {'next_page': 'index'}, name='logout'),
 
+                       #Account management
                        url(r'^accounts/password/complete/', account_views.password_change_complete,
                            name='change_password_complete'),
                        url(r'^accounts/(?P<username>\w+)/password/$', userena_views.password_change,
@@ -37,9 +40,11 @@ urlpatterns = patterns('',
                        url(r'^accounts/(?P<username>[\.\w-]+)/email', handler404),
                        url(r'^accounts/', include('userena.urls')),
 
+                       #API keys & quota
                        url(r'^api_keys/', views.api_keys, name='api_keys'),
                        url(r'^show_quota/', views.show_quota, name='show_quota'),
 
+                       #Tasks
                        url(r'^task/', include(patterns('fcs.manager.views',
                                                        url(r'^list/$', 'list_tasks', name='list_tasks'),
                                                        url(r'^add/$', 'add_task', name='add_task'),
@@ -53,9 +58,11 @@ urlpatterns = patterns('',
                                                            name='get_data'),
                        ))),
 
+                       #REST API
                        url(r'^api/', include('fcs.manager.apiurls', namespace='api')),
                        url(r'^auth/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 
+                       #Swagger REST API documentation
                        url(r'^docs/$', SwaggerUIView.as_view(), name='api_docs_ui'),
                        url(r'^docs/api-docs/$', views.api_docs_resources, name='api_docs_resources'),
                        url(r'^docs/api-docs/(?P<path>.*)/?$', views.api_docs_declaration, name='api_docs_declaration')

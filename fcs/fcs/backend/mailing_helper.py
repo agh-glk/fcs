@@ -4,7 +4,6 @@ import os
 
 
 class MailingHelper():
-
     def __init__(self, path):
         self.mail_template_dir_path = path
 
@@ -16,6 +15,9 @@ class MailingHelper():
         return result
 
     def send_html_email(self, subject, template_name, content_dict, sender, receivers):
+        """
+        Allows sending multi email(with both text and html content), based on templates in 'mail_templates' directory.
+        """
         _path = os.path.join(self.mail_template_dir_path, 'html', template_name+'.html')
         _html_mail = self._bind_template_with_content(_path, content_dict)
         _path = os.path.join(self.mail_template_dir_path, 'txt', template_name+'.txt')

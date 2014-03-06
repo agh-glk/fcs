@@ -15,11 +15,17 @@ from datetime import datetime
 
 
 def index(request):
+    """
+    Main page.
+    """
     return render(request, 'index.html')
 
 
 @login_required()
 def list_tasks(request):
+    """
+    List of all current user's tasks.
+    """
     tasks = Task.objects.filter(user=request.user)
     table = TaskTable(tasks)
     RequestConfig(request).configure(table)
@@ -28,6 +34,9 @@ def list_tasks(request):
 
 @login_required()
 def add_task(request):
+    """
+    View for creating new task.
+    """
     if request.method == 'POST':
         form = forms.CreateTaskForm(data=request.POST, user=request.user)
         if form.is_valid():
@@ -45,6 +54,10 @@ def add_task(request):
 
 @login_required()
 def show_task(request, task_id):
+    """
+    Allows pausing, stopping and resuming task. Shows its details. Additionally, parameters of running or paused task
+     can be changed.
+    """
     task = get_object_or_404(Task, id=task_id, user=request.user.id)
     form = forms.EditTaskForm(request.POST or None, instance=task)
     fieldset_value = task.finished and 'disabled' or ''
@@ -58,12 +71,18 @@ def show_task(request, task_id):
 
 @login_required()
 def api_keys(request):
+    """
+    Shows Application Key and Secret Key for REST API.
+    """
     application = Application.objects.filter(user=request.user).first()
     return render(request, 'api_keys.html', {'application': application})
 
 
 @login_required()
 def pause_task(request, task_id):
+    """
+    Pauses task and redirect to tasks list.
+    """
     task = get_object_or_404(Task, id=task_id, user=request.user.id)
     if task.finished:
         messages.error(request, 'Task already finished!')
@@ -77,6 +96,9 @@ def pause_task(request, task_id):
 
 @login_required()
 def resume_task(request, task_id):
+    """
+    Resumes task and redirect to tasks list.
+    """
     task = get_object_or_404(Task, id=task_id, user=request.user.id)
     if task.finished:
         messages.error(request, 'Task already finished!')
@@ -90,6 +112,9 @@ def resume_task(request, task_id):
 
 @login_required()
 def stop_task(request, task_id):
+    """
+    Stops task and redirect to tasks list.
+    """
     task = get_object_or_404(Task, id=task_id, user=request.user.id)
     if task.finished:
         messages.error(request, 'Task already finished!')
@@ -101,6 +126,9 @@ def stop_task(request, task_id):
 
 @login_required()
 def get_data(request, task_id):
+    """
+    Downloads data gathered by crawler.
+    """
     task = get_object_or_404(Task, id=task_id, user=request.user.id)
     task.last_data_download = datetime.now()
     task.save()
@@ -109,16 +137,25 @@ def get_data(request, task_id):
 
 @login_required()
 def show_quota(request):
+    """
+    Shows limitations for tasks, described by Quota object.
+    """
     quota = request.user.quota
     return render(request, 'show_quota.html', {'quota': quota})
 
 
 def api_docs_resources(request):
+    """
+    Swagger view generating REST API documentation.
+    """
     host = request.build_absolute_uri()
     return render_to_response('api_docs/resources.json', {"host": host.rstrip('/')}, mimetype='application/json')
 
 
 def api_docs_declaration(request, path):
+    """
+    Swagger view generating REST API documentation.
+    """
     protocol = "https" if request.is_secure() else "http"
     api_path = SWAGGER_SETTINGS['api_path']
     api_full_uri = "%s://%s%s" % (protocol, request.get_host(), api_path)

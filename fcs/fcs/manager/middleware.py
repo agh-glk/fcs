@@ -4,6 +4,9 @@ from datetime import timedelta, datetime
 
 
 class AutoLogout:
+    """
+    Signs out user after time of inactivity. Time is specified as AUTO_LOGOUT_DELAY in settings.
+    """
     def process_request(self, request):
         if not request.user.is_authenticated():
             return

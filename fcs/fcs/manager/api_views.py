@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 @api_view(['POST'])
 def add_task(request):
     """
-    Create new task
+    Creates new task.
 
     Handles REST request for task creation. Request must be authenticated with OAuth2 Token.
     Required POST parameters:\n
@@ -42,7 +42,7 @@ def add_task(request):
 @api_view(['POST'])
 def delete_task(request, task_id):
     """
-    Finish task
+    Finishes task.
 
     Handles REST request for task finish. Request must be authenticated with OAuth2 Token.
     Required POST parameters:\n
@@ -63,7 +63,7 @@ def delete_task(request, task_id):
 @api_view(['POST'])
 def pause_task(request, task_id):
     """
-    Pause task
+    Pauses task.
 
     Handles REST request for task deactivation. Request must be authenticated with OAuth2 Token.
     Required POST parameters:\n
@@ -84,7 +84,7 @@ def pause_task(request, task_id):
 @api_view(['POST'])
 def resume_task(request, task_id):
     """
-    Resume task
+    Resumes task.
 
     Handles REST request for task activation. Request must be authenticated with OAuth2 Token.
     Required POST parameters:\n
@@ -107,9 +107,7 @@ def resume_task(request, task_id):
 @api_view(['POST'])
 def get_data_from_crawler(request, task_id, size):
     """
-    Download gathered data
-
-    Not implemented yet
+    Downloads data gathered by crawler.
     """
     task = get_object_or_404(Task, id=task_id, user=request.user)
     return Response(status=status.HTTP_501_NOT_IMPLEMENTED)

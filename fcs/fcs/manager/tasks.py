@@ -8,6 +8,9 @@ from django.conf import settings
 
 @periodic_task(crontab(minute='*/15'))
 def notify_about_crawler_data():
+    """
+    Task-function for Huey plugin. Sends notification about waiting data from crawler. Requires running Redis server.
+    """
     earlier_23_hours = timezone.now() - timedelta(hours=23)
     tasks = list(Task.objects.filter(active=True, last_data_download__lte=earlier_23_hours))
     tasks = tasks + list(Task.objects.filter(active=True, last_data_download=None, created__lte=earlier_23_hours))
@@ -33,7 +36,6 @@ def notify_about_crawler_data():
         grouped_list = grouped_list[1:]
         mh = MailingHelper('./fcs/backend/mail_templates')
         for lst in grouped_list:
-            #print str(lst[0].user)+" : "+", ".join([x.name for x in lst])
             mh.send_html_email('Yor crawler data is waiting', 'crawler_data',
                                {'user': str(lst[0].user), 'tasks': ", ".join([x.name for x in lst])},
                                settings.MAIL_BOT_EMAIL, [lst[0].user.email])
@@ -43,7 +45,10 @@ def notify_about_crawler_data():
             mail_info.tasks.add(task)
 
 
-@periodic_task(crontab(day='*/3'))
+@periodic_task(crontab(day='*/14'))
 def remove_old_mail_data():
-    two_days_earlier = timezone.now() - timedelta(days=2)
-    MailSent.objects.filter(date__lte=two_days_earlier).delete()
+    """
+    Task-function for Huey plugin. Removes old email notifications from DB. Requires running Redis server.
+    """
+    two_weeks_earlier = timezone.now() - timedelta(days=14)
+    MailSent.objects.filter(date__lte=two_weeks_earlier).delete()

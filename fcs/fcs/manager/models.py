@@ -9,8 +9,14 @@ from oauth2_provider.models import Application
 
 
 class UserManager(django.contrib.auth.models.BaseUserManager):
+    """
+    Accessed by 'User.objects', provides methods for creation of user and his Quota or superuser.
+    """
 
     def create_user(self, username, email, password):
+        """
+        Creates common FCS user. He has default Quota.
+        """
         user = self.model(username=username, email=self.normalize_email(email))
         user.set_password(password)
         user.is_active = False
@@ -20,6 +26,9 @@ class UserManager(django.contrib.auth.models.BaseUserManager):
         return user
 
     def create_superuser(self, username, email, password):
+        """
+        Creates FCS superuser. He can use admin panel.
+        """
         user = self.create_user(username=username, email=self.normalize_email(email), password=password)
         user.is_active = True
         user.is_admin = True
@@ -30,6 +39,10 @@ class UserManager(django.contrib.auth.models.BaseUserManager):
 
 
 class User(django.contrib.auth.models.AbstractUser):
+    """
+    FCS user class, based on django.contrib.auth.models.AbstractUser. Username, password and email are required.
+    Other fields are optional.
+    """
     objects = UserManager()
 
     def __unicode__(self):
@@ -37,6 +50,9 @@ class User(django.contrib.auth.models.AbstractUser):
 
 
 class Quota(models.Model):
+    """
+    Represents limitations in creating tasks. Each user object is connected with his personal quota.
+    """
     max_priority = models.IntegerField(default=10)
     priority_pool = models.IntegerField(default=100)
     max_tasks = models.IntegerField(default=5)
@@ -49,10 +65,16 @@ class Quota(models.Model):
 
 
 class QuotaException(Exception):
+    """
+    Raised when user exceeds limitations defined by Quota object.
+    """
     pass
 
 
 class CrawlingType(models.Model):
+    """
+    Enumeration for crawling policies.
+    """
     TEXT = 0
     PICTURES = 1
     LINKS = 2
@@ -68,6 +90,9 @@ class CrawlingType(models.Model):
 
 
 class TaskManager(models.Manager):
+    """
+    Accessed by 'Task.objects'. Manages creation of Task instance.
+    """
 
     @staticmethod
     def create_task(user, name, priority, expire, types, whitelist, blacklist='', max_links=1000):
@@ -84,7 +109,9 @@ class TaskManager(models.Manager):
 
 
 class Task(models.Model):
-    """Class representing crawling tasks defined by users"""
+    """
+    Represents crawling tasks defined by users.
+    """
     user = models.ForeignKey(User, null=False)
     name = models.CharField(max_length=100, null=False)
     priority = models.IntegerField(default=1, null=False)
@@ -128,7 +155,8 @@ class Task(models.Model):
         #TODO: expire_date and finished flag?
 
     def change_priority(self, priority):
-        """Set task priority.
+        """
+        Sets task priority.
 
         Task with higher priority crawls more links at the same time than those with lower priority.
         Task priority cannot exceed quota of user which owns this task. In other case QuotaException is raised.
@@ -143,7 +171,8 @@ class Task(models.Model):
         self.save()
 
     def pause(self):
-        """Pause task.
+        """
+        Pauses task.
 
         Paused task does not crawl any links until it is resumed. It temporarily releases resources
         used by this task (such as priority)
@@ -152,7 +181,8 @@ class Task(models.Model):
         self.save()
 
     def resume(self):
-        """Resume task.
+        """
+        Resumes task.
 
         Task becomes active so it can crawl links. QuotaException may be thrown if user has not enough
         free priority resources to run this task. Then, user should decrease priority of this
@@ -168,7 +198,8 @@ class Task(models.Model):
         self.save()
 
     def stop(self):
-        """Mark task as finished.
+        """
+        Marks task as finished.
 
         Finished tasks cannot be resumed and they do not count to user max_tasks quota.
         """
@@ -177,7 +208,8 @@ class Task(models.Model):
         self.save()
 
     def feedback(self, score_dict):
-        """Process feedback from client
+        """
+        Process feedback from client.
 
         Update crawling process in order to satisfy client expectations
         """
@@ -188,15 +220,21 @@ class Task(models.Model):
         return "Task %s of user %s" % (self.name, self.user)
 
 
-def create_quota(sender, **kwargs):
+def create_api_keys(sender, **kwargs):
+    """
+    Creates Application object, required for working with REST API.
+    """
     user = kwargs['user']
     Application.objects.create(user=user, client_type=Application.CLIENT_CONFIDENTIAL,
                                authorization_grant_type=Application.GRANT_PASSWORD)
 
 
-activation_complete.connect(create_quota)
+activation_complete.connect(create_api_keys)
 
 
 class MailSent(models.Model):
+    """
+    Information about sent mails, reminding user of crawling data waiting for him.
+    """
     tasks = models.ManyToManyField(Task)
     date = models.DateTimeField(null=False)
