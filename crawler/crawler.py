@@ -1,4 +1,4 @@
-from Queue import PriorityQueue
+from Queue import Queue
 from mechanize import Browser
 import string
 from parser import ParserProvider
@@ -17,18 +17,23 @@ class Crawler():
      Chrome/23.0.1271.64 Safari/537.11'
 
     def __init__(self, max_content_length=1024 * 1024, handle_robots=False):
-        self.link_queue = PriorityQueue()
+        self.link_queue = Queue()
         self.max_content_length = max_content_length
 
         self.browser = Browser()
         self.browser.set_handle_robots(handle_robots)
         self.browser.addheaders = [('User-agent', self.__class__.CLIENT_VERSION)]
 
-        logging.basicConfig(filename='crawler.log', level=logging.DEBUG)
+        self.logger = logging.getLogger('crawler')
+        _file_handler = logging.FileHandler('crawler.log')
+        _formatter = logging.Formatter('<%(asctime)s>:%(levelname)s: %(message)s')
+        _file_handler.setFormatter(_formatter)
+        self.logger.addHandler(_file_handler)
+        self.logger.setLevel(logging.DEBUG)
 
     def put_into_link_queue(self, links):
-        for (_priority, _link) in links:
-            self.link_queue.put((-1*_priority, _link))
+        for _link in links:
+            self.link_queue.put(_link)
 
     def _analyse_header(self, response):
         _header = response.info()
@@ -60,15 +65,15 @@ class Crawler():
         while(not self.link_queue.empty()):
             _link = None
             try:
-                _link = self.link_queue.get()[1]
+                _link = self.link_queue.get()
                 _results = self.process_one_link(_link)
-                _links = [(1, x) for x in _results[2]]
+                _links = _results[2]
                 for l in _links:
                     print l
                 print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-                self.put_into_link_queue(_links)  # TODO : remove later
             except Exception as e:
-                logging.error("Exception in %s : %s" % (_link, e.message))
+                self.logger.error("Exception in %s : %s" % (_link, e.message))
+        self.logger.info("Crawling ended.")
 
     def get_state(self):
         #TODO : unregistered, starting etc. states
@@ -79,5 +84,6 @@ class Crawler():
 
 if __name__ == '__main__':
     crawler = Crawler()
-    crawler.put_into_link_queue([(1, 'http://onet.pl')])
+    crawler.put_into_link_queue(['http://onet.pl'])
     crawler.crawl()
+    #print crawler.get_state()
