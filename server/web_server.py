@@ -1,12 +1,13 @@
+import threading
+import sys
 import web
 import json
-import sys
-from server import Server
+from task_server import TaskServer
 
-server = Server()
+server = None
 
 
-class status:
+class index:
     def GET(self):
         return json.dumps({'status': server.status})
 
@@ -32,7 +33,7 @@ class add:
     def POST(self):
         data = json.loads(web.data())
         links = data['links']
-        server.add(links)
+        server.add_links(links)
         return 'OK'
 
 
@@ -60,18 +61,26 @@ class crawlers:
         return 'OK'
 
 
-urls = (
-    '/', 'status',
-    '/task', 'task',
-    '/feedback', 'feedback',
-    '/add', 'add',
-    '/links', 'linkdb',
-    '/put_data', 'put_data',
-    '/crawlers', 'crawlers'
-)
+class WebServer(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        global server
+        server = TaskServer()
+        server.assign_address('http://0.0.0.0:' + sys.argv[1] + '/')
+        server.start()
+
+    def run(self):
+        urls = (
+            '/', 'index',
+            '/task', 'task',
+            '/feedback', 'feedback',
+            '/add', 'add',
+            '/links', 'linkdb',
+            '/put_data', 'put_data',
+            '/crawlers', 'crawlers'
+        )
+        app = web.application(urls, globals())
+        app.run()
 
 if __name__ == '__main__':
-    server.start()
-    server.assign_address('http://0.0.0.0:' + sys.argv[1] + '/')
-    app = web.application(urls, globals())
-    app.run()
+    WebServer().start()
