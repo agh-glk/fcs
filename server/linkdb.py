@@ -13,15 +13,15 @@ class LinkDB:
         self.links = []
         self.rating = {}
 
-    def add_links(self, links, priority=START_PRIORITY):
+    def add_links(self, links, default_priority=START_PRIORITY):
         for link in links:
-            self.add_link(link, priority)
+            self.add_link(link, default_priority)
 
-    def add_link(self, link, default):
+    def add_link(self, link, default_priority):
         if link in self.links:
             return
         self.links.append(link)
-        priority = self.evaluate(link, default)
+        priority = self.evaluate(link, default_priority)
         heapq.heappush(self.db, (priority, self.counter, link))
         self.counter += 1
 
@@ -29,10 +29,10 @@ class LinkDB:
         link = heapq.heappop(self.db)[2]
         return link
 
-    def get_links(self, n):
+    def get_links(self, number):
         links = []
         try:
-            for i in range(n):
+            for i in range(number):
                 links.append(self.get_link())
         except IndexError:
             pass

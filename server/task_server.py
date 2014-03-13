@@ -13,13 +13,13 @@ class status:
 
 
 class TaskServer(threading.Thread):
-    def __init__(self):
+    def __init__(self, web_server):
         threading.Thread.__init__(self)
         self.status = status.INIT
         self.link_db = LinkDB()
         self.content_db = ContentDB()
         self.crawlers = []
-        self.address = ''
+        self.web_server = web_server
 
     def assign_task(self, whitelist):
         self.add_links(whitelist)
@@ -27,14 +27,8 @@ class TaskServer(threading.Thread):
     def assign_crawlers(self, addresses):
         self.crawlers = addresses
 
-    def assign_address(self, address):
-        self.address = address
-
-    def has_crawlers(self):
-        return len(self.crawlers) > 0
-
-    def has_address(self):
-        return self.address != ''
+    def get_address(self):
+        return 'http://' + self.web_server.get_host()
 
     def register_to_management(self):
         # TODO: ask management for task definition and crawlers addresses
@@ -42,29 +36,29 @@ class TaskServer(threading.Thread):
         crawlers = ["http://address1", "http://address2"]
         self.assign_task(whitelist)
         self.assign_crawlers(crawlers)
-        
+
     def run(self):
         self.status = status.STARTING
+        self.web_server.start()
         self.register_to_management()
         self.status = status.RUNNING
-        while not self.has_address():
-            time.sleep(5)
-            print 'not running', self.status, self.crawlers, self.address
-        token = 0
         while True:
-            print 'running'
-            links = self.link_db.get_links(5)
-            if links:
-                r = requests.post(self.crawlers[token] + '/put_links', json.dumps({'task_self': self.address,
-                                                                                     'crawling_type': 0,
-                                                                                     'links': links}))
-                token = (token + 1) % len(self.crawlers)
-                print r
-            time.sleep(1)
+            for crawler in self.crawlers:
+                links = self.link_db.get_links(1)
+                if links:
+                    try:
+                        requests.post(crawler + '/put_links', json.dumps({'task_server': self.get_address(),
+                                                                'crawling_type': 0, 'links': links}))
+                    except Exception as e:
+                        print e
+            time.sleep(5)
 
     #TODO: remove
     def links(self):
         return self.link_db.content()
+
+    def contents(self):
+        return self.content_db.content()
 
     def feedback(self, regex, rate):
         self.link_db.feedback(regex, rate)
@@ -75,4 +69,3 @@ class TaskServer(threading.Thread):
     def put_data(self, url, links, content):
         self.content_db.add_content(url, links, content)
         self.link_db.add_links(links)
-
