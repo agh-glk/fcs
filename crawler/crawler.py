@@ -4,25 +4,34 @@ import string
 from parser import ParserProvider
 import logging
 
+from threading import Lock
+from thread_with_exc import ThreadWithExc
+
 
 class CrawlerState:
     STARTING, WORKING, WAITING = range(3)
 
 
-class Crawler():
+class Crawler(ThreadWithExc):
 
     CONTENT_TYPE = 'content-type'
     CONTENT_LENGTH = 'content-length'
     CLIENT_VERSION = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) \
      Chrome/23.0.1271.64 Safari/537.11'
 
-    def __init__(self, max_content_length=1024 * 1024, handle_robots=False):
-        self.link_queue = Queue()
+    def __init__(self, event, max_content_length=1024 * 1024, handle_robots=False):
+        super(Crawler, self).__init__()
+        self.link_package_queue = Queue()
         self.max_content_length = max_content_length
 
         self.browser = Browser()
         self.browser.set_handle_robots(handle_robots)
         self.browser.addheaders = [('User-agent', self.__class__.CLIENT_VERSION)]
+
+        self.event = event
+
+        self.lock = Lock()
+        self.exit_flag = False
 
         self.logger = logging.getLogger('crawler')
         _file_handler = logging.FileHandler('crawler.log')
@@ -31,9 +40,8 @@ class Crawler():
         self.logger.addHandler(_file_handler)
         self.logger.setLevel(logging.DEBUG)
 
-    def put_into_link_queue(self, links):
-        for _link in links:
-            self.link_queue.put(_link)
+    def put_into_link_queue(self, link_package):
+        self.link_package_queue.put(link_package)
 
     def _analyse_header(self, response):
         _header = response.info()
@@ -52,7 +60,7 @@ class Crawler():
             raise Exception("'Content-type' unknown")
         return result
 
-    def process_one_link(self, link):
+    def _process_one_link(self, link):
         _response = self.browser.open_novisit(link)
         _header_data = self._analyse_header(_response)
         _content_type = _header_data[self.__class__.CONTENT_TYPE]
@@ -61,29 +69,52 @@ class Crawler():
         _data.insert(0, link)
         return _data
 
-    def crawl(self):
-        while(not self.link_queue.empty()):
-            _link = None
-            try:
-                _link = self.link_queue.get()
-                _results = self.process_one_link(_link)
-                _links = _results[2]
-                for l in _links:
-                    print l
-                print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-            except Exception as e:
-                self.logger.error("Exception in %s : %s" % (_link, e.message))
-        self.logger.info("Crawling ended.")
+    def _crawl(self):
+        while not self.link_package_queue.empty() and not self.exit_flag:
+            _final_results = []
+            (_server_address, _crawling_policy, _links) = self.link_package_queue.get()
+            for _link in _links:
+
+                try:
+                    _results = self._process_one_link(_link)
+                    _final_results.append(_results)
+                    _extracted_links = _results[2]
+                    for l in _extracted_links:
+                        print l
+                    print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
+                except Exception as e:
+                    self.logger.error("Exception in %s : %s" % (_link, e.message))
+                    _results = "ERR" #None
+                _final_results.append(_results)
+                self.link_package_queue.put(["aaa", 1, _results[2]]) ## TODO : remove
+            self.logger.info("Crawling package from %s ended." % _server_address)
+            self._send_results_to_task_server(_server_address, _final_results)
+
+    def _send_results_to_task_server(self, server_address, results):
+        self.logger.info("Data send to Task Server.")
 
     def get_state(self):
         #TODO : unregistered, starting etc. states
-        if self.link_queue.empty():
+        if self.link_package_queue.empty():
             return CrawlerState.WAITING
         else:
             return CrawlerState.WORKING
 
-if __name__ == '__main__':
-    crawler = Crawler()
-    crawler.put_into_link_queue(['http://onet.pl'])
-    crawler.crawl()
-    #print crawler.get_state()
+    def stop(self):
+        self.exit_flag = True
+
+    def kill(self):
+        self.raise_exc(KeyboardInterrupt)
+
+    def run(self):
+        self.event.wait()
+        while not self.exit_flag:
+            if self.event.isSet():
+                self._crawl()
+                self.event.clear()
+            else:
+                self.event.wait()
+        print "Crawler stop"
+
+
+
