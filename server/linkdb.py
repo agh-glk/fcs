@@ -10,17 +10,17 @@ class LinkDB:
     def __init__(self):
         self.counter = 0
         self.db = []
-        self.links = []
+        self.links = set()
         self.rating = {}
 
-    def add_links(self, links, default_priority=START_PRIORITY):
+    def add_links(self, links, default_priority=START_PRIORITY, force=False):
         for link in links:
-            self.add_link(link, default_priority)
+            self.add_link(link, default_priority, force)
 
-    def add_link(self, link, default_priority):
-        if link in self.links:
+    def add_link(self, link, default_priority, force):
+        if (not force) and (link in self.links):
             return
-        self.links.append(link)
+        self.links.add(link)
         priority = self.evaluate(link, default_priority)
         heapq.heappush(self.db, (priority, self.counter, link))
         self.counter += 1

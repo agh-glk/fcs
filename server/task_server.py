@@ -2,26 +2,42 @@ import json
 import threading
 import time
 import requests
-from linkdb import LinkDB
+from linkdb import LinkDB, BEST_PRIORITY
 from contentdb import ContentDB
 
 
-class status:
+PACKAGE_SIZE = 1
+PACKAGE_TIMEOUT = 10
+
+
+class Status:
     INIT = 0
     STARTING = 1
     RUNNING = 2
+    PAUSED = 3
+    STOPPING = 4
 
 
 class TaskServer(threading.Thread):
     def __init__(self, web_server):
         threading.Thread.__init__(self)
-        self.status = status.INIT
+        self.lock = threading.Lock()
+
+        self.web_server = web_server
         self.link_db = LinkDB()
         self.content_db = ContentDB()
         self.crawlers = []
-        self.web_server = web_server
+
+        self.package_cache = {}
+        self.package_id = 0
+
+        self.crawling_type = 0
+        self.query = ''
+
+        self.status = Status.INIT
 
     def assign_task(self, whitelist):
+        # TODO: query, crawling_types, etc.
         self.add_links(whitelist)
 
     def assign_crawlers(self, addresses):
@@ -30,32 +46,90 @@ class TaskServer(threading.Thread):
     def get_address(self):
         return 'http://' + self.web_server.get_host()
 
+    def set_status(self, status):
+        self.lock.acquire()
+        self.status = status
+        self.lock.release()
+
+    def get_status(self):
+        self.lock.acquire()
+        status = self.status
+        self.lock.release()
+        return status
+
     def register_to_management(self):
-        # TODO: ask management for task definition and crawlers addresses
+        # TODO: refactor - ask management for task definition and crawlers addresses
         whitelist = ["onet.pl", "wp.pl", "facebook.com"]
         crawlers = ["http://address1", "http://address2"]
         self.assign_task(whitelist)
         self.assign_crawlers(crawlers)
 
+    def unregister_from_management(self):
+        # TODO: send some informations to management
+        pass
+
+    def pause(self):
+        if self.get_status() == Status.RUNNING:
+            self.set_status(Status.PAUSED)
+
+    def resume(self):
+        if self.get_status() == Status.PAUSED:
+            self.set_status(Status.RUNNING)
+
+    def stop(self):
+        self.set_status(Status.STOPPING)
+
     def run(self):
-        self.status = status.STARTING
+        self.set_status(Status.STARTING)
         self.web_server.start()
         self.register_to_management()
-        self.status = status.RUNNING
-        while True:
-            for crawler in self.crawlers:
-                links = self.link_db.get_links(1)
-                if links:
-                    try:
-                        requests.post(crawler + '/put_links', json.dumps({'task_server': self.get_address(),
-                                                                'crawling_type': 0, 'links': links}))
-                    except Exception as e:
-                        print e
+        self.set_status(Status.RUNNING)
+        while self.get_status() != Status.STOPPING:
+            if self.get_status() == Status.RUNNING:
+                for crawler in self.crawlers:
+                    package = self.get_links_package()
+                    if package:
+                        try:
+                            requests.post(crawler + '/put_links', json.dumps(package))
+                        except Exception as e:
+                            print e
+            self.check_cache()
             time.sleep(5)
+        self.unregister_from_management()
 
-    #TODO: remove
+    # TODO: remove
     def links(self):
         return self.link_db.content()
+
+    # TODO: concurrency
+    def cache(self, package_id, links):
+        self.package_cache[package_id] = (time.time(), links)
+
+    def get_links_package(self):
+        links = self.link_db.get_links(PACKAGE_SIZE)
+        if links:
+            address = self.get_address()
+            crawl_type = self.crawling_type
+            package_id = self.package_id
+            package = {'task_server': address, 'crawling_type': crawl_type, 'id': package_id, 'links': links}
+            self.cache(package_id, links)
+            self.package_id += 1
+            return package
+        else:
+            return None
+
+    def check_cache(self):
+        cur_time = time.time()
+        for package_id in self.package_cache.keys():
+            if cur_time - self.package_cache[package_id][0] > PACKAGE_TIMEOUT:
+                self.readd_links(self.package_cache[package_id][1])
+                self.clear_cache(package_id)
+
+    def clear_cache(self, package_id):
+        try:
+            del self.package_cache[package_id]
+        except KeyError:
+            pass
 
     def contents(self):
         return self.content_db.content()
@@ -66,6 +140,11 @@ class TaskServer(threading.Thread):
     def add_links(self, links):
         self.link_db.add_links(links)
 
-    def put_data(self, url, links, content):
-        self.content_db.add_content(url, links, content)
-        self.link_db.add_links(links)
+    def readd_links(self, links):
+        self.link_db.add_links(links, BEST_PRIORITY, True)
+
+    def put_data(self, package_id, url, links, content):
+        if package_id in self.package_cache:
+            self.clear_cache(package_id)
+            self.content_db.add_content(url, links, content)
+            self.link_db.add_links(links)

@@ -1,4 +1,5 @@
 import threading
+import sys
 import web
 import json
 from task_server import TaskServer
@@ -8,7 +9,11 @@ server = None
 
 class index:
     def GET(self):
-        return json.dumps({'status': server.status})
+        ret = json.dumps({'status': server.status}) + '\n\n'
+        ret += json.dumps(server.links()) + '\n\n'
+        ret += json.dumps(server.contents()) + '\n\n'
+        ret += json.dumps(server.package_cache) + '\n\n'
+        return ret
 
 
 class feedback:
@@ -28,24 +33,16 @@ class add:
         return 'OK'
 
 
-class linkdb:
-    def GET(self):
-        return json.dumps(server.links())
-
-
-class contentdb:
-    def GET(self):
-        return json.dumps(server.contents())
-
-
 class put_data:
     def POST(self):
         data = json.loads(web.data())
-        for entry in data:
+        package_id = data['id']
+        for entry in data['data']:
             url = entry['url']
             links = entry['links']
             content = entry['content']
-            server.put_data(url, links, content)
+
+            server.put_data(package_id, url, links, content)
         return 'OK'
 
 
@@ -54,6 +51,24 @@ class crawlers:
         data = json.loads(web.data())
         crawlers_addresses = data['addresses']
         server.assign_crawlers(crawlers_addresses)
+        return 'OK'
+
+
+class pause:
+    def POST(self):
+        server.pause()
+        return 'OK'
+
+
+class resume:
+    def POST(self):
+        server.resume()
+        return 'OK'
+
+
+class stop:
+    def POST(self):
+        server.stop()
         return 'OK'
 
 
@@ -68,10 +83,11 @@ class WebServer(threading.Thread):
             '/', 'index',
             '/feedback', 'feedback',
             '/add', 'add',
-            '/links', 'linkdb',
-            '/content', 'contentdb',
             '/put_data', 'put_data',
-            '/crawlers', 'crawlers'
+            '/crawlers', 'crawlers',
+            '/stop', 'stop',
+            '/pause', 'pause',
+            '/resume', 'resume'
         )
         app = WebServer.Application(urls, globals())
         app.run(address=self.address, port=self.port)
