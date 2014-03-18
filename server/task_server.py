@@ -61,8 +61,8 @@ class TaskServer(threading.Thread):
 
     def _register_to_management(self):
         # TODO: refactor - ask management for task definition and crawlers addresses, send server address
-        whitelist = ["onet.pl", "wp.pl", "facebook.com"]
-        crawlers = ["http://address1", "http://address2"]
+        whitelist = [r"http://onet.pl", r"http://wp.pl", r"http://facebook.com"]
+        crawlers = ["http://0.0.0.0:8080"]
         self.assign_task(whitelist)
         self.assign_crawlers(crawlers)
 
@@ -115,7 +115,7 @@ class TaskServer(threading.Thread):
             address = self.get_address()
             crawl_type = self.crawling_type
             package_id = self.package_id
-            package = {'task_server': address, 'crawling_type': crawl_type, 'id': package_id, 'links': links}
+            package = {'server_address': address, 'crawling_type': crawl_type, 'id': package_id, 'links': links}
             self.cache(package_id, links)
             self.package_id += 1
             return package

@@ -3,6 +3,8 @@ from mechanize import Browser
 import string
 from parser import ParserProvider
 import logging
+import requests
+import json
 
 from threading import Lock
 from thread_with_exc import ThreadWithExc
@@ -65,8 +67,10 @@ class Crawler(ThreadWithExc):
         _content_type = _header_data[self.__class__.CONTENT_TYPE]
         _parser = ParserProvider.get_parser(_content_type)
         _data = _parser.parse(_response.read())
-        _data.insert(0, link)
-        return _data
+        _results = dict()
+        _results["url"] = link
+        _results["links"], _results["content"] = (_data[1], _data[0])
+        return _results
 
     def _crawl(self):
         while not self.link_package_queue.empty() and not self._get_exit_flag():
@@ -78,7 +82,7 @@ class Crawler(ThreadWithExc):
                 try:
                     _results = self._process_one_link(_link)
                     _final_results.append(_results)
-                    _extracted_links = _results[2]
+                    _extracted_links = _results.values()[2]
                     for l in _extracted_links:
                         print l
                     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
@@ -87,9 +91,10 @@ class Crawler(ThreadWithExc):
                     _results = None
                 _final_results.append(_results)
             self.logger.info("Crawling package from %s ended." % _server_address)
-            self._send_results_to_task_server(_server_address, _id, _final_results)
+            self._send_results_to_task_server(_id, _server_address, _final_results)
 
     def _send_results_to_task_server(self, package_id, server_address, results):
+        requests.post(server_address + '/put_data', json.dumps({"id": package_id, "data": results}))
         self.logger.info("Data send to Task Server.")
 
     def _get_exit_flag(self):
