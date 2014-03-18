@@ -177,16 +177,16 @@ LOGGING = {
     'disable_existing_loggers': False,
     'handlers': {
         'syslog': {
-            'level':'INFO',
-            'class':'logging.StreamHandler',
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
         }
     },
     'loggers': {
-       'huey.consumer': {
+        'huey.consumer': {
             'handlers': ['syslog'],
             'level': 'INFO',
             'propagate': True,
-       }
+        }
     }
 }
 
