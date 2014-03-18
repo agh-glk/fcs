@@ -21,7 +21,8 @@ class Status:
 class TaskServer(threading.Thread):
     def __init__(self, web_server):
         threading.Thread.__init__(self)
-        self.lock = threading.Lock()
+        self.status_lock = threading.Lock()
+        self.cache_lock = threading.RLock()
 
         self.web_server = web_server
         self.link_db = LinkDB()
@@ -37,55 +38,56 @@ class TaskServer(threading.Thread):
         self.status = Status.INIT
 
     def assign_task(self, whitelist):
-        # TODO: query, crawling_types, etc.
+        # TODO: query, crawling_types, etc. concurrency?
         self.add_links(whitelist)
 
     def assign_crawlers(self, addresses):
+        # TODO: validate addresses
         self.crawlers = addresses
 
     def get_address(self):
         return 'http://' + self.web_server.get_host()
 
-    def set_status(self, status):
-        self.lock.acquire()
+    def _set_status(self, status):
+        self.status_lock.acquire()
         self.status = status
-        self.lock.release()
+        self.status_lock.release()
 
-    def get_status(self):
-        self.lock.acquire()
+    def _get_status(self):
+        self.status_lock.acquire()
         status = self.status
-        self.lock.release()
+        self.status_lock.release()
         return status
 
-    def register_to_management(self):
-        # TODO: refactor - ask management for task definition and crawlers addresses
+    def _register_to_management(self):
+        # TODO: refactor - ask management for task definition and crawlers addresses, send server address
         whitelist = ["onet.pl", "wp.pl", "facebook.com"]
         crawlers = ["http://address1", "http://address2"]
         self.assign_task(whitelist)
         self.assign_crawlers(crawlers)
 
-    def unregister_from_management(self):
+    def _unregister_from_management(self):
         # TODO: send some informations to management
         pass
 
     def pause(self):
-        if self.get_status() == Status.RUNNING:
-            self.set_status(Status.PAUSED)
+        if self._get_status() == Status.RUNNING:
+            self._set_status(Status.PAUSED)
 
     def resume(self):
-        if self.get_status() == Status.PAUSED:
-            self.set_status(Status.RUNNING)
+        if self._get_status() == Status.PAUSED:
+            self._set_status(Status.RUNNING)
 
     def stop(self):
-        self.set_status(Status.STOPPING)
+        self._set_status(Status.STOPPING)
 
     def run(self):
-        self.set_status(Status.STARTING)
+        self._set_status(Status.STARTING)
         self.web_server.start()
-        self.register_to_management()
-        self.set_status(Status.RUNNING)
-        while self.get_status() != Status.STOPPING:
-            if self.get_status() == Status.RUNNING:
+        self._register_to_management()
+        self._set_status(Status.RUNNING)
+        while self._get_status() != Status.STOPPING:
+            if self._get_status() == Status.RUNNING:
                 for crawler in self.crawlers:
                     package = self.get_links_package()
                     if package:
@@ -95,15 +97,17 @@ class TaskServer(threading.Thread):
                             print e
             self.check_cache()
             time.sleep(5)
-        self.unregister_from_management()
+        self._unregister_from_management()
+        self.web_server.stop()
 
     # TODO: remove
     def links(self):
         return self.link_db.content()
 
-    # TODO: concurrency
     def cache(self, package_id, links):
+        self.cache_lock.acquire()
         self.package_cache[package_id] = (time.time(), links)
+        self.cache_lock.release()
 
     def get_links_package(self):
         links = self.link_db.get_links(PACKAGE_SIZE)
@@ -120,16 +124,20 @@ class TaskServer(threading.Thread):
 
     def check_cache(self):
         cur_time = time.time()
+        self.cache_lock.acquire()
         for package_id in self.package_cache.keys():
             if cur_time - self.package_cache[package_id][0] > PACKAGE_TIMEOUT:
                 self.readd_links(self.package_cache[package_id][1])
                 self.clear_cache(package_id)
+        self.cache_lock.release()
 
     def clear_cache(self, package_id):
+        self.cache_lock.acquire()
         try:
             del self.package_cache[package_id]
         except KeyError:
             pass
+        self.cache_lock.release()
 
     def contents(self):
         return self.content_db.content()

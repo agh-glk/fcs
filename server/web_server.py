@@ -95,6 +95,9 @@ class WebServer(threading.Thread):
     def get_host(self):
         return '%s:%d' % (self.address, self.port)
 
+    def stop(self):
+        web.httpserver.server.stop()
+
     class Application(web.application):
         def run(self, address='0.0.0.0', port=8080, *middleware):
             func = self.wsgifunc(*middleware)
