@@ -69,11 +69,7 @@ class Crawler(ThreadWithExc):
         return _data
 
     def _crawl(self):
-        self.exit_flag_lock.acquire()
-        _should_stop = self.exit_flag
-        self.exit_flag_lock.release()
-        ##
-        while not self.link_package_queue.empty() and not _should_stop:
+        while not self.link_package_queue.empty() and not self._get_exit_flag():
 
             _final_results = []
             (_id, _server_address, _crawling_policy, _links) = self.link_package_queue.get()
@@ -88,18 +84,19 @@ class Crawler(ThreadWithExc):
                     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
                 except Exception as e:
                     self.logger.error("Exception in %s : %s" % (_link, e.message))
-                    _results = "ERR" #None
+                    _results = None
                 _final_results.append(_results)
-                #self.link_package_queue.put(["aaa", 1, _results[2]]) ## TODO : remove
             self.logger.info("Crawling package from %s ended." % _server_address)
             self._send_results_to_task_server(_server_address, _id, _final_results)
-            ##
-            self.exit_flag_lock.acquire()
-            _should_stop = self.exit_flag
-            self.exit_flag_lock.release()
 
     def _send_results_to_task_server(self, package_id, server_address, results):
         self.logger.info("Data send to Task Server.")
+
+    def _get_exit_flag(self):
+        self.exit_flag_lock.acquire()
+        _should_stop = self.exit_flag
+        self.exit_flag_lock.release()
+        return _should_stop
 
     def get_state(self):
         #TODO : unregistered, starting etc. states
@@ -118,10 +115,7 @@ class Crawler(ThreadWithExc):
 
     def run(self):
         self.event.wait()
-        self.exit_flag_lock.acquire()
-        _should_stop = self.exit_flag
-        self.exit_flag_lock.release()
-        while not _should_stop:
+        while not self._get_exit_flag():
             if self.event.isSet():
                 self._crawl()
                 self.event.clear()
