@@ -3,7 +3,6 @@ from crawler import Crawler
 from threading import Event
 import json
 
-import time
 from thread_with_exc import ThreadWithExc
 
 crawler = None
@@ -20,12 +19,13 @@ class put_links:
     def POST(self):
         _data = json.loads(web.data())
         try:
+            _id = _data['id']
             _links = _data['links']
             _server_address = _data['server_address']
             _crawling_policy = _data['crawling_policy']
         except KeyError:
             raise Exception("Invalid request body!")
-        crawler.put_into_link_queue([_server_address, _crawling_policy, _links])
+        crawler.put_into_link_queue([_id, _server_address, _crawling_policy, _links])
         event.set()
         return str(_links) + " crawling in progress."
 
