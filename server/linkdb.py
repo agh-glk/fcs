@@ -49,8 +49,8 @@ class LinkDB:
         return self.db
 
     def feedback(self, regex, rate):
-        self.rating[regex] = rate
         self.lock.acquire()
+        self.rating[regex] = rate
         for i in range(len(self.db)):
             entry = self.db[i]
             self.db[i] = (self.evaluate(entry[2], entry[0]), entry[1], entry[2])
