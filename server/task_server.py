@@ -19,12 +19,14 @@ class Status:
 
 
 class TaskServer(threading.Thread):
-    def __init__(self, web_server):
+    def __init__(self, web_server, task_id, manager_address):
         threading.Thread.__init__(self)
         self.status_lock = threading.Lock()
         self.cache_lock = threading.RLock()
 
         self.web_server = web_server
+        self.task_id = task_id
+        self.manager_address = manager_address
         self.link_db = LinkDB()
         self.content_db = ContentDB()
         self.crawlers = []
@@ -61,8 +63,9 @@ class TaskServer(threading.Thread):
 
     def _register_to_management(self):
         # TODO: refactor - ask management for task definition and crawlers addresses, send server address
+        requests.get(self.manager_address+'/autoscale/server/'+str(self.task_id)+'/')
         whitelist = [r"http://onet.pl", r"http://wp.pl", r"http://facebook.com"]
-        crawlers = ["http://0.0.0.0:8080"]
+        crawlers = ["http://localhost:8900"]
         self.assign_task(whitelist)
         self.assign_crawlers(crawlers)
 
