@@ -61,7 +61,7 @@ class TaskServer(threading.Thread):
 
     def _register_to_management(self):
         # TODO: refactor - ask management for task definition and crawlers addresses, send server address
-        whitelist = [r"http://onet.pl", r"http://wp.pl", r"http://interia.pl"]
+        whitelist = [r"http://dziecko.pl", r"http://film.wp.pl"]
         crawlers = ["http://0.0.0.0:8080"]
         self.assign_task(whitelist)
         self.assign_crawlers(crawlers)
@@ -151,8 +151,11 @@ class TaskServer(threading.Thread):
     def readd_links(self, links):
         self.link_db.add_links(links, BEST_PRIORITY, True)
 
+    def _decode_content(self, content):
+        return content.decode('base64')
+
     def put_data(self, package_id, url, links, content):
         if package_id in self.package_cache:
             self.clear_cache(package_id)
-            self.content_db.add_content(url, links, content)
+            self.content_db.add_content(url, links, self._decode_content(content))
             self.link_db.add_links(links)

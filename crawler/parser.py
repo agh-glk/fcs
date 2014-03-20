@@ -47,7 +47,7 @@ class TextHtmlParser(Parser):
             return _encodings[0]
         return "utf8"
 
-    def _find_links_witha_href(self, soup, url, encoding):
+    def _find_links_with_a_href(self, soup, url, encoding):
         _results = []
         for tag in soup.findAll('a', href=True):
             try:
@@ -61,8 +61,23 @@ class TextHtmlParser(Parser):
         _soup = BeautifulSoup(content, self.__class__.PARSER_TYPE)
         _links = []
         _encoding = self._get_encoding(_soup)
-        _links.append(self._find_links_witha_href(_soup, url, _encoding))
-        return [unicode(content, encoding=_encoding), _links]
+        _links += self._find_links_with_a_href(_soup, url, _encoding)
+        return [self._encode_for_transport(content), _links]
+
+    def _encode_for_transport(self, content):
+        return content.encode('base64')
+
+if __name__ == '__main__':
+    link = 'http://dziecko.pl'
+
+    browser = Browser()
+    browser.set_handle_robots(True)
+    browser.addheaders = [('User-agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) \
+     Chrome/23.0.1271.64 Safari/537.11')]
+    _response = browser.open_novisit(link)
+    _parser = TextHtmlParser()
+    _data = _parser.parse(_response.read(), policy=0, url=link)
+    print _data[1]
 
 
 

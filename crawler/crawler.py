@@ -71,7 +71,7 @@ class Crawler(ThreadWithExc):
         _data = _parser.parse(_response.read(), policy=crawling_policy, url=link)
         _results = dict()
         _results["url"] = link
-        _results["links"], _results["content"] = (_data[1], _data[0])
+        _results["content"], _results["links"] = (_data[0], _data[1])
         return _results
 
     def _crawl(self):
@@ -86,7 +86,7 @@ class Crawler(ThreadWithExc):
                     _final_results.append(_results)
                 except Exception as e:
                     self.logger.error("Exception in %s : %s" % (_link, e.message))
-                    _results = {"url": _link, "links": [], "content": None}
+                    _results = {"url": _link, "links": [], "content": ""}
                 _final_results.append(_results)
                 self.logger.info("Processing url %s ended successfully. %s urls extracted" %
                                  (_link, len(_results['links'])))
