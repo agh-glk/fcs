@@ -61,7 +61,7 @@ class TaskServer(threading.Thread):
 
     def _register_to_management(self):
         # TODO: refactor - ask management for task definition and crawlers addresses, send server address
-        whitelist = [r"http://onet.pl", r"http://wp.pl", r"http://facebook.com"]
+        whitelist = [r"http://onet.pl", r"http://wp.pl", r"http://interia.pl"]
         crawlers = ["http://0.0.0.0:8080"]
         self.assign_task(whitelist)
         self.assign_crawlers(crawlers)

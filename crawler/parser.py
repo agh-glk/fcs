@@ -1,4 +1,7 @@
-from lxml import html
+from bs4 import BeautifulSoup
+import logging
+import urlparse
+from mechanize import Browser
 
 
 class ParserProvider():
@@ -23,15 +26,45 @@ class ParserProvider():
 
 class Parser():
     def __init__(self):
-        pass
+        self.logger = logging.getLogger('parser')
+        _file_handler = logging.FileHandler('crawler.log')
+        _formatter = logging.Formatter('<%(asctime)s>:%(levelname)s: %(message)s')
+        _file_handler.setFormatter(_formatter)
+        self.logger.addHandler(_file_handler)
+        self.logger.setLevel(logging.DEBUG)
 
-    def parse(self, content):
+    def parse(self, content, policy=None, url=""):
         pass
 
 
 class TextHtmlParser(Parser):
 
-    def parse(self, content):
-        _dom = html.fromstring(content)
-        _links = _dom.xpath('//a/@href')
-        return [content, _links]
+    PARSER_TYPE = "lxml"
+
+    def _get_encoding(self, soup):
+        _encodings = [x["charset"] for x in soup.head.find_all('meta') if "charset" in x.attrs.keys()]
+        if len(_encodings) > 0:
+            return _encodings[0]
+        return "utf8"
+
+    def _find_links_witha_href(self, soup, url, encoding):
+        _results = []
+        for tag in soup.findAll('a', href=True):
+            try:
+                _link = urlparse.urljoin(url, unicode(tag['href'], encoding=encoding))
+                _results.append(_link)
+            except Exception:
+                self.logger.error("Exception during parsing "+str(tag))
+        return _results
+
+    def parse(self, content, policy=None, url=""):
+        _soup = BeautifulSoup(content, self.__class__.PARSER_TYPE)
+        _links = []
+        _encoding = self._get_encoding(_soup)
+        _links.append(self._find_links_witha_href(_soup, url, _encoding))
+        return [unicode(content, encoding=_encoding), _links]
+
+
+
+
+
