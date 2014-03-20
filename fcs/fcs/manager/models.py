@@ -108,6 +108,21 @@ class TaskManager(models.Manager):
         return task
 
 
+class Crawler(models.Model):
+    """
+    Represents crawler unit
+    """
+    address = models.CharField(max_length=100)
+
+
+class TaskServer(models.Model):
+    """
+    Represents server which executes crawling tasks
+    """
+    address = models.CharField(max_length=100)
+    crawlers = models.ManyToManyField(Crawler)
+
+
 class Task(models.Model):
     """
     Represents crawling tasks defined by users.
@@ -124,6 +139,8 @@ class Task(models.Model):
     finished = models.BooleanField(default=False)
     created = models.DateTimeField(default=timezone.now, null=False)
     last_data_download = models.DateTimeField(null=True, blank=True)
+    server = models.OneToOneField(TaskServer, null=True)
+    last_server_spawn = models.DateTimeField(null=True)
 
     objects = TaskManager()
 
@@ -134,8 +151,6 @@ class Task(models.Model):
             raise ValidationError('Priority must be positive')
         if self.max_links <= 0:
             raise ValidationError('Links amount must be positive')
-        # if self.expire_date < timezone.now():
-        #     raise ValidationError('Expire date cannot be earlier than current date')
 
         if self.user.quota.max_priority < self.priority:
             raise QuotaException('Task priority exceeds user quota! Limit: ' + str(self.user.quota.max_priority))
@@ -151,8 +166,6 @@ class Task(models.Model):
         links = self.user.task_set.filter(finished=False).exclude(pk=self.pk).aggregate(Sum('max_links'))['max_links__sum']
         if self.user.quota.link_pool < (links + self.max_links if links else self.max_links):
             raise QuotaException("User link pool exceeded! Limit: " + str(self.user.quota.link_pool))
-
-        #TODO: expire_date and finished flag?
 
     def change_priority(self, priority):
         """
@@ -206,6 +219,18 @@ class Task(models.Model):
         self.finished = True
         self.active = False
         self.save()
+
+    def is_expired(self):
+        """
+        Checks if task has expired
+        """
+        return timezone.datetime.now() > self.expire_date
+
+    def is_waiting_for_server(self):
+        """
+        Checks if running task has no task server assigned
+        """
+        return (not self.finished) and (self.server is None)
 
     def feedback(self, score_dict):
         """

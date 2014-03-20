@@ -27,12 +27,14 @@ class Status(object):
 
 
 class TaskServer(threading.Thread):
-    def __init__(self, web_server):
+    def __init__(self, web_server, task_id, manager_address):
         threading.Thread.__init__(self)
         self.status_lock = threading.Lock()
         self.cache_lock = threading.RLock()
 
         self.web_server = web_server
+        self.task_id = task_id
+        self.manager_address = manager_address
         self.link_db = BerkeleyBTreeLinkDB('link_db', SimpleKeyPolicyModule)
         self.content_db = ContentDB()
         self.crawlers = []
@@ -69,8 +71,9 @@ class TaskServer(threading.Thread):
 
     def _register_to_management(self):
         # TODO: refactor - ask management for task definition and crawlers addresses, send server address
-        whitelist = [r"http://onet.pl"]
-        crawlers = ["http://0.0.0.0:8080"]
+        requests.get(self.manager_address+'/autoscale/server/'+str(self.task_id)+'/')
+        whitelist = [r"http://onet.pl", r"http://wp.pl", r"http://facebook.com"]
+        crawlers = ["http://localhost:8900"]
         self.assign_task(whitelist)
         self.assign_crawlers(crawlers)
 
@@ -88,7 +91,6 @@ class TaskServer(threading.Thread):
 
     def stop(self):
         self._set_status(Status.STOPPING)
-        self._clear()
 
     def run(self):
         self._set_status(Status.STARTING)
@@ -108,6 +110,10 @@ class TaskServer(threading.Thread):
             time.sleep(5)
         self._unregister_from_management()
         self.web_server.stop()
+
+    # TODO: remove
+    def links(self):
+        return self.link_db.content()
 
     def cache(self, package_id, links):
         self.cache_lock.acquire()
