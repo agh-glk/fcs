@@ -69,7 +69,9 @@ urlpatterns = patterns('',
                        url(r'^docs/api-docs/(?P<path>.*)/?$', views.api_docs_declaration, name='api_docs_declaration'),
 
                        #Autoscaling module
-                       url(r'^autoscale/server/(?P<task_id>\d+)/$', autoscale_views.register_task_server, name='register_task_server')
+                       url(r'^autoscale/server/register/$', autoscale_views.register_task_server, name='register_task_server'),
+                       url(r'^autoscale/server/unregister/$', autoscale_views.unregister_task_server,
+                            name='unregister_task_server')
 
 )
 

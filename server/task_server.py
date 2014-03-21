@@ -2,7 +2,7 @@ import json
 import threading
 import time
 import requests
-from linkdb import LinkDB, BEST_PRIORITY
+from linkdb import LinkDB, BEST_PRIORITY, WORST_PRIORITY
 from contentdb import ContentDB
 
 
@@ -25,23 +25,25 @@ class TaskServer(threading.Thread):
         self.cache_lock = threading.RLock()
 
         self.web_server = web_server
-        self.task_id = task_id
         self.manager_address = manager_address
         self.link_db = LinkDB()
         self.content_db = ContentDB()
         self.crawlers = []
 
-        self.package_cache = {}
-        self.package_id = 0
-
+        self.task_id = task_id
+        self.max_links = 0
         self.crawling_type = 0
         self.query = ''
 
+        self.package_cache = {}
+        self.package_id = 0
+
         self.status = Status.INIT
 
-    def assign_task(self, whitelist):
+    def init_linkdb(self, whitelist, blacklist):
         # TODO: query, crawling_types, etc. concurrency?
         self.add_links(whitelist)
+        self.feedback(blacklist, WORST_PRIORITY)
 
     def assign_crawlers(self, addresses):
         # TODO: validate addresses
@@ -63,14 +65,35 @@ class TaskServer(threading.Thread):
 
     def _register_to_management(self):
         # TODO: refactor - ask management for task definition and crawlers addresses, send server address
-        requests.get(self.manager_address+'/autoscale/server/'+str(self.task_id)+'/')
-        whitelist = [r"http://onet.pl", r"http://wp.pl", r"http://facebook.com"]
-        crawlers = ["http://localhost:8900"]
-        self.assign_task(whitelist)
-        self.assign_crawlers(crawlers)
+        r = requests.post(self.manager_address + '/autoscale/server/register/',
+                                data={'task_id': self.task_id, 'address': self.get_address()})
+        print r
+
+        if r.status_code == 412 or r.status_code == 404:
+            self.stop()
+            return
+        data = r.json()
+        whitelist = data['whitelist']
+        blacklist = data['blacklist']
+        self.max_links = int(data['max_links'])
+        self.crawling_type = int(data['crawling_type'])
+        self.query = data['query']
+        self.init_linkdb(whitelist, blacklist)
+        if data['active']:
+            self._set_status(Status.RUNNING)
+        else:
+            self._set_status(Status.PAUSED)
+        self.assign_crawlers(['http://localhost:8900'])
 
     def _unregister_from_management(self):
+        r = requests.post(self.manager_address + '/autoscale/server/unregister/',
+                          data={'task_id': self.task_id})
+        print r
         # TODO: send some informations to management
+        pass
+
+    def update(self):
+        # TODO: handle updates made by user in management GUI
         pass
 
     def pause(self):
@@ -88,7 +111,7 @@ class TaskServer(threading.Thread):
         self._set_status(Status.STARTING)
         self.web_server.start()
         self._register_to_management()
-        self._set_status(Status.RUNNING)
+        # TODO: automatically stop server when task is stopped
         while self._get_status() != Status.STOPPING:
             if self._get_status() == Status.RUNNING:
                 for crawler in self.crawlers:
@@ -100,6 +123,7 @@ class TaskServer(threading.Thread):
                             print e
             self.check_cache()
             time.sleep(5)
+        # TODO: allow user collect his data for some time before server shutdown
         self._unregister_from_management()
         self.web_server.stop()
 

@@ -73,7 +73,7 @@ class stop:
 
 
 class WebServer(threading.Thread):
-    def __init__(self, address='0.0.0.0', port=8800):
+    def __init__(self, address='127.0.0.1', port=8800):
         threading.Thread.__init__(self)
         self.address = address
         self.port = port
@@ -99,7 +99,7 @@ class WebServer(threading.Thread):
         web.httpserver.server.stop()
 
     class Application(web.application):
-        def run(self, address='0.0.0.0', port=8800, *middleware):
+        def run(self, address='127.0.0.1', port=8800, *middleware):
             func = self.wsgifunc(*middleware)
             return web.httpserver.runsimple(func, (address, port))
 
