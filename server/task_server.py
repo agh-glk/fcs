@@ -4,6 +4,9 @@ import time
 import requests
 from linkdb import LinkDB, BEST_PRIORITY
 from contentdb import ContentDB
+import sys
+sys.path.append('../')
+from common.content_coder import Base64ContentCoder
 
 
 PACKAGE_SIZE = 1
@@ -152,7 +155,7 @@ class TaskServer(threading.Thread):
         self.link_db.add_links(links, BEST_PRIORITY, True)
 
     def _decode_content(self, content):
-        return content.decode('base64')
+        return Base64ContentCoder.decode(content)
 
     def put_data(self, package_id, url, links, content):
         if package_id in self.package_cache:

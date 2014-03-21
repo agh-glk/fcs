@@ -2,9 +2,12 @@ from bs4 import BeautifulSoup
 import logging
 import urlparse
 from mechanize import Browser
+import sys
+sys.path.append('../')
+from common.content_coder import Base64ContentCoder
 
 
-class ParserProvider():
+class ParserProvider(object):
 
     parsers = {}
 
@@ -65,7 +68,7 @@ class TextHtmlParser(Parser):
         return [self._encode_for_transport(content), _links]
 
     def _encode_for_transport(self, content):
-        return content.encode('base64')
+        return Base64ContentCoder.encode(content)
 
 if __name__ == '__main__':
     link = 'http://dziecko.pl'

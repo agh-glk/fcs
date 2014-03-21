@@ -87,9 +87,11 @@ class Crawler(ThreadWithExc):
                 except Exception as e:
                     self.logger.error("Exception in %s : %s" % (_link, e.message))
                     _results = {"url": _link, "links": [], "content": ""}
-                _final_results.append(_results)
-                self.logger.info("Processing url %s ended successfully. %s urls extracted" %
+                else:
+                    self.logger.info("Processing url %s ended successfully. %s urls extracted" %
                                  (_link, len(_results['links'])))
+                _final_results.append(_results)
+
             self.logger.info("Crawling package from %s ended." % _server_address)
             self._send_results_to_task_server(_id, _server_address, _final_results)
 
