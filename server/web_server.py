@@ -74,7 +74,7 @@ class stop:
 
 
 class WebServer(threading.Thread):
-    def __init__(self, address='0.0.0.0', port=8800):
+    def __init__(self, address='127.0.0.1', port=8800):
         threading.Thread.__init__(self)
         self.address = address
         self.port = port

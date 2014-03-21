@@ -3,14 +3,15 @@ import subprocess
 from django.core.management.base import BaseCommand
 from django.utils.timezone import datetime
 import time
-from fcs.manager.models import Task, TaskServer
+from fcs.manager.models import Task
+import requests
 
 
 CURRENT_PATH = os.path.dirname(__file__)
 PATH_TO_SERVER = CURRENT_PATH + '/../../../../../server/web_server.py'
 PATH_TO_CRAWLER = CURRENT_PATH + '/../../../../../crawler'
 
-SERVER_SPAWN_TIMEOUT = 10
+SERVER_SPAWN_TIMEOUT = 1
 
 
 class Command(BaseCommand):
@@ -21,7 +22,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         while True:
-            self.stdout.write(str(datetime.now()))
+            self.stdout.write('\n' + str(datetime.now()))
             for task in Task.objects.all():
                 self.stdout.write('%s %s %s %s %s' % (str(task.user), str(task.name), str(task.active), str(task.finished), str(task.expire_date)))
                 self.check_expire_date(task)
@@ -36,6 +37,8 @@ class Command(BaseCommand):
     def check_server_assignment(self, task):
         if task.is_waiting_for_server() and self.is_spawn_server_timeout(task):
             self.spawn_task_server(task)
+        if task.finished and task.server is not None:
+            self.stop_server(task)
 
     def is_spawn_server_timeout(self, task):
         if task.last_server_spawn is None:
@@ -45,7 +48,7 @@ class Command(BaseCommand):
 
     def spawn_task_server(self, task):
         print os.path.abspath(PATH_TO_SERVER)
-        print 'spawn server: '
+        print 'Spawn server for task: ', task
         subprocess.Popen(['python', PATH_TO_SERVER, str(self.server_port), str(task.id), 'http://localhost:8000'])  # TODO: change address
         task.last_server_spawn = datetime.now()
         task.save()
@@ -54,8 +57,9 @@ class Command(BaseCommand):
     def spawn_crawler(self):
         pass
 
-    def stop_server(self):
-        pass
+    def stop_server(self, task):
+        print 'Stopping server for task: ', task
+        requests.post(task.server.address + '/stop')
 
     def pause_server(self):
         pass
