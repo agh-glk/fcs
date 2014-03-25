@@ -41,11 +41,12 @@ class SimpleLinkDB(BaseLinkDB):
     START_PRIORITY = 5
 
     def __init__(self):
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.counter = 0
         self.db = []
         self.links = set()
         self.rating = {}
+        self.blacklist = '^$'
 
     def add_links(self, links, default_priority=None, force=False):
         _priority = default_priority or self.__class__.START_PRIORITY
@@ -55,7 +56,7 @@ class SimpleLinkDB(BaseLinkDB):
         self.lock.release()
 
     def _add_link(self, link, default_priority, force):
-        if (not force) and (link in self.links):
+        if (not force) and ((link in self.links) or self.check_blacklist(link)):
             return
         self.links.add(link)
         priority = self.evaluate(link, default_priority)
@@ -81,6 +82,22 @@ class SimpleLinkDB(BaseLinkDB):
     def content(self):
         return self.db
 
+    def update_blacklist(self, regex):
+        self.lock.acquire()
+        if regex == '':
+            self.blacklist = '^$'
+        else:
+            self.blacklist = regex
+        self.lock.release()
+
+    def check_blacklist(self, link):
+        try:
+            if re.match(self.blacklist, link):
+                return True
+            return False
+        except:
+            return False
+
     def feedback(self, regex, rate):
         self.lock.acquire()
         self.rating[regex] = rate
@@ -93,8 +110,12 @@ class SimpleLinkDB(BaseLinkDB):
     def evaluate(self, link, default):
         priorities = []
         for regex in self.rating:
-            if re.match(regex, link):
-                priorities.append(self.rating[regex])
+            try:
+                if re.match(regex, link):
+                    priorities.append(self.rating[regex])
+            except:
+                # TODO: catch matching error
+                pass
         if priorities:
             return sorted(priorities)[-1]  # worst possible priority
         else:

@@ -25,20 +25,13 @@ class Command(BaseCommand):
             self.stdout.write('\n' + str(datetime.now()))
             for task in Task.objects.all():
                 self.stdout.write('%s %s %s %s %s' % (str(task.user), str(task.name), str(task.active), str(task.finished), str(task.expire_date)))
-                self.check_expire_date(task)
                 self.check_server_assignment(task)
-            time.sleep(5)
-
-    def check_expire_date(self, task):
-        if task.is_expired():
-            task.stop()
+            time.sleep(10)
 
     # TODO: task server management, crawler management, add TaskServer and Crawler models, check links number, change management address
     def check_server_assignment(self, task):
         if task.is_waiting_for_server() and self.is_spawn_server_timeout(task):
             self.spawn_task_server(task)
-        if task.finished and task.server is not None:
-            self.stop_server(task)
 
     def is_spawn_server_timeout(self, task):
         if task.last_server_spawn is None:
