@@ -7,7 +7,10 @@ class ContentDB:
     def add_content(self, url, links, content):
         self.db[url] = (links, content)
 
-    # TODO: remove
+    # TODO: concurrency, remove content method etc.
     def content(self):
         return self.db
+
+    def size(self):
+        return len(self.db)
 

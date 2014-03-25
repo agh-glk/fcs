@@ -4,11 +4,12 @@ import time
 import requests
 from linkdb import LinkDB, BEST_PRIORITY, WORST_PRIORITY
 from contentdb import ContentDB
+from django.utils.timezone import datetime
 
 
 PACKAGE_SIZE = 1
 PACKAGE_TIMEOUT = 10
-
+DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 class Status:
     INIT = 0
@@ -23,6 +24,7 @@ class TaskServer(threading.Thread):
         threading.Thread.__init__(self)
         self.status_lock = threading.Lock()
         self.cache_lock = threading.RLock()
+        self.data_lock = threading.RLock()
 
         self.web_server = web_server
         self.manager_address = manager_address
@@ -32,6 +34,8 @@ class TaskServer(threading.Thread):
 
         self.task_id = task_id
         self.max_links = 0
+        self.priority = 0
+        self.expire_date = None
         self.crawling_type = 0
         self.query = ''
 
@@ -40,14 +44,11 @@ class TaskServer(threading.Thread):
 
         self.status = Status.INIT
 
-    def init_linkdb(self, whitelist, blacklist):
-        # TODO: query, crawling_types, etc. concurrency?
-        self.add_links(whitelist)
-        self.feedback(blacklist, WORST_PRIORITY)
-
     def assign_crawlers(self, addresses):
         # TODO: validate addresses
+        self.data_lock.acquire()
         self.crawlers = addresses
+        self.data_lock.release()
 
     def get_address(self):
         return 'http://' + self.web_server.get_host()
@@ -64,37 +65,56 @@ class TaskServer(threading.Thread):
         return status
 
     def _register_to_management(self):
-        # TODO: refactor - ask management for task definition and crawlers addresses, send server address
+        # TODO: refactor - status codes, ask management for task definition and crawlers addresses, send server address
         r = requests.post(self.manager_address + '/autoscale/server/register/',
                                 data={'task_id': self.task_id, 'address': self.get_address()})
         print r
-
         if r.status_code == 412 or r.status_code == 404:
             self.stop()
             return
-        data = r.json()
-        whitelist = data['whitelist']
-        blacklist = data['blacklist']
-        self.max_links = int(data['max_links'])
-        self.crawling_type = int(data['crawling_type'])
-        self.query = data['query']
-        self.init_linkdb(whitelist, blacklist)
-        if data['active']:
-            self._set_status(Status.RUNNING)
-        else:
-            self._set_status(Status.PAUSED)
-        self.assign_crawlers(['http://localhost:8900'])
+
+        self._set_status(Status.RUNNING)
+        try:
+            data = r.json()
+            self.update(data)
+
+            self.data_lock.acquire()
+            self.crawling_type = int(data['crawling_type'])
+            self.query = data['query']
+            self.data_lock.release()
+            # TODO: remove this line from this function
+            self.assign_crawlers(['http://localhost:8900'])
+        except (KeyError, ValueError) as e:
+            print e
+            self._set_status(Status.STOPPING)
 
     def _unregister_from_management(self):
         r = requests.post(self.manager_address + '/autoscale/server/unregister/',
                           data={'task_id': self.task_id})
         print r
-        # TODO: send some informations to management
+        # TODO: send some information to management
         pass
 
-    def update(self):
-        # TODO: handle updates made by user in management GUI
-        pass
+    def update(self, data):
+        if self._get_status() in [Status.STOPPING, Status.STARTING]:
+            return
+        if data['finished']:
+            self._set_status(Status.STOPPING)
+            return
+
+        self.link_db.add_links(data['whitelist'].split(','), BEST_PRIORITY)  # TODO: parse whitelist?
+        self.link_db.update_blacklist(data['blacklist'])
+
+        self.data_lock.acquire()
+        self.priority = int(data['priority'])
+        self.max_links = int(data['max_links'])
+        self.expire_date = datetime.strptime(data['expire_date'], DATE_FORMAT)
+        self.data_lock.release()
+
+        if data['active']:
+            self.resume()
+        else:
+            self.pause()
 
     def pause(self):
         if self._get_status() == Status.RUNNING:
@@ -111,7 +131,6 @@ class TaskServer(threading.Thread):
         self._set_status(Status.STARTING)
         self.web_server.start()
         self._register_to_management()
-        # TODO: automatically stop server when task is stopped
         while self._get_status() != Status.STOPPING:
             if self._get_status() == Status.RUNNING:
                 for crawler in self.crawlers:
@@ -122,6 +141,7 @@ class TaskServer(threading.Thread):
                         except Exception as e:
                             print e
             self.check_cache()
+            self.check_limits()
             time.sleep(5)
         # TODO: allow user collect his data for some time before server shutdown
         self._unregister_from_management()
@@ -130,6 +150,20 @@ class TaskServer(threading.Thread):
     # TODO: remove
     def links(self):
         return self.link_db.content()
+
+    def check_limits(self):
+        self.data_lock.acquire()
+        expire_date = self.expire_date
+        max_links = self.max_links
+        self.data_lock.release()
+        if (datetime.now() > expire_date) or (self.content_db.size() > max_links):
+            self.stop_task()
+
+    def stop_task(self):
+        r = requests.post(self.manager_address + '/autoscale/server/stop_task/',
+                          data={'task_id': self.task_id})
+        print r
+        # TODO: handle errors if occur
 
     def cache(self, package_id, links):
         self.cache_lock.acquire()

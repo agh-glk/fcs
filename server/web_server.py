@@ -54,15 +54,10 @@ class crawlers:
         return 'OK'
 
 
-class pause:
+class update:
     def POST(self):
-        server.pause()
-        return 'OK'
-
-
-class resume:
-    def POST(self):
-        server.resume()
+        data = json.loads(web.data())
+        server.update(data)
         return 'OK'
 
 
@@ -85,9 +80,8 @@ class WebServer(threading.Thread):
             '/add', 'add',
             '/put_data', 'put_data',
             '/crawlers', 'crawlers',
-            '/stop', 'stop',
-            '/pause', 'pause',
-            '/resume', 'resume'
+            '/update', 'update',
+            '/stop', 'stop'
         )
         app = WebServer.Application(urls, globals())
         app.run(address=self.address, port=self.port)
@@ -97,6 +91,7 @@ class WebServer(threading.Thread):
 
     def stop(self):
         web.httpserver.server.stop()
+        sys.exit()
 
     class Application(web.application):
         def run(self, address='127.0.0.1', port=8800, *middleware):

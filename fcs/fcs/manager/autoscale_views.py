@@ -20,9 +20,10 @@ def register_task_server(request):
         server.save()
         task.server = server
         task.save()
-        return Response({'whitelist': task.whitelist.split(','), 'blacklist': task.blacklist,
+        return Response({'whitelist': task.whitelist, 'blacklist': task.blacklist, 'priority': task.priority,
                             'max_links': task.max_links, 'crawling_type': 0, 'active': task.active,
-                            'query': ''})   # TODO: query
+                            'finished': task.finished, 'query': '', "expire_date": str(task.expire_date)})
+                            # TODO: change query, crawling type values
     except Task.DoesNotExist:
         return Response('Task not found', status=status.HTTP_404_NOT_FOUND)
 
@@ -36,10 +37,27 @@ def unregister_task_server(request):
         task = Task.objects.get(id=task_id)
         if task.server is None:
             return Response('No task server to unregister', status=status.HTTP_412_PRECONDITION_FAILED)
-        if not task.finished:
-            return Response('Task not stopped yet', status=status.HTTP_412_PRECONDITION_FAILED)
+        #if not task.finished:
+        #    return Response('Task not stopped yet', status=status.HTTP_412_PRECONDITION_FAILED)
+        server = task.server
         task.server = None
         task.save()
+        server.delete()
         return Response('Task server unregistered')
+    except Task.DoesNotExist:
+        return Response('Task not found', status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes((permissions.AllowAny,))
+def stop_task(request):
+    data = request.DATA
+    task_id = int(data['task_id'])
+    try:
+        task = Task.objects.get(id=task_id)
+        if task.server is None:
+            return Response('No task server to unregister', status=status.HTTP_412_PRECONDITION_FAILED)
+        task.stop()
+        return Response('Task stopped')
     except Task.DoesNotExist:
         return Response('Task not found', status=status.HTTP_404_NOT_FOUND)

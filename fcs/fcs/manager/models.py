@@ -1,9 +1,14 @@
+import json
+import threading
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.aggregates import Sum
+from django.db.models.signals import post_save
+from django.dispatch.dispatcher import receiver
 
 from django.utils import timezone
 import django.contrib.auth.models
+import requests
 from userena.signals import activation_complete
 from oauth2_provider.models import Application
 
@@ -220,12 +225,6 @@ class Task(models.Model):
         self.active = False
         self.save()
 
-    def is_expired(self):
-        """
-        Checks if task has expired
-        """
-        return timezone.datetime.now() > self.expire_date
-
     def is_waiting_for_server(self):
         """
         Checks if running task has no task server assigned
@@ -255,6 +254,15 @@ def create_api_keys(sender, **kwargs):
 
 
 activation_complete.connect(create_api_keys)
+
+
+@receiver(post_save, sender=Task, dispatch_uid="server_updater_identifier")
+def send_update_to_task_server(sender, **kwargs):
+    task = kwargs['instance']
+    if task.server:
+        data = {'finished': task.finished, 'active': task.active, 'priority': task.priority, 'max_links': task.max_links,
+                'whitelist': task.whitelist, 'blacklist': task.blacklist, 'expire_date': str(task.expire_date)}
+        requests.post(task.server.address + '/update', json.dumps(data))
 
 
 class MailSent(models.Model):

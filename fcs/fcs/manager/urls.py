@@ -71,7 +71,9 @@ urlpatterns = patterns('',
                        #Autoscaling module
                        url(r'^autoscale/server/register/$', autoscale_views.register_task_server, name='register_task_server'),
                        url(r'^autoscale/server/unregister/$', autoscale_views.unregister_task_server,
-                            name='unregister_task_server')
+                            name='unregister_task_server'),
+                       url(r'^autoscale/server/stop_task/$', autoscale_views.stop_task,
+                           name='stop_task_by_server')
 
 )
 
