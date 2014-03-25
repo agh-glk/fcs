@@ -2,7 +2,7 @@ import json
 import threading
 import time
 import requests
-from linkdb import LinkDB, BEST_PRIORITY
+from linkdb import SimpleLinkDB, BEST_PRIORITY
 from contentdb import ContentDB
 import sys
 sys.path.append('../')
@@ -28,7 +28,7 @@ class TaskServer(threading.Thread):
         self.cache_lock = threading.RLock()
 
         self.web_server = web_server
-        self.link_db = LinkDB()
+        self.link_db = SimpleLinkDB()
         self.content_db = ContentDB()
         self.crawlers = []
 

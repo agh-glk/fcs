@@ -1,13 +1,40 @@
 import heapq
 import re
 import threading
+import bsddb
+from key_policy_module import SimpleKeyPolicyModule
+import datetime
 
 BEST_PRIORITY = 0
 WORST_PRIORITY = 10
 START_PRIORITY = 5
 
 
-class LinkDB:
+class BaseLinkDB(object):
+
+    def is_in_base(self, link):
+        pass
+
+    def add_link(self, link, priority, depth):
+        pass
+
+    def get_link(self):
+        pass
+
+    def set_as_fetched(self, link):
+        pass
+
+    def feedback(self, link, rate):
+        pass
+
+    def get_details(self, link):
+        pass
+
+    def close(self):
+        pass
+
+
+class SimpleLinkDB(BaseLinkDB):
     def __init__(self):
         self.lock = threading.Lock()
         self.counter = 0
@@ -66,6 +93,69 @@ class LinkDB:
             return sorted(priorities)[-1]  # worst possible priority
         else:
             return default
+
+
+class BerkeleyBTreeLinkDB(BaseLinkDB):
+
+    def __init__(self, base_name, policy_module):
+        self.policy_module = policy_module
+
+        self.found_links = bsddb.db.DB()
+        self.found_links.open(base_name, "found_links", bsddb.db.DB_BTREE, bsddb.db.DB_CREATE)
+
+        self.priority_queue = bsddb.db.DB()
+        self.priority_queue.set_bt_compare(policy_module.comparison_function)
+        self.priority_queue.open(base_name, "priority_db", bsddb.db.DB_BTREE, bsddb.db.DB_CREATE)
+
+    def is_in_base(self, link):
+        return self.found_links.exists(link)
+
+    def add_link(self, link, priority, depth):
+        self.found_links.put(link, ";".join([str(depth), ""]))
+        _key = self.policy_module.generate_key(link, priority)
+        self.priority_queue.put(_key, link)
+
+    def get_link(self):
+        _link = self.priority_queue.cursor().first()
+        if _link is not None:
+            return _link[1]
+        return _link
+
+    def set_as_fetched(self, link):
+        _data = self.found_links.get(link)
+        _data[1] = str(datetime.datetime.now())
+        self.found_links.put(link, ";".join(_data))
+
+    def feedback(self, link, rate):
+        raise NotImplementedError
+
+    def get_details(self, link):
+        return self.found_links.get(link)
+
+    def close(self):
+        self.found_links.close()
+        self.priority_queue.close()
+
+    def _print_db(self, data_base):
+        cursor = data_base.cursor()
+        rec = cursor.first()
+        print '--------------'
+        while rec:
+                print rec
+                rec = cursor.next()
+        print '=============='
+
+    def _print(self):
+        self._print_db(self.priority_queue)
+        self._print_db(self.found_links)
+
+
+if __name__ == '__main__':
+
+    links_db = BerkeleyBTreeLinkDB("db_name", SimpleKeyPolicyModule)
+    # links_db.add_link('onet.pl', 4, 1)
+    print links_db.get_link()
+    links_db._print()
 
 
 
