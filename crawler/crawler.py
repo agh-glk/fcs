@@ -1,7 +1,7 @@
 from Queue import Queue
 from mechanize import Browser
 import string
-from parser import ParserProvider
+from content_parser import ParserProvider
 import logging
 import requests
 import json
