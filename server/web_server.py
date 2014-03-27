@@ -3,6 +3,7 @@ import sys
 import web
 import json
 from task_server import TaskServer
+from common.web_application import WebApplication
 
 server = None
 
@@ -99,7 +100,6 @@ class WebServer(threading.Thread):
             return web.httpserver.runsimple(func, (address, port))
 
 
-# TODO: sys.argv[2] - task id!
 if __name__ == '__main__':
     port = int(sys.argv[1])
     task_id = sys.argv[2]
