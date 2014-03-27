@@ -11,8 +11,8 @@ server = None
 class index:
     def GET(self):
         ret = json.dumps({'status': server.status}) + '\n\n'
-        ret += json.dumps(server.links()) + '\n\n'
-        ret += json.dumps(server.contents()) + '\n\n'
+        ret += json.dumps({'crawled_links': server.content_db.size()}) + '\n\n'
+        ret += json.dumps({'gathered_links': len(server.links())}) + '\n\n'
         ret += json.dumps(server.package_cache) + '\n\n'
         return ret
 
@@ -38,12 +38,8 @@ class put_data:
     def POST(self):
         data = json.loads(web.data())
         package_id = data['id']
-        for entry in data['data']:
-            url = entry['url']
-            links = entry['links']
-            content = entry['content']
-
-            server.put_data(package_id, url, links, content)
+        package_data = data['data']
+        server.put_data(package_id, package_data)
         return 'OK'
 
 
@@ -69,12 +65,12 @@ class stop:
 
 
 class WebServer(threading.Thread):
+
     def __init__(self, address='127.0.0.1', port=8800):
         threading.Thread.__init__(self)
         self.address = address
         self.port = port
 
-    def run(self):
         urls = (
             '/', 'index',
             '/feedback', 'feedback',
@@ -84,14 +80,16 @@ class WebServer(threading.Thread):
             '/update', 'update',
             '/stop', 'stop'
         )
-        app = WebApplication(urls, globals())
-        app.run(address=self.address, port=self.port)
+        self.app = WebApplication(urls, globals())
+
+    def run(self):
+        self.app.run(address=self.address, port=self.port)
 
     def get_host(self):
         return '%s:%d' % (self.address, self.port)
 
     def stop(self):
-        web.httpserver.server.stop()
+        self.app.stop()
         sys.exit()
 
 

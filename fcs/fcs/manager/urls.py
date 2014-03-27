@@ -73,7 +73,11 @@ urlpatterns = patterns('',
                        url(r'^autoscale/server/unregister/$', autoscale_views.unregister_task_server,
                             name='unregister_task_server'),
                        url(r'^autoscale/server/stop_task/$', autoscale_views.stop_task,
-                           name='stop_task_by_server')
+                           name='stop_task_by_server'),
+                       url(r'^autoscale/crawler/register/$', autoscale_views.register_crawler,
+                           name='register_task_server'),
+                       url(r'^autoscale/crawler/unregister/$', autoscale_views.unregister_crawler,
+                           name='unregister_task_server'),
 
 )
 

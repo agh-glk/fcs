@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from fcs.manager.models import Task, TaskServer
+from fcs.manager.models import Task, TaskServer, Crawler
 
 
 @api_view(['POST'])
@@ -61,3 +61,28 @@ def stop_task(request):
         return Response('Task stopped')
     except Task.DoesNotExist:
         return Response('Task not found', status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes((permissions.AllowAny,))
+def register_crawler(request):
+    data = request.DATA
+    address = data['address']
+    crawler = Crawler(address=address)
+    crawler.save()
+    return Response({'crawler_id': crawler.id})
+
+
+@api_view(['POST'])
+@permission_classes((permissions.AllowAny,))
+def unregister_crawler(request):
+    data = request.DATA
+    crawler_id = int(data['crawler_id'])
+    try:
+        crawler = Crawler.objects.get(id=crawler_id)
+        if len(crawler.taskserver_set.all()) > 0:
+            return Response('Task servers are using this crawler', status=status.HTTP_412_PRECONDITION_FAILED)
+        crawler.delete()
+        return Response('Crawler unregistered')
+    except Crawler.DoesNotExist:
+        return Response('Crawler not found', status=status.HTTP_404_NOT_FOUND)
