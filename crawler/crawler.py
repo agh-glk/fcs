@@ -5,6 +5,7 @@ from content_parser import ParserProvider
 import logging
 import requests
 import json
+import sys
 
 from threading import Lock
 from thread_with_exc import ThreadWithExc
@@ -39,6 +40,7 @@ class Crawler(ThreadWithExc):
         _formatter = logging.Formatter('<%(asctime)s>:%(levelname)s: %(message)s')
         _file_handler.setFormatter(_formatter)
         self.logger.addHandler(_file_handler)
+        self.logger.addHandler(logging.StreamHandler(sys.stdout))
         self.logger.setLevel(logging.DEBUG)
 
     def put_into_link_queue(self, link_package):
@@ -61,15 +63,15 @@ class Crawler(ThreadWithExc):
             raise Exception("'Content-type' unknown")
         return result
 
-    def _process_one_link(self, link):
+    def _process_one_link(self, link, crawling_policy):
         _response = self.browser.open_novisit(link)
         _header_data = self._analyse_header(_response)
         _content_type = _header_data[self.__class__.CONTENT_TYPE]
         _parser = ParserProvider.get_parser(_content_type)
-        _data = _parser.parse(_response.read())
+        _data = _parser.parse(_response.read(), policy=crawling_policy, url=link)
         _results = dict()
         _results["url"] = link
-        _results["links"], _results["content"] = (_data[1], _data[0])
+        _results["content"], _results["links"] = (_data[0], _data[1])
         return _results
 
     def _crawl(self):
@@ -78,18 +80,18 @@ class Crawler(ThreadWithExc):
             _final_results = []
             (_id, _server_address, _crawling_policy, _links) = self.link_package_queue.get()
             for _link in _links:
-
+                self.logger.info("Processing url %s started..." % _link)
                 try:
-                    _results = self._process_one_link(_link)
+                    _results = self._process_one_link(_link, _crawling_policy)
                     _final_results.append(_results)
-                    _extracted_links = _results.values()[2]
-                    for l in _extracted_links:
-                        print l
-                    print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
                 except Exception as e:
                     self.logger.error("Exception in %s : %s" % (_link, e.message))
-                    _results = None
+                    _results = {"url": _link, "links": [], "content": ""}
+                else:
+                    self.logger.info("Processing url %s ended successfully. %s urls extracted" %
+                                 (_link, len(_results['links'])))
                 _final_results.append(_results)
+
             self.logger.info("Crawling package from %s ended." % _server_address)
             self._send_results_to_task_server(_id, _server_address, _final_results)
 

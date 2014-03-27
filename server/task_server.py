@@ -5,11 +5,15 @@ import requests
 from linkdb import LinkDB, BEST_PRIORITY, WORST_PRIORITY
 from contentdb import ContentDB
 from django.utils.timezone import datetime
+import sys
+sys.path.append('../')
+from common.content_coder import Base64ContentCoder
 
 
 PACKAGE_SIZE = 1
 PACKAGE_TIMEOUT = 10
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+
 
 class Status:
     INIT = 0
@@ -212,8 +216,11 @@ class TaskServer(threading.Thread):
     def readd_links(self, links):
         self.link_db.add_links(links, BEST_PRIORITY, True)
 
+    def _decode_content(self, content):
+        return Base64ContentCoder.decode(content)
+
     def put_data(self, package_id, url, links, content):
         if package_id in self.package_cache:
             self.clear_cache(package_id)
-            self.content_db.add_content(url, links, content)
+            self.content_db.add_content(url, links, self._decode_content(content))
             self.link_db.add_links(links)
