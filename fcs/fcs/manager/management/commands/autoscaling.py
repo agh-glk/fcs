@@ -30,14 +30,11 @@ class Command(BaseCommand):
 
     # TODO: task server management, crawler management, add TaskServer and Crawler models, check links number, change management address
     def check_server_assignment(self, task):
-        if task.is_waiting_for_server() and self.is_spawn_server_timeout(task):
-            self.spawn_task_server(task)
-
-    def is_spawn_server_timeout(self, task):
-        if task.last_server_spawn is None:
-            return True
-        else:
-            return (datetime.now() - task.last_server_spawn).seconds > SERVER_SPAWN_TIMEOUT
+        if task.is_waiting_for_server():
+            if task.last_server_spawn is None:
+                self.spawn_task_server(task)
+            elif (datetime.now() - task.last_server_spawn).seconds > SERVER_SPAWN_TIMEOUT:
+                self.spawn_task_server(task)
 
     def spawn_task_server(self, task):
         print os.path.abspath(PATH_TO_SERVER)
@@ -48,7 +45,10 @@ class Command(BaseCommand):
         self.server_port += 1
 
     def spawn_crawler(self):
-        pass
+        print os.path.abspath(PATH_TO_CRAWLER)
+        print 'Spawn crawler'
+        subprocess.Popen(['python', PATH_TO_CRAWLER, str(self.server_port)]) #, 'http://localhost:8000'])  # TODO: change address
+        self.crawler_port += 1
 
     def stop_server(self, task):
         print 'Stopping server for task: ', task
