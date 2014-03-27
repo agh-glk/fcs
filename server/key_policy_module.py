@@ -13,7 +13,7 @@ class SimpleKeyPolicyModule(BaseKeyPolicyModule):
 
     @staticmethod
     def generate_key(key, priority):
-        return "%03d" % (999 - priority)+key
+        return "%03d%s" % (999 - priority, key)
 
     @staticmethod
     def comparison_function(key1, key2):

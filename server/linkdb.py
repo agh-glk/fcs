@@ -101,28 +101,31 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
         self.policy_module = policy_module
 
         self.found_links = bsddb.db.DB()
-        self.found_links.open(base_name, "found_links", bsddb.db.DB_BTREE, bsddb.db.DB_CREATE)
+        self.found_links.open("Found_links", "found_links", bsddb.db.DB_BTREE, bsddb.db.DB_CREATE)
 
         self.priority_queue = bsddb.db.DB()
         self.priority_queue.set_bt_compare(policy_module.comparison_function)
-        self.priority_queue.open(base_name, "priority_db", bsddb.db.DB_BTREE, bsddb.db.DB_CREATE)
+        self.priority_queue.open("priority_db", "priority_db", bsddb.db.DB_BTREE, bsddb.db.DB_CREATE | bsddb.db.DB_DIRTY_READ)
 
     def is_in_base(self, link):
         return self.found_links.exists(link)
 
     def add_link(self, link, priority, depth):
-        self.found_links.put(link, ";".join([str(depth), ""]))
+        self.found_links.put(link, ";".join([str(priority), "", str(depth)]))
         _key = self.policy_module.generate_key(link, priority)
         self.priority_queue.put(_key, link)
 
     def get_link(self):
-        _link = self.priority_queue.cursor().first()
+        _cursor = self.priority_queue.cursor()
+        _link = _cursor.first()
         if _link is not None:
+            _cursor.delete()
+            _cursor.close()
             return _link[1]
         return _link
 
     def set_as_fetched(self, link):
-        _data = self.found_links.get(link)
+        _data = self.found_links.get(link).split(';')
         _data[1] = str(datetime.datetime.now())
         self.found_links.put(link, ";".join(_data))
 
@@ -130,7 +133,7 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
         raise NotImplementedError
 
     def get_details(self, link):
-        return self.found_links.get(link)
+        return self.found_links.get(link).split(';')
 
     def close(self):
         self.found_links.close()
@@ -144,6 +147,7 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
                 print rec
                 rec = cursor.next()
         print '=============='
+        cursor.close()
 
     def _print(self):
         self._print_db(self.priority_queue)
@@ -153,9 +157,13 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
 if __name__ == '__main__':
 
     links_db = BerkeleyBTreeLinkDB("db_name", SimpleKeyPolicyModule)
-    # links_db.add_link('onet.pl', 4, 1)
-    print links_db.get_link()
-    links_db._print()
+    _link = "www.zzz.com"
+    links_db.add_link(_link, 1, 1)
+    #links_db._print()
+    links_db.feedback(_link, 5)
+    #links_db._print()
+    _details = links_db.get_details(_link)
+    print _details
 
 
 

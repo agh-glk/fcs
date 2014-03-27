@@ -2,6 +2,7 @@ from linkdb import BerkeleyBTreeLinkDB
 from key_policy_module import SimpleKeyPolicyModule
 import os
 import datetime
+import time
 
 
 class TestDataBase(object):
@@ -16,6 +17,24 @@ class TestDataBase(object):
 
     def test_get_from_empty_base(self):
         assert self.links_db.get_link() is None
+
+    def test_empty_queue(self):
+        _link = "www.test.com"
+        self.links_db.add_link(_link, 1, 1)
+        self.links_db.get_link()
+        assert self.links_db.get_link() is None
+
+    def test_priority_set(self):
+        _link = "www.test.com"
+        self.links_db.add_link(_link, 1, 8)
+        _details = self.links_db.get_details(_link)
+        assert _details[2] == '8'
+
+    def test_depth_set(self):
+        _link = "www.test.com"
+        self.links_db.add_link(_link, 6, 4)
+        _details = self.links_db.get_details(_link)
+        assert _details[0] == '6'
 
     def test_is_in_base(self):
         _link = "www.test.com"
@@ -61,8 +80,9 @@ class TestDataBase(object):
         """
         _link = "www.aaa.com"
         self.links_db.add_link(_link, 1, 1)
+        _link2 = "www.zz.com"
         self.links_db.add_link("www.zz.com", 4, 3)
-        assert self.links_db.get_link() != _link
+        assert self.links_db.get_link() == _link2
 
     def test_best_priority_in_queue5(self):
         """
@@ -88,7 +108,21 @@ class TestDataBase(object):
         _t0 = datetime.datetime.now()
         self.links_db.set_as_fetched(_link)
         _details = self.links_db.get_details(_link)
-        assert _t0 < _details[0]
+        assert _t0 < datetime.datetime.strptime(_details[1], "%Y-%m-%d %H:%M:%S.%f")
+
+    def test_feedback(self):
+        _link = "www.zzz.com"
+        self.links_db.add_link(_link, 12, 1)
+        self.links_db.feedback(_link, 5)
+        _details = self.links_db.get_details(_link)
+        assert _details[0] == '5'
+
+    def test_feedback_correct_keys(self):
+        _link = "www.zzz.com"
+        self.links_db.add_link(_link, 12, 1)
+        self.links_db.feedback(_link, 5)
+        assert self.links_db.policy_module.generate_key(_link, 5) in self.links_db.priority_queue
+
 
     def teardown(self):
         self.links_db.close()
