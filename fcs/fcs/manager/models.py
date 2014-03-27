@@ -118,6 +118,18 @@ class Crawler(models.Model):
     Represents crawler unit
     """
     address = models.CharField(max_length=100)
+    timeouts = models.IntegerField(default=0)
+
+    def increase_timeouts(self):
+        self.timeouts += 1
+        self.save()
+
+    def get_timeouts(self):
+        return self.timeouts
+
+    def reset_timeouts(self):
+        self.timeouts = 0
+        self.save()
 
 
 class TaskServer(models.Model):

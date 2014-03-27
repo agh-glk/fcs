@@ -19,3 +19,4 @@ pyyaml
 
 web
 beautifulsoup4
+requests

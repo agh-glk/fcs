@@ -11,7 +11,7 @@ from common.content_coder import Base64ContentCoder
 
 
 PACKAGE_SIZE = 10
-PACKAGE_TIMEOUT = 30
+PACKAGE_TIMEOUT = 15
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
@@ -21,6 +21,9 @@ class Status:
     RUNNING = 2
     PAUSED = 3
     STOPPING = 4
+
+    IDLE = False
+    PROCESSING = True
 
 
 class TaskServer(threading.Thread):
@@ -34,8 +37,8 @@ class TaskServer(threading.Thread):
         self.manager_address = manager_address
         self.link_db = LinkDB()
         self.content_db = ContentDB()
-        self.crawlers = []
 
+        self.crawlers = []
         self.task_id = task_id
         self.max_links = 0
         self.priority = 0
@@ -45,6 +48,7 @@ class TaskServer(threading.Thread):
 
         self.package_cache = {}
         self.package_id = 0
+        self.processing_crawlers = []
 
         self.status = Status.INIT
 
@@ -86,8 +90,6 @@ class TaskServer(threading.Thread):
             self.crawling_type = int(data['crawling_type'])
             self.query = data['query']
             self.data_lock.release()
-            # TODO: remove this line from this function
-            #self.assign_crawlers(['http://localhost:8900'])
         except (KeyError, ValueError) as e:
             print e
             self._set_status(Status.STOPPING)
@@ -137,12 +139,13 @@ class TaskServer(threading.Thread):
         self._register_to_management()
         while self._get_status() != Status.STOPPING:
             if self._get_status() == Status.RUNNING:
-                for crawler in self.crawlers:
-                    package = self.get_links_package()
+                for crawler in self.get_idle_crawlers():
+                    package = self.get_links_package(crawler)
                     if package:
                         try:
                             # TODO: dont send to crawler which is currently processing request
                             requests.post(crawler + '/put_links', json.dumps(package))
+                            self.crawlers[crawler] = Status.PROCESSING
                         except Exception as e:
                             print e
             self.check_cache()
@@ -155,6 +158,15 @@ class TaskServer(threading.Thread):
     # TODO: remove
     def links(self):
         return self.link_db.content()
+
+    def get_idle_crawlers(self):
+        self.data_lock.acquire()
+        crawlers = self.crawlers
+        self.data_lock.release()
+        self.cache_lock.acquire()
+        processing = self.processing_crawlers
+        self.cache_lock.release()
+        return [crawler for crawler in crawlers if crawler not in processing]
 
     def check_limits(self):
         self.data_lock.acquire()
@@ -170,19 +182,20 @@ class TaskServer(threading.Thread):
         print r
         # TODO: handle errors if occur
 
-    def cache(self, package_id, links):
+    def cache(self, package_id, crawler, links):
         self.cache_lock.acquire()
-        self.package_cache[package_id] = (time.time(), links)
+        self.package_cache[package_id] = (time.time(), links, crawler)
+        self.processing_crawlers.append(crawler)
         self.cache_lock.release()
 
-    def get_links_package(self):
+    def get_links_package(self, crawler):
         links = self.link_db.get_links(PACKAGE_SIZE)
         if links:
             address = self.get_address()
             crawl_type = self.crawling_type
             package_id = self.package_id
             package = {'server_address': address, 'crawling_type': crawl_type, 'id': package_id, 'links': links}
-            self.cache(package_id, links)
+            self.cache(package_id, crawler, links)
             self.package_id += 1
             return package
         else:
@@ -194,16 +207,24 @@ class TaskServer(threading.Thread):
         for package_id in self.package_cache.keys():
             if cur_time - self.package_cache[package_id][0] > PACKAGE_TIMEOUT:
                 self.readd_links(self.package_cache[package_id][1])
+                self.send_crawler_warning(self.package_cache[package_id][2])
                 self.clear_cache(package_id)
         self.cache_lock.release()
 
     def clear_cache(self, package_id):
         self.cache_lock.acquire()
         try:
+            self.processing_crawlers.remove(self.package_cache[package_id][2])
             del self.package_cache[package_id]
         except KeyError:
             pass
         self.cache_lock.release()
+
+    def send_crawler_warning(self, crawler):
+        r = requests.post(self.manager_address + '/autoscale/server/warn_crawler/',
+                          data={'address': crawler})
+        print r
+        # TODO: handle errors if occur
 
     def contents(self):
         return self.content_db.content()
