@@ -113,7 +113,7 @@ class Crawler(ThreadWithExc):
         r = requests.post(self.manager_address + '/autoscale/crawler/register/',
                           data={'address': self.get_address()})
         data = r.json()
-        self.id = data['crawler_id']
+        self.id = int(data['crawler_id'])
         # TODO: handle error codes
 
     def _unregister_from_management(self):
@@ -142,13 +142,15 @@ class Crawler(ThreadWithExc):
     def run(self):
         self._register_to_management()
         self.event.wait()
-        while not self._get_exit_flag():
-            if self.event.isSet():
-                self._crawl()
-                self.event.clear()
-            else:
-                self.event.wait()
-        self._unregister_from_management()
+        try:
+            while not self._get_exit_flag():
+                if self.event.isSet():
+                    self._crawl()
+                    self.event.clear()
+                else:
+                    self.event.wait()
+        finally:
+            self._unregister_from_management()
         print "Crawler stop"
 
 

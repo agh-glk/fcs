@@ -2,7 +2,7 @@ import json
 import threading
 import time
 import requests
-from linkdb import LinkDB, BEST_PRIORITY, WORST_PRIORITY
+from linkdb import LinkDB, BEST_PRIORITY
 from contentdb import ContentDB
 from django.utils.timezone import datetime
 import sys
@@ -10,8 +10,8 @@ sys.path.append('../')
 from common.content_coder import Base64ContentCoder
 
 
-PACKAGE_SIZE = 1
-PACKAGE_TIMEOUT = 10
+PACKAGE_SIZE = 10
+PACKAGE_TIMEOUT = 30
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
@@ -87,7 +87,7 @@ class TaskServer(threading.Thread):
             self.query = data['query']
             self.data_lock.release()
             # TODO: remove this line from this function
-            self.assign_crawlers(['http://localhost:8900'])
+            #self.assign_crawlers(['http://localhost:8900'])
         except (KeyError, ValueError) as e:
             print e
             self._set_status(Status.STOPPING)
@@ -141,6 +141,7 @@ class TaskServer(threading.Thread):
                     package = self.get_links_package()
                     if package:
                         try:
+                            # TODO: dont send to crawler which is currently processing request
                             requests.post(crawler + '/put_links', json.dumps(package))
                         except Exception as e:
                             print e
@@ -219,8 +220,9 @@ class TaskServer(threading.Thread):
     def _decode_content(self, content):
         return Base64ContentCoder.decode(content)
 
-    def put_data(self, package_id, url, links, content):
+    def put_data(self, package_id, data):
         if package_id in self.package_cache:
             self.clear_cache(package_id)
-            self.content_db.add_content(url, links, self._decode_content(content))
-            self.link_db.add_links(links)
+            for entry in data:
+                self.content_db.add_content(entry['url'], entry['links'], self._decode_content(entry['content']))
+                self.link_db.add_links(entry['links'])
