@@ -22,7 +22,7 @@ class Crawler(ThreadWithExc):
     CLIENT_VERSION = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) \
      Chrome/23.0.1271.64 Safari/537.11'
 
-    def __init__(self, event, max_content_length=1024 * 1024, handle_robots=False):
+    def __init__(self, event, port, manager_address, max_content_length=1024 * 1024, handle_robots=False):
         super(Crawler, self).__init__()
         self.link_package_queue = Queue()
         self.max_content_length = max_content_length
@@ -34,6 +34,10 @@ class Crawler(ThreadWithExc):
         self.event = event
         self.exit_flag_lock = Lock()
         self.exit_flag = False
+
+        self.id = 0
+        self.manager_address = manager_address
+        self.port = port
 
         self.logger = logging.getLogger('crawler')
         _file_handler = logging.FileHandler('crawler.log')
@@ -105,6 +109,21 @@ class Crawler(ThreadWithExc):
         self.exit_flag_lock.release()
         return _should_stop
 
+    def _register_to_management(self):
+        r = requests.post(self.manager_address + '/autoscale/crawler/register/',
+                          data={'address': self.get_address()})
+        data = r.json()
+        self.id = data['crawler_id']
+        # TODO: handle error codes
+
+    def _unregister_from_management(self):
+        r = requests.post(self.manager_address + '/autoscale/crawler/unregister/',
+                      data={'crawler_id': self.id})
+        # TODO: handle error codes
+
+    def get_address(self):
+        return 'http://localhost:' + str(self.port)
+
     def get_state(self):
         #TODO : unregistered, starting etc. states
         if self.link_package_queue.empty():
@@ -121,6 +140,7 @@ class Crawler(ThreadWithExc):
         self.raise_exc(KeyboardInterrupt)
 
     def run(self):
+        self._register_to_management()
         self.event.wait()
         while not self._get_exit_flag():
             if self.event.isSet():
@@ -128,6 +148,7 @@ class Crawler(ThreadWithExc):
                 self.event.clear()
             else:
                 self.event.wait()
+        self._unregister_from_management()
         print "Crawler stopped"
 
 

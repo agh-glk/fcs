@@ -1,3 +1,4 @@
+import sys
 import web
 from crawler import Crawler
 from threading import Event
@@ -78,7 +79,9 @@ if __name__ == "__main__":
     event.clear()
     server = Server(_port)
     server.start()
-    crawler = Crawler(event)
+    port = sys.argv[1]
+    manager_address = sys.argv[2]
+    crawler = Crawler(event, port, manager_address)
     crawler.start()
     server.join()
     print "Main thread stop"

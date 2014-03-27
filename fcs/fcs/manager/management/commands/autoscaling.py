@@ -9,7 +9,7 @@ import requests
 
 CURRENT_PATH = os.path.dirname(__file__)
 PATH_TO_SERVER = CURRENT_PATH + '/../../../../../server/web_server.py'
-PATH_TO_CRAWLER = CURRENT_PATH + '/../../../../../crawler'
+PATH_TO_CRAWLER = CURRENT_PATH + '/../../../../../crawler/web_interface.py'
 
 SERVER_SPAWN_TIMEOUT = 1
 
@@ -47,18 +47,8 @@ class Command(BaseCommand):
     def spawn_crawler(self):
         print os.path.abspath(PATH_TO_CRAWLER)
         print 'Spawn crawler'
-        subprocess.Popen(['python', PATH_TO_CRAWLER, str(self.server_port)]) #, 'http://localhost:8000'])  # TODO: change address
+        subprocess.Popen(['python', PATH_TO_CRAWLER, str(self.crawler_port), 'http://localhost:8000'])  # TODO: change address
         self.crawler_port += 1
-
-    def stop_server(self, task):
-        print 'Stopping server for task: ', task
-        requests.post(task.server.address + '/stop')
-
-    def pause_server(self):
-        pass
-
-    def resume_server(self):
-        pass
 
     def stop_crawler(self):
         pass
