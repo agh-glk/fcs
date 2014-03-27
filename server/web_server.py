@@ -3,6 +3,7 @@ import sys
 import web
 import json
 from task_server import TaskServer
+from common.web_application import WebApplication
 
 server = None
 
@@ -89,7 +90,7 @@ class WebServer(threading.Thread):
             '/pause', 'pause',
             '/resume', 'resume'
         )
-        app = WebServer.Application(urls, globals())
+        app = WebApplication(urls, globals())
         app.run(address=self.address, port=self.port)
 
     def get_host(self):
@@ -97,11 +98,6 @@ class WebServer(threading.Thread):
 
     def stop(self):
         web.httpserver.server.stop()
-
-    class Application(web.application):
-        def run(self, address='0.0.0.0', port=8080, *middleware):
-            func = self.wsgifunc(*middleware)
-            return web.httpserver.runsimple(func, (address, port))
 
 
 if __name__ == '__main__':

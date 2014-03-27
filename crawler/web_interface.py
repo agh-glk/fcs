@@ -2,8 +2,10 @@ import web
 from crawler import Crawler
 from threading import Event
 import json
+import sys
 
 from thread_with_exc import ThreadWithExc
+from common.web_application import WebApplication
 
 crawler = None
 server = None
@@ -55,12 +57,13 @@ class Server(ThreadWithExc):
             '/stop', 'stop'
         )
 
-    def __init__(self):
+    def __init__(self, port=8080):
         super(Server, self).__init__()
-        self.app = web.application(self.__class__.urls, globals())
+        self.app = WebApplication(self.__class__.urls, globals())
+        self.port = port
 
     def run(self):
-        self.app.run()
+        self.app.run(port=self.port)
 
     def kill(self):
         self.app.stop()
@@ -69,8 +72,11 @@ class Server(ThreadWithExc):
 
 
 if __name__ == "__main__":
+    _port = 8080
+    if len(sys.argv) > 1:
+        _port = int(sys.argv[1])
     event.clear()
-    server = Server()
+    server = Server(_port)
     server.start()
     crawler = Crawler(event)
     crawler.start()

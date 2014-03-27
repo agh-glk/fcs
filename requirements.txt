@@ -16,3 +16,6 @@ django-userena
 redis
 huey
 pyyaml
+
+web
+beautifulsoup4
