@@ -1,6 +1,5 @@
 from linkdb import BerkeleyBTreeLinkDB
 from key_policy_module import SimpleKeyPolicyModule
-import os
 import datetime
 
 
@@ -122,8 +121,5 @@ class TestDataBase(object):
         self.links_db.feedback(_link, 5)
         assert self.links_db.policy_module.generate_key(_link, 5) in self.links_db.priority_queue
 
-
     def teardown(self):
-        self.links_db.close()
-        os.remove("test_db_priority_db")
-        os.remove("test_db_found_links")
+        self.links_db.clear()

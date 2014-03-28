@@ -2,7 +2,8 @@ import json
 import threading
 import time
 import requests
-from linkdb import SimpleLinkDB
+from linkdb import BerkeleyBTreeLinkDB
+from key_policy_module import SimpleKeyPolicyModule
 from contentdb import ContentDB
 import sys
 sys.path.append('../')
@@ -28,7 +29,7 @@ class TaskServer(threading.Thread):
         self.cache_lock = threading.RLock()
 
         self.web_server = web_server
-        self.link_db = SimpleLinkDB()
+        self.link_db = BerkeleyBTreeLinkDB('link_db', SimpleKeyPolicyModule)
         self.content_db = ContentDB()
         self.crawlers = []
 
@@ -42,7 +43,7 @@ class TaskServer(threading.Thread):
 
     def assign_task(self, whitelist):
         # TODO: query, crawling_types, etc. concurrency?
-        self.add_links(whitelist)
+        self.add_links(whitelist, BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, 0)
 
     def assign_crawlers(self, addresses):
         # TODO: validate addresses
@@ -83,6 +84,7 @@ class TaskServer(threading.Thread):
 
     def stop(self):
         self._set_status(Status.STOPPING)
+        self._clear()
 
     def run(self):
         self._set_status(Status.STARTING)
@@ -103,23 +105,21 @@ class TaskServer(threading.Thread):
         self._unregister_from_management()
         self.web_server.stop()
 
-    # TODO: remove
-    def links(self):
-        return self.link_db.content()
-
     def cache(self, package_id, links):
         self.cache_lock.acquire()
         self.package_cache[package_id] = (time.time(), links)
         self.cache_lock.release()
 
     def get_links_package(self):
-        links = self.link_db.get_links(PACKAGE_SIZE)
-        if links:
+        _links = []
+        for i in range(PACKAGE_SIZE):
+            _links.append(self.link_db.get_link())
+        if _links:
             address = self.get_address()
             crawl_type = self.crawling_type
             package_id = self.package_id
-            package = {'server_address': address, 'crawling_type': crawl_type, 'id': package_id, 'links': links}
-            self.cache(package_id, links)
+            package = {'server_address': address, 'crawling_type': crawl_type, 'id': package_id, 'links': _links}
+            self.cache(package_id, _links)
             self.package_id += 1
             return package
         else:
@@ -148,11 +148,16 @@ class TaskServer(threading.Thread):
     def feedback(self, regex, rate):
         self.link_db.feedback(regex, rate)
 
-    def add_links(self, links):
-        self.link_db.add_links(links)
+    def add_links(self, links, priority, depth):
+        _counter = 0
+        for link in links:
+            if not self.link_db.is_in_base(link):
+                self.link_db.add_link(link, priority, depth)
+                _counter += 1
+        print "%d new links added into DB." % _counter
 
     def readd_links(self, links):
-        self.link_db.add_links(links, SimpleLinkDB.BEST_PRIORITY, True)
+        self.add_links(links, BerkeleyBTreeLinkDB.BEST_PRIORITY, 0)
 
     def _decode_content(self, content):
         return Base64ContentCoder.decode(content)
@@ -161,4 +166,7 @@ class TaskServer(threading.Thread):
         if package_id in self.package_cache:
             self.clear_cache(package_id)
             self.content_db.add_content(url, links, self._decode_content(content))
-            self.link_db.add_links(links)
+            self.add_links(links, BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, 0)
+
+    def _clear(self):
+        self.link_db.clear()

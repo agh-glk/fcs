@@ -11,4 +11,4 @@ class SimpleKeyPolicyModule(BaseKeyPolicyModule):
 
     @staticmethod
     def generate_key(key, priority):
-        return "%03d%s" % (SimpleKeyPolicyModule.MAX_PRIORITY - priority, key)
+        return str("%03d%s" % (SimpleKeyPolicyModule.MAX_PRIORITY - priority, key))

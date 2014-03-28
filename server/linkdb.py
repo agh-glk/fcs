@@ -106,6 +106,9 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
     FOUND_LINKS_DB = "_found_links_db"
     PRIORITY_QUEUE_DB = "_priority_queue_db"
 
+    DEFAULT_PRIORITY = 500
+    BEST_PRIORITY = 0
+
     def __init__(self, base_name, policy_module):
         self.policy_module = policy_module
         self.base_name = base_name
@@ -114,10 +117,10 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
         self.priority_queue = bsddb.btopen(base_name+self.__class__.PRIORITY_QUEUE_DB)
 
     def is_in_base(self, link):
-        return link in self.found_links
+        return str(link) in self.found_links
 
     def add_link(self, link, priority, depth):
-        self.found_links[link] = ";".join([str(priority), "", str(depth)])
+        self.found_links[str(link)] = ";".join([str(priority), "", str(depth)])
         _key = self.policy_module.generate_key(link, priority)
         self.priority_queue[_key] = link
 
@@ -134,10 +137,10 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
     def set_as_fetched(self, link):
         _data = self.found_links.get(link).split(';')
         _data[1] = str(datetime.datetime.now())
-        self.found_links[link] = ";".join(_data)
+        self.found_links[str(link)] = ";".join(_data)
 
     def feedback(self, link, rate):
-        _details = self.found_links.get(link)
+        _details = self.found_links[str(link)]
         _old_priority = _details.split(';')[0]
         _key = self.policy_module.generate_key(link, int(_old_priority))
         del self.priority_queue[_key]
@@ -156,14 +159,9 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
         os.remove(self.base_name+self.__class__.PRIORITY_QUEUE_DB)
 
     def _print_db(self, data_base):
-        cursor = data_base.cursor()
-        rec = cursor.first()
         print '--------------'
-        while rec:
-                print rec
-                rec = cursor.next()
+        print data_base.items()
         print '=============='
-        cursor.close()
 
     def _print(self):
         self._print_db(self.priority_queue)
@@ -179,22 +177,3 @@ if __name__ == '__main__':
         if i % 50 == 0:
             for j in range(25):
                 links_db.get_link()
-
-
-    # links_db = SimpleLinkDB()
-    # links = ["www.zzz.com", 'aaaa.pl', 'azadsafsdgsdgsdgdsg.com', '124edeasf23rdgfsdg.org']
-    # for i in range(10*100*100):
-    #     links_db._add_link(links[i % 4], i % 100, 1)
-    #     if i % 50 == 0:
-    #         for j in range(50):
-    #             links_db.get_links(1)
-    # _link = "www.zzz.com"
-    # links_db.add_link(_link, 1, 1)
-    # #links_db._print()
-    # links_db.feedback(_link, 5)
-    # #links_db._print()
-    # _details = links_db.get_details(_link)
-    # print _details
-
-
-
