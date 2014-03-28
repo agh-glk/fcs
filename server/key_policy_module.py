@@ -7,6 +7,8 @@ class BaseKeyPolicyModule(object):
 
 class SimpleKeyPolicyModule(BaseKeyPolicyModule):
 
+    MAX_PRIORITY = 999
+
     @staticmethod
     def generate_key(key, priority):
-        return "%03d%s" % (999 - priority, key)
+        return "%03d%s" % (SimpleKeyPolicyModule.MAX_PRIORITY - priority, key)

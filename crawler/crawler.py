@@ -128,7 +128,7 @@ class Crawler(ThreadWithExc):
                 self.event.clear()
             else:
                 self.event.wait()
-        print "Crawler stop"
+        print "Crawler stopped"
 
 
 

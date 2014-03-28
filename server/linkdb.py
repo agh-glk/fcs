@@ -4,6 +4,7 @@ import threading
 import bsddb
 from key_policy_module import SimpleKeyPolicyModule
 import datetime
+import os
 
 
 class BaseLinkDB(object):
@@ -27,6 +28,9 @@ class BaseLinkDB(object):
         pass
 
     def close(self):
+        pass
+
+    def clear(self):
         pass
 
 
@@ -99,11 +103,15 @@ class SimpleLinkDB(BaseLinkDB):
 
 class BerkeleyBTreeLinkDB(BaseLinkDB):
 
+    FOUND_LINKS_DB = "_found_links_db"
+    PRIORITY_QUEUE_DB = "_priority_queue_db"
+
     def __init__(self, base_name, policy_module):
         self.policy_module = policy_module
+        self.base_name = base_name
 
-        self.found_links = bsddb.btopen(base_name+"_found_links")
-        self.priority_queue = bsddb.btopen(base_name+"_priority_db")
+        self.found_links = bsddb.btopen(base_name+self.__class__.FOUND_LINKS_DB)
+        self.priority_queue = bsddb.btopen(base_name+self.__class__.PRIORITY_QUEUE_DB)
 
     def is_in_base(self, link):
         return link in self.found_links
@@ -142,6 +150,11 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
         self.found_links.close()
         self.priority_queue.close()
 
+    def clear(self):
+        self.close()
+        os.remove(self.base_name+self.__class__.FOUND_LINKS_DB)
+        os.remove(self.base_name+self.__class__.PRIORITY_QUEUE_DB)
+
     def _print_db(self, data_base):
         cursor = data_base.cursor()
         rec = cursor.first()
@@ -160,13 +173,28 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
 if __name__ == '__main__':
 
     links_db = BerkeleyBTreeLinkDB("db_name", SimpleKeyPolicyModule)
-    _link = "www.zzz.com"
-    links_db.add_link(_link, 1, 1)
-    #links_db._print()
-    links_db.feedback(_link, 5)
-    #links_db._print()
-    _details = links_db.get_details(_link)
-    print _details
+    links = ["www.zzz.com", 'aaaa.pl', 'azadsafsdgsdgsdgdsg.com', '124edeasf23rdgfsdg.org']
+    for i in range(10*100*100*100):
+        links_db.add_link(links[i % 4], i % 100, 1)
+        if i % 50 == 0:
+            for j in range(25):
+                links_db.get_link()
+
+
+    # links_db = SimpleLinkDB()
+    # links = ["www.zzz.com", 'aaaa.pl', 'azadsafsdgsdgsdgdsg.com', '124edeasf23rdgfsdg.org']
+    # for i in range(10*100*100):
+    #     links_db._add_link(links[i % 4], i % 100, 1)
+    #     if i % 50 == 0:
+    #         for j in range(50):
+    #             links_db.get_links(1)
+    # _link = "www.zzz.com"
+    # links_db.add_link(_link, 1, 1)
+    # #links_db._print()
+    # links_db.feedback(_link, 5)
+    # #links_db._print()
+    # _details = links_db.get_details(_link)
+    # print _details
 
 
 
