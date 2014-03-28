@@ -5,10 +5,6 @@ import bsddb
 from key_policy_module import SimpleKeyPolicyModule
 import datetime
 
-BEST_PRIORITY = 0
-WORST_PRIORITY = 10
-START_PRIORITY = 5
-
 
 class BaseLinkDB(object):
 
@@ -35,6 +31,11 @@ class BaseLinkDB(object):
 
 
 class SimpleLinkDB(BaseLinkDB):
+
+    BEST_PRIORITY = 0
+    WORST_PRIORITY = 10
+    START_PRIORITY = 5
+
     def __init__(self):
         self.lock = threading.Lock()
         self.counter = 0
@@ -42,10 +43,11 @@ class SimpleLinkDB(BaseLinkDB):
         self.links = set()
         self.rating = {}
 
-    def add_links(self, links, default_priority=START_PRIORITY, force=False):
+    def add_links(self, links, default_priority=None, force=False):
+        _priority = default_priority or self.__class__.START_PRIORITY
         self.lock.acquire()
         for link in links:
-            self._add_link(link, default_priority, force)
+            self._add_link(link, _priority, force)
         self.lock.release()
 
     def _add_link(self, link, default_priority, force):
@@ -100,37 +102,38 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
     def __init__(self, base_name, policy_module):
         self.policy_module = policy_module
 
-        self.found_links = bsddb.db.DB()
-        self.found_links.open("Found_links", "found_links", bsddb.db.DB_BTREE, bsddb.db.DB_CREATE)
-
-        self.priority_queue = bsddb.db.DB()
-        self.priority_queue.set_bt_compare(policy_module.comparison_function)
-        self.priority_queue.open("priority_db", "priority_db", bsddb.db.DB_BTREE, bsddb.db.DB_CREATE | bsddb.db.DB_DIRTY_READ)
+        self.found_links = bsddb.btopen(base_name+"_found_links")
+        self.priority_queue = bsddb.btopen(base_name+"_priority_db")
 
     def is_in_base(self, link):
-        return self.found_links.exists(link)
+        return link in self.found_links
 
     def add_link(self, link, priority, depth):
-        self.found_links.put(link, ";".join([str(priority), "", str(depth)]))
+        self.found_links[link] = ";".join([str(priority), "", str(depth)])
         _key = self.policy_module.generate_key(link, priority)
-        self.priority_queue.put(_key, link)
+        self.priority_queue[_key] = link
 
     def get_link(self):
-        _cursor = self.priority_queue.cursor()
-        _link = _cursor.first()
+        try:
+            _link = self.priority_queue.first()
+        except bsddb.db.DBNotFoundError:
+            return None
         if _link is not None:
-            _cursor.delete()
-            _cursor.close()
+            del self.priority_queue[_link[0]]
             return _link[1]
         return _link
 
     def set_as_fetched(self, link):
         _data = self.found_links.get(link).split(';')
         _data[1] = str(datetime.datetime.now())
-        self.found_links.put(link, ";".join(_data))
+        self.found_links[link] = ";".join(_data)
 
     def feedback(self, link, rate):
-        raise NotImplementedError
+        _details = self.found_links.get(link)
+        _old_priority = _details.split(';')[0]
+        _key = self.policy_module.generate_key(link, int(_old_priority))
+        del self.priority_queue[_key]
+        self.add_link(link, rate, _details[0])
 
     def get_details(self, link):
         return self.found_links.get(link).split(';')

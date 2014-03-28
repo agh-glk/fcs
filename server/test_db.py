@@ -2,7 +2,6 @@ from linkdb import BerkeleyBTreeLinkDB
 from key_policy_module import SimpleKeyPolicyModule
 import os
 import datetime
-import time
 
 
 class TestDataBase(object):
@@ -126,4 +125,5 @@ class TestDataBase(object):
 
     def teardown(self):
         self.links_db.close()
-        os.remove("test_db")
+        os.remove("test_db_priority_db")
+        os.remove("test_db_found_links")

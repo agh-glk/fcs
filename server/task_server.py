@@ -2,7 +2,7 @@ import json
 import threading
 import time
 import requests
-from linkdb import SimpleLinkDB, BEST_PRIORITY
+from linkdb import SimpleLinkDB
 from contentdb import ContentDB
 import sys
 sys.path.append('../')
@@ -152,7 +152,7 @@ class TaskServer(threading.Thread):
         self.link_db.add_links(links)
 
     def readd_links(self, links):
-        self.link_db.add_links(links, BEST_PRIORITY, True)
+        self.link_db.add_links(links, SimpleLinkDB.BEST_PRIORITY, True)
 
     def _decode_content(self, content):
         return Base64ContentCoder.decode(content)
