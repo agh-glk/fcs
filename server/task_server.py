@@ -147,8 +147,10 @@ class TaskServer(threading.Thread):
                         try:
                             # TODO: dont send to crawler which is currently processing request
                             requests.post(crawler + '/put_links', json.dumps(package))
-                            self.crawlers[crawler] = Status.PROCESSING
+                            # is following line needed?
+                            # self.crawlers[crawler] = Status.PROCESSING
                         except Exception as e:
+                            # TODO: send alert to management when there is Connection problem with crawler
                             print e
             self.check_cache()
             self.check_limits()
