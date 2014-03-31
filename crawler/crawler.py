@@ -44,7 +44,7 @@ class Crawler(ThreadWithExc):
         _formatter = logging.Formatter('<%(asctime)s>:%(levelname)s: %(message)s')
         _file_handler.setFormatter(_formatter)
         self.logger.addHandler(_file_handler)
-        self.logger.addHandler(logging.StreamHandler(sys.stdout))
+        #self.logger.addHandler(logging.StreamHandler(sys.stdout))
         self.logger.setLevel(logging.DEBUG)
 
     def put_into_link_queue(self, link_package):
