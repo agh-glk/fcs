@@ -60,18 +60,29 @@ class TextHtmlParser(Parser):
                 self.logger.error("Exception during parsing "+str(tag))
         return _results
 
+    def _find_links_with_link_href(self, soup, url, encoding):
+        _results = []
+        for tag in soup.findAll('link', href=True):
+            try:
+                _link = urlparse.urljoin(url, unicode(tag['href'], encoding=encoding))
+                _results.append(_link)
+            except Exception:
+                self.logger.error("Exception during parsing " + str(tag))
+        return _results
+
     def parse(self, content, policy=None, url=""):
         _soup = BeautifulSoup(content, self.__class__.PARSER_TYPE)
         _links = []
         _encoding = self._get_encoding(_soup)
         _links += self._find_links_with_a_href(_soup, url, _encoding)
+        _links += self._find_links_with_link_href(_soup, url, _encoding)
         return [self._encode_for_transport(content), _links]
 
     def _encode_for_transport(self, content):
         return Base64ContentCoder.encode(content)
 
 if __name__ == '__main__':
-    link = 'http://dziecko.pl'
+    link = 'http://dziecko.pl/'
 
     browser = Browser()
     browser.set_handle_robots(True)

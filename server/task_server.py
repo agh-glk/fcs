@@ -1,11 +1,15 @@
 import json
 import threading
 import time
+import sys
+
 import requests
+
 from linkdb import BerkeleyBTreeLinkDB
 from key_policy_module import SimpleKeyPolicyModule
 from contentdb import ContentDB
-import sys
+from url_processor import URLProcessor
+
 sys.path.append('../')
 from common.content_coder import Base64ContentCoder
 
@@ -14,7 +18,7 @@ PACKAGE_SIZE = 1
 PACKAGE_TIMEOUT = 10
 
 
-class Status:
+class Status(object):
     INIT = 0
     STARTING = 1
     RUNNING = 2
@@ -65,7 +69,7 @@ class TaskServer(threading.Thread):
 
     def _register_to_management(self):
         # TODO: refactor - ask management for task definition and crawlers addresses, send server address
-        whitelist = [r"http://dziecko.pl", r"http://film.wp.pl"]
+        whitelist = [r"http://onet.pl"]
         crawlers = ["http://0.0.0.0:8080"]
         self.assign_task(whitelist)
         self.assign_crawlers(crawlers)
@@ -148,11 +152,13 @@ class TaskServer(threading.Thread):
     def feedback(self, regex, rate):
         self.link_db.feedback(regex, rate)
 
-    def add_links(self, links, priority, depth):
+    def add_links(self, links, priority, depth, domain=None):
         _counter = 0
         for link in links:
-            if not self.link_db.is_in_base(link):
-                self.link_db.add_link(link, priority, depth)
+            _link = URLProcessor.process(link, domain=domain)
+            if not self.link_db.is_in_base(_link):
+                print "Added:%s" % _link
+                self.link_db.add_link(_link, priority, depth)
                 _counter += 1
         print "%d new links added into DB." % _counter
 
@@ -166,7 +172,7 @@ class TaskServer(threading.Thread):
         if package_id in self.package_cache:
             self.clear_cache(package_id)
             self.content_db.add_content(url, links, self._decode_content(content))
-            self.add_links(links, BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, 0)
+            self.add_links(links, BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, 0, domain=url)
 
     def _clear(self):
         self.link_db.clear()
