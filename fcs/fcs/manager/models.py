@@ -113,11 +113,12 @@ class TaskManager(models.Manager):
         return task
 
 
+# TODO: validate addresses for crawler and server
 class Crawler(models.Model):
     """
     Represents crawler unit
     """
-    address = models.CharField(max_length=100)
+    address = models.CharField(max_length=100, unique=True)
     timeouts = models.IntegerField(default=0)
 
     def increase_timeouts(self):
@@ -136,7 +137,7 @@ class TaskServer(models.Model):
     """
     Represents server which executes crawling tasks
     """
-    address = models.CharField(max_length=100)
+    address = models.CharField(max_length=100, unique=True)
     crawlers = models.ManyToManyField(Crawler)
 
 
@@ -249,7 +250,7 @@ class Task(models.Model):
 
         Update crawling process in order to satisfy client expectations
         """
-        #TODO: implement
+        #TODO: implement (should it be here? maybe send request directly to task server?)
         pass
 
     def __unicode__(self):

@@ -2,6 +2,7 @@ import json
 import threading
 import time
 import requests
+from rest_framework import status
 from linkdb import LinkDB, BEST_PRIORITY
 from contentdb import ContentDB
 from django.utils.timezone import datetime
@@ -10,9 +11,11 @@ sys.path.append('../')
 from common.content_coder import Base64ContentCoder
 
 
-PACKAGE_SIZE = 10
-PACKAGE_TIMEOUT = 15
+URL_PACKAGE_SIZE = 10
+URL_PACKAGE_TIMEOUT = 15
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+WAIT_FOR_DOWNLOAD_TIME = 300    # in seconds
+DATA_PACKAGE_SIZE = 50
 
 
 class Status:
@@ -73,11 +76,9 @@ class TaskServer(threading.Thread):
         return status
 
     def _register_to_management(self):
-        # TODO: refactor - status codes, ask management for task definition and crawlers addresses, send server address
         r = requests.post(self.manager_address + '/autoscale/server/register/',
                                 data={'task_id': self.task_id, 'address': self.get_address()})
-        print r
-        if r.status_code == 412 or r.status_code == 404:
+        if r.status_code in [status.HTTP_412_PRECONDITION_FAILED, status.HTTP_404_NOT_FOUND]:
             self.stop()
             return
 
@@ -92,20 +93,17 @@ class TaskServer(threading.Thread):
             self.data_lock.release()
         except (KeyError, ValueError) as e:
             print e
-            self._set_status(Status.STOPPING)
+            self.stop()
 
     def _unregister_from_management(self):
-        r = requests.post(self.manager_address + '/autoscale/server/unregister/',
+        requests.post(self.manager_address + '/autoscale/server/unregister/',
                           data={'task_id': self.task_id})
-        print r
-        # TODO: send some information to management
-        pass
 
     def update(self, data):
         if self._get_status() in [Status.STOPPING, Status.STARTING]:
             return
         if data['finished']:
-            self._set_status(Status.STOPPING)
+            self.stop()
             return
 
         self.link_db.add_links(data['whitelist'].split(','), BEST_PRIORITY)  # TODO: parse whitelist?
@@ -143,17 +141,17 @@ class TaskServer(threading.Thread):
                     package = self.get_links_package(crawler)
                     if package:
                         try:
-                            # TODO: dont send to crawler which is currently processing request
                             requests.post(crawler + '/put_links', json.dumps(package))
-                            # is following line needed?
-                            # self.crawlers[crawler] = Status.PROCESSING
                         except Exception as e:
-                            # TODO: send alert to management when there is Connection problem with crawler
+                            self.ban_crawler(crawler)
                             print e
             self.check_cache()
             self.check_limits()
             time.sleep(5)
-        # TODO: allow user collect his data for some time before server shutdown
+
+        shutdown_time = time.time()
+        while (time.time() - shutdown_time) < WAIT_FOR_DOWNLOAD_TIME and self.content_db.size() > 0:
+            time.sleep(30)
         self._unregister_from_management()
         self.web_server.stop()
 
@@ -179,10 +177,8 @@ class TaskServer(threading.Thread):
             self.stop_task()
 
     def stop_task(self):
-        r = requests.post(self.manager_address + '/autoscale/server/stop_task/',
+        requests.post(self.manager_address + '/autoscale/server/stop_task/',
                           data={'task_id': self.task_id})
-        print r
-        # TODO: handle errors if occur
 
     def cache(self, package_id, crawler, links):
         self.cache_lock.acquire()
@@ -191,7 +187,7 @@ class TaskServer(threading.Thread):
         self.cache_lock.release()
 
     def get_links_package(self, crawler):
-        links = self.link_db.get_links(PACKAGE_SIZE)
+        links = self.link_db.get_links(URL_PACKAGE_SIZE)
         if links:
             address = self.get_address()
             crawl_type = self.crawling_type
@@ -207,9 +203,9 @@ class TaskServer(threading.Thread):
         cur_time = time.time()
         self.cache_lock.acquire()
         for package_id in self.package_cache.keys():
-            if cur_time - self.package_cache[package_id][0] > PACKAGE_TIMEOUT:
+            if cur_time - self.package_cache[package_id][0] > URL_PACKAGE_TIMEOUT:
                 self.readd_links(self.package_cache[package_id][1])
-                self.send_crawler_warning(self.package_cache[package_id][2])
+                self.warn_crawler(self.package_cache[package_id][2])
                 self.clear_cache(package_id)
         self.cache_lock.release()
 
@@ -222,8 +218,14 @@ class TaskServer(threading.Thread):
             pass
         self.cache_lock.release()
 
-    def send_crawler_warning(self, crawler):
+    def warn_crawler(self, crawler):
         r = requests.post(self.manager_address + '/autoscale/server/warn_crawler/',
+                          data={'address': crawler})
+        print r
+        # TODO: handle errors if occur
+
+    def ban_crawler(self, crawler):
+        r = requests.post(self.manager_address + '/autoscale/server/ban_crawler/',
                           data={'address': crawler})
         print r
         # TODO: handle errors if occur
@@ -249,3 +251,6 @@ class TaskServer(threading.Thread):
             for entry in data:
                 self.content_db.add_content(entry['url'], entry['links'], self._decode_content(entry['content']))
                 self.link_db.add_links(entry['links'])
+
+    def get_data(self):
+        return self.content_db.get_data_package(DATA_PACKAGE_SIZE)

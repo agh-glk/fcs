@@ -1,5 +1,6 @@
 import heapq
 import re
+import sre_constants
 import threading
 
 BEST_PRIORITY = 0
@@ -66,6 +67,7 @@ class LinkDB:
             return False
 
     def feedback(self, regex, rate):
+        # TODO: change this to accept dict as argument, handle feedback updates (delete entries?)
         self.lock.acquire()
         self.rating[regex] = rate
         for i in range(len(self.db)):
@@ -76,15 +78,14 @@ class LinkDB:
 
     def evaluate(self, link, default):
         priorities = []
-        for regex in self.rating:
+        for regex in self.rating.keys():
             try:
                 if re.match(regex, link):
                     priorities.append(self.rating[regex])
-            except:
-                # TODO: catch matching error
-                pass
+            except sre_constants.error:     # pattern error
+                del self.rating[regex]
         if priorities:
-            return sorted(priorities)[-1]  # worst possible priority
+            return sorted(priorities)[-1]   # worst possible priority
         else:
             return default
 

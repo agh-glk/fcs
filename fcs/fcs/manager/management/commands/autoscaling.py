@@ -17,6 +17,8 @@ PATH_TO_CRAWLER = CURRENT_PATH + '/../../../../../crawler/web_interface.py'
 SERVER_SPAWN_TIMEOUT = 10
 MAX_CRAWLERS = 10    # recommended value: greater than 10 (because priority max value can be 10)
 MAX_ASSIGNMENT_DIFFERENCE = 1
+INIT_SERVER_PORT = 18000
+INIT_CRAWLER_PORT = 19000
 
 CRAWLER_TIMEOUTS_LIMIT = 4
 
@@ -24,9 +26,8 @@ CRAWLER_TIMEOUTS_LIMIT = 4
 class Command(BaseCommand):
     def __init__(self):
         BaseCommand.__init__(self)
-        # TODO: assign ports taking database into account (dont spawn servers/crawlers with same address:port)
-        self.server_port = 8800
-        self.crawler_port = 8900
+        self.server_port = max([int(server.address.split(':')[2]) for server in TaskServer.objects.all()] + [INIT_SERVER_PORT]) + 1
+        self.crawler_port = max([int(crawler.address.split(':')[2]) for crawler in Crawler.objects.all()] + [INIT_CRAWLER_PORT]) + 1
 
     def handle(self, *args, **options):
         while True:
@@ -37,7 +38,8 @@ class Command(BaseCommand):
             self.balance_load()
             time.sleep(10)
 
-    # TODO: change management address, keep alive crawlers and servers
+    # TODO: change management address, keep alive crawlers and servers, crawler spawn timeout?
+    # TODO: improve shutdowns of server and crawlers when exception occurs
     def check_server_assignment(self, task):
         if task.is_waiting_for_server():
             if task.last_server_spawn is None:
@@ -48,7 +50,8 @@ class Command(BaseCommand):
     def spawn_task_server(self, task):
         print os.path.abspath(PATH_TO_SERVER)
         print 'Spawn server for task: ', task
-        subprocess.Popen(['python', PATH_TO_SERVER, str(self.server_port), str(task.id), 'http://localhost:8000'])  # TODO: change address
+        subprocess.Popen(['python', PATH_TO_SERVER, str(self.server_port), str(task.id), 'http://localhost:8000'])
+        # TODO: change management address
         task.last_server_spawn = datetime.now()
         task.save()
         self.server_port += 1
@@ -58,14 +61,15 @@ class Command(BaseCommand):
             return
         print os.path.abspath(PATH_TO_CRAWLER)
         print 'Spawn crawler'
-        subprocess.Popen(['python', PATH_TO_CRAWLER, str(self.crawler_port), 'http://localhost:8000'])  # TODO: change address
+        subprocess.Popen(['python', PATH_TO_CRAWLER, str(self.crawler_port), 'http://localhost:8000'])
+        # TODO: change management address
         self.crawler_port += 1
 
     def stop_crawler(self, crawler):
         try:
             requests.post(crawler.address + '/stop')
         except ConnectionError:
-            pass
+            crawler.delete()
 
     def assign_crawlers_to_servers(self):
         servers = TaskServer.objects.all()
@@ -75,7 +79,6 @@ class Command(BaseCommand):
                 crawlers = Crawler.objects.annotate(Count('taskserver'))
                 crawlers = sorted(crawlers, key=lambda crawl: crawl.taskserver__count)
                 print crawlers
-                # TODO: don't assign when server is paused
                 crawlers = crawlers[:server.task.priority]
             server.crawlers = crawlers
             server.save()
@@ -83,7 +86,7 @@ class Command(BaseCommand):
             try:
                 requests.post(server.address + '/crawlers', data=json.dumps({'addresses': addresses}))
             except ConnectionError:
-                pass
+                server.delete()
 
     def balance_load(self):
         # TODO: in future - get and check crawler load time and adjust assignment
