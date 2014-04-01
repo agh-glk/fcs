@@ -17,5 +17,5 @@ redis
 huey
 pyyaml
 
-web
+web.py
 beautifulsoup4
