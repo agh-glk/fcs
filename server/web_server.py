@@ -66,6 +66,13 @@ class stop:
         return 'OK'
 
 
+class get_data:
+    def POST(self):
+        data = server.get_data()
+        # TODO: handle Unicode Errors
+        return json.dumps(data)
+
+
 class WebServer(threading.Thread):
 
     def __init__(self, address='127.0.0.1', port=8800):
@@ -80,7 +87,8 @@ class WebServer(threading.Thread):
             '/put_data', 'put_data',
             '/crawlers', 'crawlers',
             '/update', 'update',
-            '/stop', 'stop'
+            '/stop', 'stop',
+            '/get_data', 'get_data'
         )
         self.app = WebApplication(urls, globals())
 

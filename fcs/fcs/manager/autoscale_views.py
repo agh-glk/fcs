@@ -1,3 +1,5 @@
+from django.db.utils import IntegrityError
+import requests
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status, permissions
@@ -16,6 +18,7 @@ def register_task_server(request):
             return Response('Task server already assigned', status=status.HTTP_412_PRECONDITION_FAILED)
         if task.finished:
             return Response('Task already stopped', status=status.HTTP_412_PRECONDITION_FAILED)
+        # TODO: validate address and send proper status code
         server = TaskServer(address=server_address)
         server.save()
         task.server = server
@@ -37,8 +40,8 @@ def unregister_task_server(request):
         task = Task.objects.get(id=task_id)
         if task.server is None:
             return Response('No task server to unregister', status=status.HTTP_412_PRECONDITION_FAILED)
-        #if not task.finished:
-        #    return Response('Task not stopped yet', status=status.HTTP_412_PRECONDITION_FAILED)
+        if not task.finished:
+            return Response('Task not stopped yet', status=status.HTTP_412_PRECONDITION_FAILED)
         server = task.server
         task.server = None
         task.save()
@@ -55,8 +58,6 @@ def stop_task(request):
     task_id = int(data['task_id'])
     try:
         task = Task.objects.get(id=task_id)
-        if task.server is None:
-            return Response('No task server to unregister', status=status.HTTP_412_PRECONDITION_FAILED)
         task.stop()
         return Response('Task stopped')
     except Task.DoesNotExist:
@@ -68,9 +69,12 @@ def stop_task(request):
 def register_crawler(request):
     data = request.DATA
     address = data['address']
-    crawler = Crawler(address=address)
-    crawler.save()
-    return Response({'crawler_id': crawler.id})
+    try:
+        crawler = Crawler(address=address)
+        crawler.save()
+        return Response({'crawler_id': crawler.id})
+    except IntegrityError:
+        return Response(status=status.HTTP_409_CONFLICT)
 
 
 @api_view(['POST'])
@@ -80,8 +84,6 @@ def unregister_crawler(request):
     crawler_id = int(data['crawler_id'])
     try:
         crawler = Crawler.objects.get(id=crawler_id)
-        if len(crawler.taskserver_set.all()) > 0:
-            return Response('Task servers are using this crawler', status=status.HTTP_412_PRECONDITION_FAILED)
         crawler.delete()
         return Response('Crawler unregistered')
     except Crawler.DoesNotExist:
@@ -97,5 +99,21 @@ def warn_crawler(request):
         crawler = Crawler.objects.get(address=crawler_address)
         crawler.increase_timeouts()
         return Response('Crawler warned')
+    except Crawler.DoesNotExist:
+        return Response('Crawler not found', status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(['POST'])
+@permission_classes((permissions.AllowAny,))
+def ban_crawler(request):
+    data = request.DATA
+    crawler_address = data['address']
+    try:
+        crawler = Crawler.objects.get(address=crawler_address)
+        try:
+            requests.post(crawler_address + '/kill')
+        finally:
+            crawler.delete()
+        return Response('Crawler banned')
     except Crawler.DoesNotExist:
         return Response('Crawler not found', status=status.HTTP_404_NOT_FOUND)

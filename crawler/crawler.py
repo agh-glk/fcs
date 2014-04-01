@@ -1,6 +1,9 @@
 from Queue import Queue
 from mechanize import Browser
 import string
+from redis.exceptions import ConnectionError
+from requests.exceptions import ConnectionError
+from rest_framework import status
 from content_parser import ParserProvider
 import logging
 import requests
@@ -44,7 +47,6 @@ class Crawler(ThreadWithExc):
         _formatter = logging.Formatter('<%(asctime)s>:%(levelname)s: %(message)s')
         _file_handler.setFormatter(_formatter)
         self.logger.addHandler(_file_handler)
-        #self.logger.addHandler(logging.StreamHandler(sys.stdout))
         self.logger.setLevel(logging.DEBUG)
 
     def put_into_link_queue(self, link_package):
@@ -100,8 +102,12 @@ class Crawler(ThreadWithExc):
             self._send_results_to_task_server(_id, _server_address, _final_results)
 
     def _send_results_to_task_server(self, package_id, server_address, results):
-        requests.post(server_address + '/put_data', json.dumps({"id": package_id, "data": results}))
-        self.logger.info("Data send to Task Server.")
+        try:
+            requests.post(server_address + '/put_data', json.dumps({"id": package_id, "data": results}))
+            self.logger.info("Data send to Task Server.")
+        except ConnectionError as e:
+            # TODO: should management be informed?
+            self.logger.exception(e)
 
     def _get_exit_flag(self):
         self.exit_flag_lock.acquire()
@@ -112,14 +118,16 @@ class Crawler(ThreadWithExc):
     def _register_to_management(self):
         r = requests.post(self.manager_address + '/autoscale/crawler/register/',
                           data={'address': self.get_address()})
+        if r.status_code == status.HTTP_409_CONFLICT:
+            self.kill()
+            return
+
         data = r.json()
         self.id = int(data['crawler_id'])
-        # TODO: handle error codes
 
     def _unregister_from_management(self):
-        r = requests.post(self.manager_address + '/autoscale/crawler/unregister/',
+        requests.post(self.manager_address + '/autoscale/crawler/unregister/',
                       data={'crawler_id': self.id})
-        # TODO: handle error codes
 
     def get_address(self):
         return 'http://localhost:' + str(self.port)
