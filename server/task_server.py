@@ -2,13 +2,14 @@ import json
 import threading
 import time
 import sys
-
+import logging
 import requests
 
 from linkdb import BerkeleyBTreeLinkDB
 from key_policy_module import SimpleKeyPolicyModule
 from contentdb import ContentDB
 from url_processor import URLProcessor
+from crawling_depth_policy import SimpleCrawlingDepthPolicy, RealDepthCrawlingDepthPolicy
 
 sys.path.append('../')
 from common.content_coder import Base64ContentCoder
@@ -27,7 +28,7 @@ class Status(object):
 
 
 class TaskServer(threading.Thread):
-    def __init__(self, web_server):
+    def __init__(self, web_server, max_url_depth=1):
         threading.Thread.__init__(self)
         self.status_lock = threading.Lock()
         self.cache_lock = threading.RLock()
@@ -42,8 +43,18 @@ class TaskServer(threading.Thread):
 
         self.crawling_type = 0
         self.query = ''
+        self.max_url_depth = max_url_depth
 
         self.status = Status.INIT
+
+        self.logger = logging.getLogger('task_server')
+        _file_handler = logging.FileHandler('server.log')
+        _formatter = logging.Formatter('<%(asctime)s>:%(levelname)s: %(message)s')
+        _file_handler.setFormatter(_formatter)
+        self.logger.addHandler(_file_handler)
+        self.logger.addHandler(logging.StreamHandler(sys.stdout))
+        self.logger.setLevel(logging.DEBUG)
+
 
     def assign_task(self, whitelist):
         # TODO: query, crawling_types, etc. concurrency?
@@ -69,7 +80,7 @@ class TaskServer(threading.Thread):
 
     def _register_to_management(self):
         # TODO: refactor - ask management for task definition and crawlers addresses, send server address
-        whitelist = [r"http://onet.pl"]
+        whitelist = ["http://onet.pl"]
         crawlers = ["http://0.0.0.0:8080"]
         self.assign_task(whitelist)
         self.assign_crawlers(crawlers)
@@ -152,15 +163,18 @@ class TaskServer(threading.Thread):
     def feedback(self, regex, rate):
         self.link_db.feedback(regex, rate)
 
-    def add_links(self, links, priority, depth, domain=None):
+    def add_links(self, links, priority, depth=0, source_url=""):
         _counter = 0
         for link in links:
-            _link = URLProcessor.process(link, domain=domain)
+            _link = URLProcessor.validate(link, source_url)
             if not self.link_db.is_in_base(_link):
-                print "Added:%s" % _link
-                self.link_db.add_link(_link, priority, depth)
-                _counter += 1
-        print "%d new links added into DB." % _counter
+                _depth = SimpleCrawlingDepthPolicy.calculate_depth(link, source_url, depth)
+                _depth = RealDepthCrawlingDepthPolicy.calculate_depth(link, self.link_db)
+                if _depth <= self.max_url_depth:
+                    self.logger.debug("Added:%s with priority %d" % (_link, _depth))
+                    self.link_db.add_link(_link, priority, _depth)
+                    _counter += 1
+        self.logger.debug("%d new links added into DB." % _counter)
 
     def readd_links(self, links):
         self.add_links(links, BerkeleyBTreeLinkDB.BEST_PRIORITY, 0)
@@ -172,7 +186,9 @@ class TaskServer(threading.Thread):
         if package_id in self.package_cache:
             self.clear_cache(package_id)
             self.content_db.add_content(url, links, self._decode_content(content))
-            self.add_links(links, BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, 0, domain=url)
+            _details = self.link_db.get_details(url)
+            _url_depth = _details is not None and _details[2] or 0
+            self.add_links(links, BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, _url_depth, url)
 
     def _clear(self):
         self.link_db.clear()
