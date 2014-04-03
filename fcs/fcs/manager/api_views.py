@@ -115,4 +115,4 @@ def get_data_from_crawler(request, task_id, size):
     if task.server is None:
         return Response("Cannot download data - task has no running task server!", status=status.HTTP_412_PRECONDITION_FAILED)
     r = requests.get(task.server.address + '/get_data?size=' + str(size))
-    return Response(r.content, content_type='application/json')
+    return Response(r.content)
