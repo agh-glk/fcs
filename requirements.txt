@@ -19,4 +19,3 @@ pyyaml
 
 web.py
 beautifulsoup4
-requests

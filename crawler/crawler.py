@@ -1,9 +1,6 @@
 from Queue import Queue
 from mechanize import Browser
 import string
-from redis.exceptions import ConnectionError
-from requests.exceptions import ConnectionError
-from rest_framework import status
 from content_parser import ParserProvider
 import logging
 import requests
@@ -25,7 +22,7 @@ class Crawler(ThreadWithExc):
     CLIENT_VERSION = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) \
      Chrome/23.0.1271.64 Safari/537.11'
 
-    def __init__(self, event, port, manager_address, max_content_length=1024 * 1024, handle_robots=False):
+    def __init__(self, event, max_content_length=1024 * 1024, handle_robots=False):
         super(Crawler, self).__init__()
         self.link_package_queue = Queue()
         self.max_content_length = max_content_length
@@ -38,15 +35,12 @@ class Crawler(ThreadWithExc):
         self.exit_flag_lock = Lock()
         self.exit_flag = False
 
-        self.id = 0
-        self.manager_address = manager_address
-        self.port = port
-
         self.logger = logging.getLogger('crawler')
         _file_handler = logging.FileHandler('crawler.log')
         _formatter = logging.Formatter('<%(asctime)s>:%(levelname)s: %(message)s')
         _file_handler.setFormatter(_formatter)
         self.logger.addHandler(_file_handler)
+        self.logger.addHandler(logging.StreamHandler(sys.stdout))
         self.logger.setLevel(logging.DEBUG)
 
     def put_into_link_queue(self, link_package):
@@ -102,35 +96,14 @@ class Crawler(ThreadWithExc):
             self._send_results_to_task_server(_id, _server_address, _final_results)
 
     def _send_results_to_task_server(self, package_id, server_address, results):
-        try:
-            requests.post(server_address + '/put_data', json.dumps({"id": package_id, "data": results}))
-            self.logger.info("Data send to Task Server.")
-        except ConnectionError as e:
-            # TODO: should management be informed?
-            self.logger.exception(e)
+        requests.post(server_address + '/put_data', json.dumps({"id": package_id, "data": results}))
+        self.logger.info("Data send to Task Server.")
 
     def _get_exit_flag(self):
         self.exit_flag_lock.acquire()
         _should_stop = self.exit_flag
         self.exit_flag_lock.release()
         return _should_stop
-
-    def _register_to_management(self):
-        r = requests.post(self.manager_address + '/autoscale/crawler/register/',
-                          data={'address': self.get_address()})
-        if r.status_code == status.HTTP_409_CONFLICT:
-            self.kill()
-            return
-
-        data = r.json()
-        self.id = int(data['crawler_id'])
-
-    def _unregister_from_management(self):
-        requests.post(self.manager_address + '/autoscale/crawler/unregister/',
-                      data={'crawler_id': self.id})
-
-    def get_address(self):
-        return 'http://localhost:' + str(self.port)
 
     def get_state(self):
         #TODO : unregistered, starting etc. states
@@ -148,18 +121,16 @@ class Crawler(ThreadWithExc):
         self.raise_exc(KeyboardInterrupt)
 
     def run(self):
-        self._register_to_management()
         self.event.wait()
-        try:
-            while not self._get_exit_flag():
-                if self.event.isSet():
-                    self._crawl()
-                    self.event.clear()
-                else:
-                    self.event.wait()
-        finally:
-            self._unregister_from_management()
-        print "Crawler stop"
+        while not self._get_exit_flag():
+            if self.event.isSet():
+                self._crawl()
+                self.event.clear()
+            else:
+                self.event.wait()
+        print "Crawler stopped"
 
-
-
+if __name__ == '__main__':
+    cr = Crawler(None)
+    #cr._process_one_link('https://github.com/repo/afasf', 0)
+    cr._process_one_link('http://127.0.0.1:8080', 0)
