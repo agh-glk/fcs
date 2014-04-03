@@ -6,9 +6,9 @@ from rest_framework import status
 from linkdb import BerkeleyBTreeLinkDB
 from key_policy_module import SimpleKeyPolicyModule
 from contentdb import ContentDB
-from url_processor import URLProcessor
 from django.utils.timezone import datetime
 import sys
+from url_processor import URLProcessor
 sys.path.append('../')
 from common.content_coder import Base64ContentCoder
 
@@ -26,9 +26,6 @@ class Status(object):
     RUNNING = 2
     PAUSED = 3
     STOPPING = 4
-
-    IDLE = False
-    PROCESSING = True
 
 
 class TaskServer(threading.Thread):
@@ -108,7 +105,7 @@ class TaskServer(threading.Thread):
             self.stop()
             return
 
-        self.link_db.add_links(data['whitelist'].split(','), BEST_PRIORITY)  # TODO: parse whitelist?
+        self.add_links(data['whitelist'].split(','), BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, 0)  # TODO: parse whitelist?
         self.link_db.update_blacklist(data['blacklist'])
 
         self.data_lock.acquire()
