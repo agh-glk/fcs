@@ -16,7 +16,7 @@ from common.content_coder import Base64ContentCoder
 URL_PACKAGE_SIZE = 10
 URL_PACKAGE_TIMEOUT = 15
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
-WAIT_FOR_DOWNLOAD_TIME = 300    # in seconds
+WAIT_FOR_DOWNLOAD_TIME = 25    # in seconds
 DATA_PACKAGE_SIZE = 5
 
 
@@ -106,7 +106,8 @@ class TaskServer(threading.Thread):
             return
 
         self.add_links(data['whitelist'].split(','), BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, 0)  # TODO: parse whitelist?
-        self.link_db.update_blacklist(data['blacklist'])
+        # TODO: move this method to task server
+        #self.link_db.update_blacklist(data['blacklist'])
 
         self.data_lock.acquire()
         self.priority = int(data['priority'])
@@ -134,29 +135,27 @@ class TaskServer(threading.Thread):
         self._set_status(Status.STARTING)
         self.web_server.start()
         self._register_to_management()
-        while self._get_status() != Status.STOPPING:
-            if self._get_status() == Status.RUNNING:
-                for crawler in self.get_idle_crawlers():
-                    package = self.get_links_package(crawler)
-                    if package:
-                        try:
-                            requests.post(crawler + '/put_links', json.dumps(package))
-                        except Exception as e:
-                            self.ban_crawler(crawler)
-                            print e
-            self.check_cache()
-            self.check_limits()
-            time.sleep(5)
+        try:
+            while self._get_status() != Status.STOPPING:
+                if self._get_status() == Status.RUNNING:
+                    for crawler in self.get_idle_crawlers():
+                        package = self.get_links_package(crawler)
+                        if package:
+                            try:
+                                requests.post(crawler + '/put_links', json.dumps(package))
+                            except Exception as e:
+                                self.ban_crawler(crawler)
+                                print e
+                self.check_cache()
+                self.check_limits()
+                time.sleep(5)
 
-        shutdown_time = time.time()
-        while (time.time() - shutdown_time) < WAIT_FOR_DOWNLOAD_TIME and self.content_db.size() > 0:
-            time.sleep(30)
-        self._unregister_from_management()
-        self.web_server.stop()
-
-    # TODO: remove
-    def links(self):
-        return self.link_db.content()
+            shutdown_time = time.time()
+            while (time.time() - shutdown_time) < WAIT_FOR_DOWNLOAD_TIME and self.content_db.size() > 0:
+                time.sleep(30)
+        finally:
+            self._unregister_from_management()
+            self.web_server.stop()
 
     def get_idle_crawlers(self):
         self.data_lock.acquire()
@@ -189,6 +188,7 @@ class TaskServer(threading.Thread):
         _links = []
         for i in range(URL_PACKAGE_SIZE):
             _links.append(self.link_db.get_link())
+        _links = [link for link in _links if link]
         if _links:
             address = self.get_address()
             crawl_type = self.crawling_type
@@ -235,7 +235,9 @@ class TaskServer(threading.Thread):
         return self.content_db.content()
 
     def feedback(self, regex, rate):
-        self.link_db.feedback(regex, rate)
+        # TODO: change this method to feedback regex (which will be created soon)
+        #self.link_db.change_link_priority(regex, rate)
+        pass
 
     def add_links(self, links, priority, depth, domain=None):
         _counter = 0
@@ -248,7 +250,8 @@ class TaskServer(threading.Thread):
         print "%d new links added into DB." % _counter
 
     def readd_links(self, links):
-        self.add_links(links, BerkeleyBTreeLinkDB.BEST_PRIORITY, 0)
+        for link in links:
+            self.link_db.change_link_priority(link, BerkeleyBTreeLinkDB.BEST_PRIORITY)
 
     def _decode_content(self, content):
         return Base64ContentCoder.decode(content)
@@ -258,6 +261,7 @@ class TaskServer(threading.Thread):
             self.clear_cache(package_id)
             for entry in data:
                 self.content_db.add_content(entry['url'], entry['links'], self._decode_content(entry['content']))
+                print entry['url']
                 self.add_links(entry['links'], BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, 0, domain=entry['url'])
 
     def _clear(self):

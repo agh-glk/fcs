@@ -12,7 +12,6 @@ class index:
     def GET(self):
         ret = json.dumps({'status': server.status}) + '\n\n'
         ret += json.dumps({'crawled_links': server.content_db.size()}) + '\n\n'
-        ret += json.dumps({'gathered_links': len(server.links())}) + '\n\n'
         ret += json.dumps({'processing_crawlers': server.processing_crawlers}) + '\n\n'
         ret += json.dumps({'idle_crawlers': server.get_idle_crawlers()}) + '\n\n'
         ret += json.dumps(server.package_cache) + '\n\n'

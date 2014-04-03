@@ -6,6 +6,7 @@ import bsddb
 from key_policy_module import SimpleKeyPolicyModule
 import datetime
 import os
+import uuid
 
 
 class BaseLinkDB(object):
@@ -22,7 +23,7 @@ class BaseLinkDB(object):
     def set_as_fetched(self, link):
         pass
 
-    def feedback(self, link, rate):
+    def change_link_priority(self, link, rate):
         pass
 
     def get_details(self, link):
@@ -99,7 +100,7 @@ class SimpleLinkDB(BaseLinkDB):
         except:
             return False
 
-    def feedback(self, regex, rate):
+    def change_link_priority(self, regex, rate):
         # TODO: change this to accept dict as argument, handle feedback updates (delete entries?)
         self.lock.acquire()
         self.rating[regex] = rate
@@ -135,14 +136,14 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
         self.policy_module = policy_module
         self.base_name = base_name
 
-        self.found_links = bsddb.btopen(base_name+self.__class__.FOUND_LINKS_DB)
-        self.priority_queue = bsddb.btopen(base_name+self.__class__.PRIORITY_QUEUE_DB)
+        self.found_links = bsddb.btopen(base_name+self.__class__.FOUND_LINKS_DB+str(uuid.uuid4()))
+        self.priority_queue = bsddb.btopen(base_name+self.__class__.PRIORITY_QUEUE_DB+str(uuid.uuid4()))
 
     def is_in_base(self, link):
         return str(link) in self.found_links
 
-    def add_link(self, link, priority, depth):
-        self.found_links[str(link)] = ";".join([str(priority), "", str(depth)])
+    def add_link(self, link, priority, depth, fetch_time=""):
+        self.found_links[str(link)] = ";".join([str(priority), fetch_time, str(depth)])
         _key = self.policy_module.generate_key(link, priority)
         self.priority_queue[_key] = link
 
@@ -161,12 +162,14 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
         _data[1] = str(datetime.datetime.now())
         self.found_links[str(link)] = ";".join(_data)
 
-    def feedback(self, link, rate):
-        _details = self.found_links[str(link)]
-        _old_priority = _details.split(';')[0]
+    # TODO: regex feedback
+    def change_link_priority(self, link, rate):
+        _details = self.found_links[str(link)].split(';')
+        _old_priority = _details[0]
         _key = self.policy_module.generate_key(link, int(_old_priority))
-        del self.priority_queue[_key]
-        self.add_link(link, rate, _details[0])
+        if _key in self.priority_queue:
+            del self.priority_queue[_key]
+        self.add_link(link, rate, int(_details[2]), _details[1])
 
     def get_details(self, link):
         return self.found_links.get(link).split(';')
