@@ -2,6 +2,7 @@ from django.conf.urls import patterns, url, include, handler404
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from rest_framework_swagger.views import SwaggerUIView
 from userena import views as userena_views
+from fcs.manager import autoscale_views
 
 import views
 from accounts import views as account_views
@@ -65,7 +66,22 @@ urlpatterns = patterns('',
                        #Swagger REST API documentation
                        url(r'^docs/$', SwaggerUIView.as_view(), name='api_docs_ui'),
                        url(r'^docs/api-docs/$', views.api_docs_resources, name='api_docs_resources'),
-                       url(r'^docs/api-docs/(?P<path>.*)/?$', views.api_docs_declaration, name='api_docs_declaration')
+                       url(r'^docs/api-docs/(?P<path>.*)/?$', views.api_docs_declaration, name='api_docs_declaration'),
+
+                       #Autoscaling module
+                       url(r'^autoscale/server/register/$', autoscale_views.register_task_server, name='register_task_server'),
+                       url(r'^autoscale/server/unregister/$', autoscale_views.unregister_task_server,
+                            name='unregister_task_server'),
+                       url(r'^autoscale/server/stop_task/$', autoscale_views.stop_task,
+                           name='stop_task_by_server'),
+                       url(r'^autoscale/server/warn_crawler/$', autoscale_views.warn_crawler,
+                           name='warn_crawler'),
+                       url(r'^autoscale/server/warn_crawler/$', autoscale_views.ban_crawler,
+                           name='ban_crawler'),
+                       url(r'^autoscale/crawler/register/$', autoscale_views.register_crawler,
+                           name='register_task_server'),
+                       url(r'^autoscale/crawler/unregister/$', autoscale_views.unregister_crawler,
+                           name='unregister_task_server'),
 
 )
 

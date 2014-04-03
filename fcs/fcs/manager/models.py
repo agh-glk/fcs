@@ -1,9 +1,14 @@
+import json
+import threading
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.aggregates import Sum
+from django.db.models.signals import post_save
+from django.dispatch.dispatcher import receiver
 
 from django.utils import timezone
 import django.contrib.auth.models
+import requests
 from userena.signals import activation_complete
 from oauth2_provider.models import Application
 
@@ -108,6 +113,34 @@ class TaskManager(models.Manager):
         return task
 
 
+# TODO: validate addresses for crawler and server
+class Crawler(models.Model):
+    """
+    Represents crawler unit
+    """
+    address = models.CharField(max_length=100, unique=True)
+    timeouts = models.IntegerField(default=0)
+
+    def increase_timeouts(self):
+        self.timeouts += 1
+        self.save()
+
+    def get_timeouts(self):
+        return self.timeouts
+
+    def reset_timeouts(self):
+        self.timeouts = 0
+        self.save()
+
+
+class TaskServer(models.Model):
+    """
+    Represents server which executes crawling tasks
+    """
+    address = models.CharField(max_length=100, unique=True)
+    crawlers = models.ManyToManyField(Crawler)
+
+
 class Task(models.Model):
     """
     Represents crawling tasks defined by users.
@@ -124,6 +157,8 @@ class Task(models.Model):
     finished = models.BooleanField(default=False)
     created = models.DateTimeField(default=timezone.now, null=False)
     last_data_download = models.DateTimeField(null=True, blank=True)
+    server = models.OneToOneField(TaskServer, null=True)
+    last_server_spawn = models.DateTimeField(null=True)
 
     objects = TaskManager()
 
@@ -134,8 +169,6 @@ class Task(models.Model):
             raise ValidationError('Priority must be positive')
         if self.max_links <= 0:
             raise ValidationError('Links amount must be positive')
-        # if self.expire_date < timezone.now():
-        #     raise ValidationError('Expire date cannot be earlier than current date')
 
         if self.user.quota.max_priority < self.priority:
             raise QuotaException('Task priority exceeds user quota! Limit: ' + str(self.user.quota.max_priority))
@@ -151,8 +184,6 @@ class Task(models.Model):
         links = self.user.task_set.filter(finished=False).exclude(pk=self.pk).aggregate(Sum('max_links'))['max_links__sum']
         if self.user.quota.link_pool < (links + self.max_links if links else self.max_links):
             raise QuotaException("User link pool exceeded! Limit: " + str(self.user.quota.link_pool))
-
-        #TODO: expire_date and finished flag?
 
     def change_priority(self, priority):
         """
@@ -207,13 +238,19 @@ class Task(models.Model):
         self.active = False
         self.save()
 
+    def is_waiting_for_server(self):
+        """
+        Checks if running task has no task server assigned
+        """
+        return (not self.finished) and (self.server is None)
+
     def feedback(self, score_dict):
         """
         Process feedback from client.
 
         Update crawling process in order to satisfy client expectations
         """
-        #TODO: implement
+        #TODO: implement (should it be here? maybe send request directly to task server?)
         pass
 
     def __unicode__(self):
@@ -230,6 +267,15 @@ def create_api_keys(sender, **kwargs):
 
 
 activation_complete.connect(create_api_keys)
+
+
+@receiver(post_save, sender=Task, dispatch_uid="server_updater_identifier")
+def send_update_to_task_server(sender, **kwargs):
+    task = kwargs['instance']
+    if task.server:
+        data = {'finished': task.finished, 'active': task.active, 'priority': task.priority, 'max_links': task.max_links,
+                'whitelist': task.whitelist, 'blacklist': task.blacklist, 'expire_date': str(task.expire_date)}
+        requests.post(task.server.address + '/update', json.dumps(data))
 
 
 class MailSent(models.Model):
