@@ -171,6 +171,7 @@ class TaskServer(threading.Thread):
         expire_date = self.expire_date
         max_links = self.max_links
         self.data_lock.release()
+        # TODO: change following comparison - size() depends if user downloaded some data
         if (datetime.now() > expire_date) or (self.content_db.size() > max_links):
             self.stop_task()
 
@@ -267,5 +268,5 @@ class TaskServer(threading.Thread):
     def _clear(self):
         self.link_db.clear()
 
-    def get_data(self):
-        return self.content_db.get_data_package(DATA_PACKAGE_SIZE)
+    def get_data(self, size=DATA_PACKAGE_SIZE):
+        return self.content_db.get_data_package(size)

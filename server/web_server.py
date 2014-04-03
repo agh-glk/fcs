@@ -66,9 +66,11 @@ class stop:
 
 
 class get_data:
-    def POST(self):
-        data = server.get_data()
+    def GET(self):
+        size = web.input(size='5').size
+        data = server.get_data(int(size))
         # TODO: handle Unicode Errors
+        print len(data)
         return json.dumps(data)
 
 

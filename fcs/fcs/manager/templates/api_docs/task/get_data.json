@@ -45,11 +45,15 @@
                   {
                     "code": 501,
                     "message": "Not implemented yet"
+                  },
+                  {
+                    "code": 412,
+                    "message": "Task has no running task server"
                   }
                ]
             }
          ],
-         "path":"/api/task/resume/{id}/{size}/",
+         "path":"/api/task/get_data/{id}/{size}/",
          "description":"Get data"
       }
    ]

@@ -134,8 +134,9 @@ def get_data(request, task_id):
     task = get_object_or_404(Task, id=task_id, user=request.user.id)
     task.last_data_download = datetime.now()
     task.save()
+    size = 5    # TODO: bind this with request data
     if task.server:
-        r = requests.post(task.server.address + '/get_data')
+        r = requests.post(task.server.address + '/get_data?size=' + str(size))
         print r.content
         # TODO: should it return zip or json or something else?
         # TODO: should it wait for response from task server? handle errors?

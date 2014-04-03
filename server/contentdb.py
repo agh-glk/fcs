@@ -22,7 +22,9 @@ class ContentDB:
         keys = self.db.keys()[:size]
         data = []
         for key in keys:
-            data.append([key, self.db[key][0], self.db[key][1]])
+            data.append([key, self.db[key][0]])
+            # TODO: uncomment following line; line above is only for testing purposes
+            #data.append([key, self.db[key][0], self.db[key][1]])
             del self.db[key]
         self.lock.release()
         return data
