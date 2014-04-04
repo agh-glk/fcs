@@ -65,12 +65,6 @@ class Command(BaseCommand):
         # TODO: change management address
         self.crawler_port += 1
 
-    def stop_crawler(self, crawler):
-        try:
-            requests.post(crawler.address + '/stop')
-        except ConnectionError:
-            crawler.delete()
-
     def assign_crawlers_to_servers(self):
         servers = TaskServer.objects.all()
         for server in servers:
@@ -118,11 +112,19 @@ class Command(BaseCommand):
             if len(crawlers) < min_crawlers:
                 self.spawn_crawler()
 
+        for crawler in crawlers[MAX_CRAWLERS:]:
+            crawler.stop()
         for crawler in crawlers:
-            if crawler.taskserver__count == 0:
-                self.stop_crawler(crawler)
+            if not crawler.is_alive():
+                crawler.kill()
+            elif crawler.taskserver__count == 0:
+                crawler.stop()
             elif crawler.get_timeouts() >= CRAWLER_TIMEOUTS_LIMIT:
                 self.spawn_crawler()
                 crawler.reset_timeouts()
+
+        for server in task_servers:
+            if not server.is_alive():
+                server.kill()
 
 

@@ -38,7 +38,7 @@ class Crawler(ThreadWithExc):
         self.exit_flag_lock = Lock()
         self.exit_flag = False
 
-        self.id = 0
+        self.uuid = ''
         self.manager_address = manager_address
         self.port = port
         self.web_server = web_server
@@ -124,11 +124,11 @@ class Crawler(ThreadWithExc):
             return
 
         data = r.json()
-        self.id = int(data['crawler_id'])
+        self.uuid = data['uuid']
 
     def _unregister_from_management(self):
         requests.post(self.manager_address + '/autoscale/crawler/unregister/',
-                      data={'crawler_id': self.id})
+                      data={'uuid': self.uuid})
 
     def get_address(self):
         return 'http://localhost:' + str(self.port)

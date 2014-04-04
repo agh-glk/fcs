@@ -49,6 +49,7 @@ class TaskServer(threading.Thread):
         self.expire_date = None
         self.crawling_type = 0
         self.query = ''
+        self.uuid = ''
 
         self.package_cache = {}
         self.package_id = 0
@@ -91,6 +92,7 @@ class TaskServer(threading.Thread):
             self.data_lock.acquire()
             self.crawling_type = int(data['crawling_type'])
             self.query = data['query']
+            self.uuid = data['uuid']
             self.data_lock.release()
         except (KeyError, ValueError) as e:
             print e
@@ -98,7 +100,7 @@ class TaskServer(threading.Thread):
 
     def _unregister_from_management(self):
         requests.post(self.manager_address + '/autoscale/server/unregister/',
-                          data={'task_id': self.task_id})
+                          data={'task_id': self.task_id, 'uuid': self.uuid})
 
     def update(self, data):
         if self._get_status() in [Status.STOPPING, Status.STARTING]:
@@ -132,6 +134,9 @@ class TaskServer(threading.Thread):
 
     def stop(self):
         self._set_status(Status.STOPPING)
+
+    def kill(self):
+        self._set_status(Status.KILLED)
 
     def run(self):
         self._set_status(Status.STARTING)
@@ -180,8 +185,10 @@ class TaskServer(threading.Thread):
             self.stop_task()
 
     def stop_task(self):
-        requests.post(self.manager_address + '/autoscale/server/stop_task/',
-                          data={'task_id': self.task_id})
+        r = requests.post(self.manager_address + '/autoscale/server/stop_task/',
+                          data={'task_id': self.task_id, 'uuid': self.uuid})
+        if r.status_code in [status.HTTP_412_PRECONDITION_FAILED, status.HTTP_404_NOT_FOUND]:
+            self.kill()
 
     def cache(self, package_id, crawler, links):
         self.cache_lock.acquire()

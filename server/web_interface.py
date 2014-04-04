@@ -74,6 +74,17 @@ class get_data:
         return json.dumps(data)
 
 
+class alive:
+    def GET(self):
+        return 'OK'
+
+
+class kill:
+    def POST(self):
+        server.kill()
+        return 'OK'
+
+
 class WebServer(threading.Thread):
 
     def __init__(self, address='127.0.0.1', port=8800):
@@ -89,7 +100,9 @@ class WebServer(threading.Thread):
             '/crawlers', 'crawlers',
             '/update', 'update',
             '/stop', 'stop',
-            '/get_data', 'get_data'
+            '/get_data', 'get_data',
+            '/alive', 'alive',
+            '/kill', 'kill'
         )
         self.app = WebApplication(urls, globals())
 
@@ -97,7 +110,7 @@ class WebServer(threading.Thread):
         try:
             self.app.run(address=self.address, port=self.port)
         finally:
-            server.stop()
+            server.kill()
 
     def get_host(self):
         return '%s:%d' % (self.address, self.port)

@@ -49,13 +49,19 @@ class kill:
         return "Kill successful"
 
 
+class alive:
+    def GET(self):
+        return 'OK'
+
+
 class Server(ThreadWithExc):
 
     urls = (
             '/', 'index',
             '/put_links', 'put_links',
             '/kill', 'kill',
-            '/stop', 'stop'
+            '/stop', 'stop',
+            '/alive', 'alive'
         )
 
     def __init__(self, port=8080):

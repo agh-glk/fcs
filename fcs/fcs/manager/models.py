@@ -1,5 +1,4 @@
 import json
-import threading
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.aggregates import Sum
@@ -9,6 +8,8 @@ from django.dispatch.dispatcher import receiver
 from django.utils import timezone
 import django.contrib.auth.models
 import requests
+from requests.exceptions import ConnectionError
+from rest_framework import status
 from userena.signals import activation_complete
 from oauth2_provider.models import Application
 
@@ -120,6 +121,7 @@ class Crawler(models.Model):
     """
     address = models.CharField(max_length=100, unique=True)
     timeouts = models.IntegerField(default=0)
+    uuid = models.CharField(max_length=100, unique=True)
 
     def increase_timeouts(self):
         self.timeouts += 1
@@ -132,6 +134,25 @@ class Crawler(models.Model):
         self.timeouts = 0
         self.save()
 
+    def is_alive(self):
+        try:
+            r = requests.get(self.address + '/alive')
+            return r.status_code == status.HTTP_200_OK
+        except ConnectionError:
+            return False
+
+    def stop(self):
+        try:
+            requests.post(self.address + '/stop')
+        except ConnectionError:
+            self.delete()
+
+    def kill(self):
+        try:
+            requests.post(self.address + '/kill')
+        except ConnectionError:
+            self.delete()
+
 
 class TaskServer(models.Model):
     """
@@ -139,6 +160,20 @@ class TaskServer(models.Model):
     """
     address = models.CharField(max_length=100, unique=True)
     crawlers = models.ManyToManyField(Crawler)
+    uuid = models.CharField(max_length=100, unique=True)
+
+    def is_alive(self):
+        try:
+            r = requests.get(self.address + '/alive')
+            return r.status_code == status.HTTP_200_OK
+        except ConnectionError:
+            return False
+
+    def kill(self):
+        try:
+            requests.post(self.address + '/kill')
+        except ConnectionError:
+            self.delete()
 
 
 class Task(models.Model):
@@ -157,7 +192,7 @@ class Task(models.Model):
     finished = models.BooleanField(default=False)
     created = models.DateTimeField(default=timezone.now, null=False)
     last_data_download = models.DateTimeField(null=True, blank=True)
-    server = models.OneToOneField(TaskServer, null=True)
+    server = models.OneToOneField(TaskServer, null=True, on_delete=models.SET_NULL)
     last_server_spawn = models.DateTimeField(null=True)
 
     objects = TaskManager()
