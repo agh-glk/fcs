@@ -25,7 +25,7 @@ class Crawler(ThreadWithExc):
     CLIENT_VERSION = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) \
      Chrome/23.0.1271.64 Safari/537.11'
 
-    def __init__(self, event, port, manager_address, max_content_length=1024 * 1024, handle_robots=False):
+    def __init__(self, web_server, event, port, manager_address, max_content_length=1024 * 1024, handle_robots=False):
         super(Crawler, self).__init__()
         self.link_package_queue = Queue()
         self.max_content_length = max_content_length
@@ -41,6 +41,7 @@ class Crawler(ThreadWithExc):
         self.id = 0
         self.manager_address = manager_address
         self.port = port
+        self.web_server = web_server
 
         self.logger = logging.getLogger('crawler')
         _file_handler = logging.FileHandler('crawler.log')
@@ -159,6 +160,7 @@ class Crawler(ThreadWithExc):
                     self.event.wait()
         finally:
             self._unregister_from_management()
+            self.web_server.kill()
         print "Crawler stop"
 
 

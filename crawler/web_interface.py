@@ -64,7 +64,11 @@ class Server(ThreadWithExc):
         self.port = port
 
     def run(self):
-        self.app.run(port=self.port)
+        try:
+            self.app.run(port=self.port)
+        finally:
+            crawler.stop()
+            event.set()
 
     def kill(self):
         self.app.stop()
@@ -80,7 +84,7 @@ if __name__ == "__main__":
     server = Server(_port)
     server.start()
     manager_address = sys.argv[2]
-    crawler = Crawler(event, _port, manager_address)
+    crawler = Crawler(server, event, _port, manager_address)
     crawler.start()
     server.join()
     print "Main thread stop"

@@ -94,7 +94,10 @@ class WebServer(threading.Thread):
         self.app = WebApplication(urls, globals())
 
     def run(self):
-        self.app.run(address=self.address, port=self.port)
+        try:
+            self.app.run(address=self.address, port=self.port)
+        finally:
+            server.stop()
 
     def get_host(self):
         return '%s:%d' % (self.address, self.port)

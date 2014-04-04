@@ -2,6 +2,7 @@ import json
 import threading
 import time
 import requests
+from requests.exceptions import ConnectionError
 from rest_framework import status
 from linkdb import BerkeleyBTreeLinkDB
 from key_policy_module import SimpleKeyPolicyModule
@@ -26,6 +27,7 @@ class Status(object):
     RUNNING = 2
     PAUSED = 3
     STOPPING = 4
+    KILLED = 5
 
 
 class TaskServer(threading.Thread):
@@ -136,14 +138,14 @@ class TaskServer(threading.Thread):
         self.web_server.start()
         self._register_to_management()
         try:
-            while self._get_status() != Status.STOPPING:
+            while self._get_status() not in [Status.STOPPING, Status.KILLED]:
                 if self._get_status() == Status.RUNNING:
                     for crawler in self.get_idle_crawlers():
                         package = self.get_links_package(crawler)
                         if package:
                             try:
                                 requests.post(crawler + '/put_links', json.dumps(package))
-                            except Exception as e:
+                            except ConnectionError as e:
                                 self.ban_crawler(crawler)
                                 print e
                 self.check_cache()
@@ -151,11 +153,13 @@ class TaskServer(threading.Thread):
                 time.sleep(5)
 
             shutdown_time = time.time()
-            while (time.time() - shutdown_time) < WAIT_FOR_DOWNLOAD_TIME and self.content_db.size() > 0:
+            while (time.time() - shutdown_time) < WAIT_FOR_DOWNLOAD_TIME and self.content_db.size() > 0 \
+                    and self._get_status() != Status.KILLED:
                 time.sleep(30)
         finally:
             self._unregister_from_management()
             self.web_server.stop()
+            print "TaskServer stopped"
 
     def get_idle_crawlers(self):
         self.data_lock.acquire()

@@ -11,8 +11,8 @@ import requests
 
 
 CURRENT_PATH = os.path.dirname(__file__)
-PATH_TO_SERVER = CURRENT_PATH + '/../../../../../server/web_server.py'
-PATH_TO_CRAWLER = CURRENT_PATH + '/../../../../../crawler/crawler_server.py'
+PATH_TO_SERVER = CURRENT_PATH + '/../../../../../server/web_interface.py'
+PATH_TO_CRAWLER = CURRENT_PATH + '/../../../../../crawler/web_interface.py'
 
 SERVER_SPAWN_TIMEOUT = 10
 MAX_CRAWLERS = 10    # recommended value: greater than 10 (because priority max value can be 10)
