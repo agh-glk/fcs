@@ -8,19 +8,58 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding unique constraint on 'Crawler', fields ['address']
-        db.create_unique(u'manager_crawler', ['address'])
+        # Adding model 'Crawler'
+        db.create_table(u'manager_crawler', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('address', self.gf('django.db.models.fields.CharField')(unique=True, max_length=100)),
+            ('timeouts', self.gf('django.db.models.fields.IntegerField')(default=0)),
+            ('uuid', self.gf('django.db.models.fields.CharField')(unique=True, max_length=100)),
+        ))
+        db.send_create_signal(u'manager', ['Crawler'])
 
-        # Adding unique constraint on 'TaskServer', fields ['address']
-        db.create_unique(u'manager_taskserver', ['address'])
+        # Adding model 'TaskServer'
+        db.create_table(u'manager_taskserver', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('address', self.gf('django.db.models.fields.CharField')(unique=True, max_length=100)),
+            ('uuid', self.gf('django.db.models.fields.CharField')(unique=True, max_length=100)),
+        ))
+        db.send_create_signal(u'manager', ['TaskServer'])
+
+        # Adding M2M table for field crawlers on 'TaskServer'
+        m2m_table_name = db.shorten_name(u'manager_taskserver_crawlers')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('taskserver', models.ForeignKey(orm[u'manager.taskserver'], null=False)),
+            ('crawler', models.ForeignKey(orm[u'manager.crawler'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['taskserver_id', 'crawler_id'])
+
+        # Adding field 'Task.server'
+        db.add_column(u'manager_task', 'server',
+                      self.gf('django.db.models.fields.related.OneToOneField')(to=orm['manager.TaskServer'], unique=True, null=True, on_delete=models.SET_NULL),
+                      keep_default=False)
+
+        # Adding field 'Task.last_server_spawn'
+        db.add_column(u'manager_task', 'last_server_spawn',
+                      self.gf('django.db.models.fields.DateTimeField')(null=True),
+                      keep_default=False)
 
 
     def backwards(self, orm):
-        # Removing unique constraint on 'TaskServer', fields ['address']
-        db.delete_unique(u'manager_taskserver', ['address'])
+        # Deleting model 'Crawler'
+        db.delete_table(u'manager_crawler')
 
-        # Removing unique constraint on 'Crawler', fields ['address']
-        db.delete_unique(u'manager_crawler', ['address'])
+        # Deleting model 'TaskServer'
+        db.delete_table(u'manager_taskserver')
+
+        # Removing M2M table for field crawlers on 'TaskServer'
+        db.delete_table(db.shorten_name(u'manager_taskserver_crawlers'))
+
+        # Deleting field 'Task.server'
+        db.delete_column(u'manager_task', 'server_id')
+
+        # Deleting field 'Task.last_server_spawn'
+        db.delete_column(u'manager_task', 'last_server_spawn')
 
 
     models = {
@@ -48,7 +87,8 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Crawler'},
             'address': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'timeouts': ('django.db.models.fields.IntegerField', [], {'default': '0'})
+            'timeouts': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
+            'uuid': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'})
         },
         u'manager.crawlingtype': {
             'Meta': {'object_name': 'CrawlingType'},
@@ -84,7 +124,7 @@ class Migration(SchemaMigration):
             'max_links': ('django.db.models.fields.IntegerField', [], {'default': '1000'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'priority': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
-            'server': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['manager.TaskServer']", 'unique': 'True', 'null': 'True'}),
+            'server': ('django.db.models.fields.related.OneToOneField', [], {'to': u"orm['manager.TaskServer']", 'unique': 'True', 'null': 'True', 'on_delete': 'models.SET_NULL'}),
             'type': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['manager.CrawlingType']", 'symmetrical': 'False'}),
             'user': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['manager.User']"}),
             'whitelist': ('django.db.models.fields.CharField', [], {'max_length': '250'})
@@ -93,7 +133,8 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'TaskServer'},
             'address': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
             'crawlers': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['manager.Crawler']", 'symmetrical': 'False'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'uuid': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'})
         },
         u'manager.user': {
             'Meta': {'object_name': 'User'},
