@@ -136,8 +136,10 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
         self.policy_module = policy_module
         self.base_name = base_name
 
-        self.found_links = bsddb.btopen(base_name+self.__class__.FOUND_LINKS_DB+str(uuid.uuid4()))
-        self.priority_queue = bsddb.btopen(base_name+self.__class__.PRIORITY_QUEUE_DB+str(uuid.uuid4()))
+        self.found_links_db_name = base_name + self.__class__.FOUND_LINKS_DB + str(uuid.uuid4())
+        self.found_links = bsddb.btopen(self.found_links_db_name)
+        self.priority_queue_db_name = base_name + self.__class__.PRIORITY_QUEUE_DB + str(uuid.uuid4())
+        self.priority_queue = bsddb.btopen(self.priority_queue_db_name)
 
     def is_in_base(self, link):
         return str(link) in self.found_links
@@ -180,8 +182,8 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
 
     def clear(self):
         self.close()
-        os.remove(self.base_name+self.__class__.FOUND_LINKS_DB)
-        os.remove(self.base_name+self.__class__.PRIORITY_QUEUE_DB)
+        os.remove(self.found_links_db_name)
+        os.remove(self.priority_queue_db_name)
 
     def _print_db(self, data_base):
         print '--------------'
