@@ -90,7 +90,6 @@ class Crawler(ThreadWithExc):
                 self.logger.info("Processing url %s started..." % _link)
                 try:
                     _results = self._process_one_link(_link, _crawling_policy)
-                    _final_results.append(_results)
                 except Exception as e:
                     self.logger.error("Exception in %s : %s" % (_link, e.message))
                     _results = {"url": _link, "links": [], "content": ""}
