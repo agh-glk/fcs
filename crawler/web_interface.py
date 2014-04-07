@@ -1,3 +1,4 @@
+import sys
 import web
 from crawler import Crawler
 from threading import Event
@@ -48,13 +49,19 @@ class kill:
         return "Kill successful"
 
 
+class alive:
+    def GET(self):
+        return 'OK'
+
+
 class Server(ThreadWithExc):
 
     urls = (
             '/', 'index',
             '/put_links', 'put_links',
             '/kill', 'kill',
-            '/stop', 'stop'
+            '/stop', 'stop',
+            '/alive', 'alive'
         )
 
     def __init__(self, port=8080):
@@ -63,7 +70,11 @@ class Server(ThreadWithExc):
         self.port = port
 
     def run(self):
-        self.app.run(port=self.port)
+        try:
+            self.app.run(port=self.port)
+        finally:
+            crawler.stop()
+            event.set()
 
     def kill(self):
         self.app.stop()
@@ -78,7 +89,8 @@ if __name__ == "__main__":
     event.clear()
     server = Server(_port)
     server.start()
-    crawler = Crawler(event)
+    manager_address = sys.argv[2]
+    crawler = Crawler(server, event, _port, manager_address)
     crawler.start()
     server.join()
     print "Main thread stop"

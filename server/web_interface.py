@@ -11,8 +11,9 @@ server = None
 class index:
     def GET(self):
         ret = json.dumps({'status': server.status}) + '\n\n'
-        ret += json.dumps(server.links()) + '\n\n'
-        ret += json.dumps(server.contents()) + '\n\n'
+        ret += json.dumps({'crawled_links': server.content_db.size()}) + '\n\n'
+        ret += json.dumps({'processing_crawlers': server.processing_crawlers}) + '\n\n'
+        ret += json.dumps({'idle_crawlers': server.get_idle_crawlers()}) + '\n\n'
         ret += json.dumps(server.package_cache) + '\n\n'
         return ret
 
@@ -38,12 +39,8 @@ class put_data:
     def POST(self):
         data = json.loads(web.data())
         package_id = data['id']
-        for entry in data['data']:
-            url = entry['url']
-            links = entry['links']
-            content = entry['content']
-
-            server.put_data(package_id, url, links, content)
+        package_data = data['data']
+        server.put_data(package_id, package_data)
         return 'OK'
 
 
@@ -55,15 +52,10 @@ class crawlers:
         return 'OK'
 
 
-class pause:
+class update:
     def POST(self):
-        server.pause()
-        return 'OK'
-
-
-class resume:
-    def POST(self):
-        server.resume()
+        data = json.loads(web.data())
+        server.update(data)
         return 'OK'
 
 
@@ -73,33 +65,65 @@ class stop:
         return 'OK'
 
 
+class get_data:
+    def GET(self):
+        size = web.input(size='5').size
+        data = server.get_data(int(size))
+        # TODO: handle Unicode Errors
+        print len(data)
+        return json.dumps(data)
+
+
+class alive:
+    def GET(self):
+        return 'OK'
+
+
+class kill:
+    def POST(self):
+        server.kill()
+        return 'OK'
+
+
 class WebServer(threading.Thread):
-    def __init__(self, address='0.0.0.0', port=8080):
+
+    def __init__(self, address='127.0.0.1', port=8800):
         threading.Thread.__init__(self)
         self.address = address
         self.port = port
 
-    def run(self):
         urls = (
             '/', 'index',
             '/feedback', 'feedback',
             '/add', 'add',
             '/put_data', 'put_data',
             '/crawlers', 'crawlers',
+            '/update', 'update',
             '/stop', 'stop',
-            '/pause', 'pause',
-            '/resume', 'resume'
+            '/get_data', 'get_data',
+            '/alive', 'alive',
+            '/kill', 'kill'
         )
-        app = WebApplication(urls, globals())
-        app.run(address=self.address, port=self.port)
+        self.app = WebApplication(urls, globals())
+
+    def run(self):
+        try:
+            self.app.run(address=self.address, port=self.port)
+        finally:
+            server.kill()
 
     def get_host(self):
         return '%s:%d' % (self.address, self.port)
 
     def stop(self):
-        web.httpserver.server.stop()
+        self.app.stop()
+        sys.exit()
 
 
+# TODO: sys.argv[2] - task id!
 if __name__ == '__main__':
-    server = TaskServer(WebServer(port=8888))
+    port = int(sys.argv[1])
+    task_id = sys.argv[2]
+    manager_address = sys.argv[3]
+    server = TaskServer(WebServer(port=port), task_id, manager_address)
     server.start()

@@ -111,14 +111,14 @@ class TestDataBase(object):
     def test_feedback(self):
         _link = "www.zzz.com"
         self.links_db.add_link(_link, 12, 1)
-        self.links_db.feedback(_link, 5)
+        self.links_db.change_link_priority(_link, 5)
         _details = self.links_db.get_details(_link)
         assert _details[0] == '5'
 
     def test_feedback_correct_keys(self):
         _link = "www.zzz.com"
         self.links_db.add_link(_link, 12, 1)
-        self.links_db.feedback(_link, 5)
+        self.links_db.change_link_priority(_link, 5)
         assert self.links_db.policy_module.generate_key(_link, 5) in self.links_db.priority_queue
 
     def teardown(self):

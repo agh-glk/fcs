@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
+import requests
 from rest_framework_swagger import SWAGGER_SETTINGS
 
 import forms
@@ -60,6 +61,7 @@ def show_task(request, task_id):
     """
     task = get_object_or_404(Task, id=task_id, user=request.user.id)
     form = forms.EditTaskForm(request.POST or None, instance=task)
+    # TODO: display proper feedback ratings
     fieldset_value = task.finished and 'disabled' or ''
     if form.is_valid():
         form.save()
@@ -132,7 +134,15 @@ def get_data(request, task_id):
     task = get_object_or_404(Task, id=task_id, user=request.user.id)
     task.last_data_download = datetime.now()
     task.save()
-    return StreamingHttpResponse("Data From Crawler")
+    size = 5    # TODO: bind this with request data
+    if task.server:
+        r = requests.post(task.server.address + '/get_data?size=' + str(size))
+        print r.content
+        # TODO: should it return zip or json or something else?
+        # TODO: should it wait for response from task server? handle errors?
+        return StreamingHttpResponse(r.content)
+    else:
+        return StreamingHttpResponse("No task server to download data from")
 
 
 @login_required()

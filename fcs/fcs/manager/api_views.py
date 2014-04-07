@@ -1,10 +1,12 @@
 from django.core.exceptions import ValidationError
+import requests
 from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.response import Response
 from models import Task, QuotaException, CrawlingType
 from oauth2_provider.decorators import protected_resource
 from django.shortcuts import get_object_or_404
+
 
 @protected_resource()
 @api_view(['POST'])
@@ -110,4 +112,7 @@ def get_data_from_crawler(request, task_id, size):
     Downloads data gathered by crawler.
     """
     task = get_object_or_404(Task, id=task_id, user=request.user)
-    return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
+    if task.server is None:
+        return Response("Cannot download data - task has no running task server!", status=status.HTTP_412_PRECONDITION_FAILED)
+    r = requests.get(task.server.address + '/get_data?size=' + str(size))
+    return Response(r.content)

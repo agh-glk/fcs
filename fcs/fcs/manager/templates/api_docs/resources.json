@@ -7,7 +7,7 @@
          "description":"Resume crawling task"
       },
       {
-         "path":"/task/get",
+         "path":"/task/get_data",
          "description":"Download gathered data"
       },
       {
