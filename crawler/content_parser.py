@@ -36,7 +36,7 @@ class Parser():
         self.logger.addHandler(_file_handler)
         self.logger.setLevel(logging.DEBUG)
 
-    def parse(self, content, policy=None, url=""):
+    def parse(self, content, url=""):
         pass
 
 
@@ -70,7 +70,7 @@ class TextHtmlParser(Parser):
                 self.logger.error("Exception during parsing " + str(tag))
         return _results
 
-    def parse(self, content, policy=None, url=""):
+    def parse(self, content, url=""):
         _soup = BeautifulSoup(content, self.__class__.PARSER_TYPE)
         _links = []
         _encoding = self._get_encoding(_soup)
@@ -90,7 +90,7 @@ if __name__ == '__main__':
      Chrome/23.0.1271.64 Safari/537.11')]
     _response = browser.open_novisit(link)
     _parser = TextHtmlParser()
-    _data = _parser.parse(_response.read(), policy=0, url=link)
+    _data = _parser.parse(_response.read(), url=link)
     print _data[1]
 
 

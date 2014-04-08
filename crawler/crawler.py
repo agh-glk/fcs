@@ -1,17 +1,16 @@
 from Queue import Queue
 from mechanize import Browser
 import string
-from redis.exceptions import ConnectionError
 from requests.exceptions import ConnectionError
 from rest_framework import status
 from content_parser import ParserProvider
 import logging
 import requests
 import json
-import sys
 
 from threading import Lock
 from thread_with_exc import ThreadWithExc
+from mime_content_type import MimeContentType
 
 
 class CrawlerState:
@@ -53,7 +52,7 @@ class Crawler(ThreadWithExc):
     def put_into_link_queue(self, link_package):
         self.link_package_queue.put(link_package)
 
-    def _analyse_header(self, response):
+    def _analyse_header(self, response, mime_type): #TODO
         _header = response.info()
         _header_dict = dict(zip(map(string.lower, _header.keys()), _header.values()))
         result = {}
@@ -70,12 +69,14 @@ class Crawler(ThreadWithExc):
             raise Exception("'Content-type' unknown")
         return result
 
-    def _process_one_link(self, link, crawling_policy):
+    def _process_one_link(self, link, mime_type):
         _response = self.browser.open_novisit(link)
-        _header_data = self._analyse_header(_response)
+        _header_data = self._analyse_header(_response, mime_type)
         _content_type = _header_data[self.__class__.CONTENT_TYPE]
+        if not MimeContentType(mime_type).contains(MimeContentType(_content_type)):
+            raise Exception("Page skipped because does not meet MIME content type criteria.")
         _parser = ParserProvider.get_parser(_content_type)
-        _data = _parser.parse(_response.read(), policy=crawling_policy, url=link)
+        _data = _parser.parse(_response.read(), url=link)
         _results = dict()
         _results["url"] = link
         _results["content"], _results["links"] = (_data[0], _data[1])
