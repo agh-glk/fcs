@@ -3,7 +3,7 @@ import requests
 from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.response import Response
-from models import Task, QuotaException, CrawlingType
+from models import Task, QuotaException
 from oauth2_provider.decorators import protected_resource
 from django.shortcuts import get_object_or_404
 
@@ -19,18 +19,18 @@ def add_task(request):
     *name* - name of task\n
     *priority* - task priority\n
     *expire* - datetime of task expiration\n
-    *types* - list of numbers indicating CrawlingType\n
-    *whitelist* - urls which should be crawled first, crawling start point\n
+    *mime_type* - list of MIME types separated by whitespace\n
+    *start_links* - list of urls separated by whitespace - starting point of crawling
+    *whitelist* - urls (regexp) which should be crawled\n
     *blacklist* - urls (regexp) which should not be crawled\n
     *max_links* - size of task
     """
     data = request.DATA
     user = request.user
     try:
-        _crawling_types = CrawlingType.objects.filter(type__in=map(lambda x: int(x), data['types']))
         task = Task.objects.create_task(user=user, name=data['name'], priority=int(data['priority']), expire=data['expire'],
-                            types=_crawling_types, whitelist=data['whitelist'], blacklist=data['blacklist'],
-                            max_links=int(data['max_links']))
+                            start_links = data['start_links'], mime_type=data['mime_type'], whitelist=data['whitelist'],
+                            blacklist=data['blacklist'], max_links=int(data['max_links']))
     except KeyError as e:
         return Response(e.message, status=status.HTTP_400_BAD_REQUEST)
     except (QuotaException, ValidationError) as e:

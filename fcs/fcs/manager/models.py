@@ -77,40 +77,21 @@ class QuotaException(Exception):
     pass
 
 
-class CrawlingType(models.Model):
-    """
-    Enumeration for crawling policies.
-    """
-    TEXT = 0
-    PICTURES = 1
-    LINKS = 2
-    CRAWLING_TYPES_CHOICES = (
-        (0, 'TEXT'),
-        (1, 'PICTURES'),
-        (2, 'LINKS')
-    )
-    type = models.IntegerField(max_length=1, choices=CRAWLING_TYPES_CHOICES)
-
-    def __unicode__(self):
-        return self.get_type_display()
-
-
 class TaskManager(models.Manager):
     """
     Accessed by 'Task.objects'. Manages creation of Task instance.
     """
 
     @staticmethod
-    def create_task(user, name, priority, expire, types, whitelist, blacklist='', max_links=1000):
+    def create_task(user, name, priority, expire, start_links, whitelist='', blacklist='', max_links=1000, mime_type='text/html'):
         """Return new task.
 
         Raises QuotaException when user quota is exceeded.
         """
         task = Task(user=user, name=name, whitelist=whitelist, blacklist=blacklist, max_links=max_links,
-                    expire_date=expire, priority=priority)
+                    expire_date=expire, priority=priority, mime_type=mime_type, start_links=start_links)
         task.clean()
         task.save()
-        task.type.add(*list(types))
         return task
 
 
@@ -183,11 +164,12 @@ class Task(models.Model):
     user = models.ForeignKey(User, null=False)
     name = models.CharField(max_length=100, null=False)
     priority = models.IntegerField(default=1, null=False)
-    whitelist = models.CharField(max_length=250, null=False)
+    start_links = models.TextField(max_length=1000, null=False)
+    whitelist = models.CharField(max_length=250, null=False, blank=True)
     blacklist = models.CharField(max_length=250, null=False, blank=True)
     max_links = models.IntegerField(default=1000, null=False)
     expire_date = models.DateTimeField(null=False)
-    type = models.ManyToManyField(CrawlingType)
+    mime_type = models.CharField(max_length=250, null=False, default='text/html')
     active = models.BooleanField(default=True)
     finished = models.BooleanField(default=False)
     created = models.DateTimeField(default=timezone.now, null=False)
@@ -200,6 +182,8 @@ class Task(models.Model):
     def clean(self):
         if self.finished:
             self.active = False
+        if not self.mime_type:
+            self.mime_type = 'text/html'
         if self.priority <= 0:
             raise ValidationError('Priority must be positive')
         if self.max_links <= 0:
@@ -219,6 +203,9 @@ class Task(models.Model):
         links = self.user.task_set.filter(finished=False).exclude(pk=self.pk).aggregate(Sum('max_links'))['max_links__sum']
         if self.user.quota.link_pool < (links + self.max_links if links else self.max_links):
             raise QuotaException("User link pool exceeded! Limit: " + str(self.user.quota.link_pool))
+
+        if [False for link in str(self.start_links).split() if not (link.startswith('http://') or link.startswith('https://'))]:
+            raise ValidationError('Invalid protocol in start links! Only http and https are valid.')
 
     def change_priority(self, priority):
         """
