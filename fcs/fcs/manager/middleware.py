@@ -15,7 +15,7 @@ class AutoLogout:
                     > timedelta(minutes=settings.AUTO_LOGOUT_DELAY):
                 auth.logout(request)
                 del request.session['last_activity']
-            return
+                return
         except KeyError:
             pass
         request.session['last_activity'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')

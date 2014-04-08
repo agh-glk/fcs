@@ -6,7 +6,8 @@
             "name",
             "priority",
             "expire",
-            "types",
+            "mime_type",
+            "start_links",
             "whitelist",
             "blacklist",
             "max_links"
@@ -24,16 +25,17 @@
                "type":"dateTime",
                "description":"Datetime of task expiration"
             },
-            "types":{
-               "type":"array",
-               "items":{
-                  "type":"integer"
-               },
-               "description":"List of numbers indicating CrawlingType"
+            "mime_type":{
+               "type":"string",
+               "description":"List of MIME types separated by whitespace"
+            },
+            "start_links":{
+               "type":"string",
+               "description":"List of urls separated by whitespace - starting point of crawling"
             },
             "whitelist":{
                "type":"string",
-               "description":"Urls which should be crawled first, crawling start point"
+               "description":"Urls (regexp) which should be crawled"
             },
             "blacklist":{
                "type":"string",

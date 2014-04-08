@@ -31,9 +31,6 @@ class TaskTable(ColoredRowsTable):
     def __init__(self, *args, **kwargs):
         super(TaskTable, self).__init__(*args, **kwargs)
 
-    def render_type(self, value):
-        return ', '.join(map(lambda x: str(x), value.all()))
-
     def render_expire_date(self, value):
         return value.strftime("%Y-%m-%d %H:%M")
 
@@ -44,6 +41,6 @@ class TaskTable(ColoredRowsTable):
         model = Task
         attrs = {"class": "table"}
         order_by = "created"
-        fields = ('id', 'name', 'priority', 'whitelist', 'blacklist', 'max_links', 'type', 'created',
+        fields = ('id', 'name', 'priority', 'whitelist', 'blacklist', 'max_links', 'mime_type', 'created',
                   'expire_date', 'active', 'finished')
 

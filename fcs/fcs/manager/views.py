@@ -7,7 +7,7 @@ import requests
 from rest_framework_swagger import SWAGGER_SETTINGS
 
 import forms
-from models import Task, CrawlingType
+from models import Task
 from oauth2_provider.models import Application
 from tables import TaskTable
 from django_tables2 import RequestConfig
@@ -41,11 +41,11 @@ def add_task(request):
     if request.method == 'POST':
         form = forms.CreateTaskForm(data=request.POST, user=request.user)
         if form.is_valid():
-            name, priority, whitelist, blacklist, max_links, expire, types = \
+            name, priority, whitelist, blacklist, max_links, expire, mime_type, start_links = \
                 [form.cleaned_data[x] for x in ['name', 'priority', 'whitelist', 'blacklist',
-                                                'max_links', 'expire', 'type']]
-            _crawling_types = CrawlingType.objects.filter(type__in=map(lambda x: int(x), types))
-            Task.objects.create_task(request.user, name, priority, expire, _crawling_types, whitelist, blacklist, max_links)
+                                                'max_links', 'expire', 'mime_type', 'start_links']]
+
+            Task.objects.create_task(request.user, name, priority, expire, start_links, whitelist, blacklist, max_links, mime_type)
             messages.success(request, 'New task created.')
             return redirect('list_tasks')
     else:

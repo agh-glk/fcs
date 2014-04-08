@@ -35,14 +35,16 @@ class TestViews:
     def test_add_task_post_failed(self, client):
         assert self.user.task_set.count() == 0
         resp = self.client.post(reverse('add_task'), {'name': 'Task1', 'priority': '20', 'whitelist': 'onet',
-                                'blacklist': 'wp', 'max_links': '100', 'expire': timezone.now(), 'type': ['0']},
+                                'blacklist': 'wp', 'max_links': '100', 'expire': timezone.now(), 
+                                'mime_type': 'text/html', 'start_links': 'http://onet.pl'},
                                 follow=True)
         assert self.user.task_set.count() == 0, resp
 
     def test_add_task_post_success(self, client):
         assert self.user.task_set.count() == 0
         resp = self.client.post(reverse('add_task'), {'name': 'Task1', 'priority': '10', 'whitelist': 'onet',
-                                'blacklist': 'wp', 'max_links': '100', 'expire': timezone.datetime.now(), 'type': ['0']},
+                                'blacklist': 'wp', 'max_links': '100', 'expire': timezone.datetime.now(), 
+                                'mime_type': 'text/html', 'start_links': 'http://onet.pl'},
                                 follow=True)
         assert self.user.task_set.count() == 1, resp
         assert 'New task created.' in self.messages(resp)
@@ -52,18 +54,19 @@ class TestViews:
         assert resp.status_code == 404
 
     def test_show_task_get_success(self, client):
-        task = Task.objects.create_task(self.user, 'task', 10, timezone.now(), [], 'onet.pl', max_links=400)
+        task = Task.objects.create_task(self.user, 'task', 10, timezone.now(), 'http://onet.pl', max_links=400)
 
         resp = self.client.get(reverse('show_task', kwargs={'task_id': task.id}), follow=True)
         assert resp.status_code == 200
 
     def test_show_task_post_success(self, client):
-        task = Task.objects.create_task(self.user, 'task', 10, timezone.now(), [], 'onet.pl', max_links=400)
+        task = Task.objects.create_task(self.user, 'task', 10, timezone.now(), 'http://onet.pl', max_links=400)
         assert Task.objects.filter(id=task.id).first().priority == 10
 
         resp = self.client.post(reverse('show_task', kwargs={'task_id': task.id}),
                                 {'priority': '5', 'whitelist': 'onet', 'blacklist': 'wp',
-                                'max_links': '10', 'expire_date': timezone.datetime.now()}, follow=True)
+                                'max_links': '10', 'expire_date': timezone.datetime.now(),
+                                'mime_type': 'text/html', 'start_links': 'http://onet.pl'}, follow=True)
         assert Task.objects.filter(id=task.id).first().priority == 5, resp
         assert 'Task %s updated.' % task.name in self.messages(resp)
 
@@ -74,7 +77,7 @@ class TestViews:
 
     def test_pause_task_success(self, client):
         task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
-                                        [], 'onet.pl', max_links=400)
+                                        'http://onet.pl', max_links=400)
         assert Task.objects.get(id=task.id).active
 
         resp = self.client.get(reverse('pause_task', kwargs={'task_id': task.id}), follow=True)
@@ -87,7 +90,7 @@ class TestViews:
 
     def test_pause_task_failed_already_paused(self, client):
         task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
-                                        [], 'onet.pl', max_links=400)
+                                        'http://onet.pl', max_links=400)
         task.pause()
         assert not Task.objects.get(id=task.id).active
 
@@ -97,7 +100,7 @@ class TestViews:
 
     def test_pause_task_failed_finished(self, client):
         task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
-                                        [], 'onet.pl', max_links=400)
+                                        'http://onet.pl', max_links=400)
         task.stop()
 
         resp = self.client.get(reverse('pause_task', kwargs={'task_id': task.id}), follow=True)
@@ -106,7 +109,7 @@ class TestViews:
 
     def test_resume_task_success(self, client):
         task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
-                                        [], 'onet.pl', max_links=400)
+                                        'http://onet.pl', max_links=400)
         task.pause()
         assert not Task.objects.get(id=task.id).active
 
@@ -120,7 +123,7 @@ class TestViews:
 
     def test_resume_task_failed_already_running(self, client):
         task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
-                                        [], 'onet.pl', max_links=400)
+                                        'http://onet.pl', max_links=400)
         assert Task.objects.get(id=task.id).active
 
         resp = self.client.get(reverse('resume_task', kwargs={'task_id': task.id}), follow=True)
@@ -129,7 +132,7 @@ class TestViews:
 
     def test_resume_task_failed_finished(self, client):
         task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
-                                        [], 'onet.pl', max_links=400)
+                                        'http://onet.pl', max_links=400)
         task.stop()
         assert not Task.objects.get(id=task.id).active
         assert Task.objects.get(id=task.id).finished
@@ -140,7 +143,7 @@ class TestViews:
 
     def test_stop_task_success(self, client):
         task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
-                                        [], 'onet.pl', max_links=400)
+                                        'http://onet.pl', max_links=400)
         assert not Task.objects.get(id=task.id).finished
 
         resp = self.client.get(reverse('stop_task', kwargs={'task_id': task.id}), follow=True)
@@ -153,7 +156,7 @@ class TestViews:
 
     def test_stop_task_failed_already_finished(self, client):
         task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
-                                        [], 'onet.pl', max_links=400)
+                                        'http://onet.pl', max_links=400)
         task.stop()
         assert Task.objects.get(id=task.id).finished
 
@@ -163,7 +166,7 @@ class TestViews:
 
     def test_get_data(self, client):
         task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
-                                        [], 'onet.pl', max_links=400)
+                                        'http://onet.pl', max_links=400)
 
         resp = self.client.get(reverse('get_data', kwargs={'task_id': task.id}), follow=True)
         assert resp.status_code == 200

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import User, Quota, Task, CrawlingType
+from models import User, Quota, Task
 
 
 class QuotaInline(admin.StackedInline):
@@ -20,4 +20,3 @@ class TaskAdmin(admin.ModelAdmin):
 admin.site.register(User, UserAdmin)
 admin.site.register(Quota)
 admin.site.register(Task, TaskAdmin)
-admin.site.register(CrawlingType)
