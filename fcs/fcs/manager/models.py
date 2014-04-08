@@ -300,8 +300,9 @@ activation_complete.connect(create_api_keys)
 def send_update_to_task_server(sender, **kwargs):
     task = kwargs['instance']
     if task.server:
-        data = {'finished': task.finished, 'active': task.active, 'priority': task.priority, 'max_links': task.max_links,
-                'whitelist': task.whitelist, 'blacklist': task.blacklist, 'expire_date': str(task.expire_date)}
+        data = {'finished': task.finished, 'active': task.active, 'priority': task.priority,
+                'max_links': task.max_links, 'whitelist': task.whitelist.split(), 'blacklist': task.blacklist.split(),
+                'expire_date': str(task.expire_date), 'mime_type': task.mime_type.split()}
         requests.post(task.server.address + '/update', json.dumps(data))
 
 

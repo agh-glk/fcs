@@ -25,10 +25,10 @@ class put_links:
             _id = _data['id']
             _links = _data['links']
             _server_address = _data['server_address']
-            _crawling_policy = _data['crawling_type']
+            _mime_type = _data['crawling_type']
         except KeyError:
             raise Exception("Invalid request body!")
-        crawler.put_into_link_queue([_id, _server_address, _crawling_policy, _links])
+        crawler.put_into_link_queue([_id, _server_address, _mime_type, _links])
         event.set()
         return str(_links) + " crawling in progress."
 

@@ -1,17 +1,16 @@
 from Queue import Queue
 from mechanize import Browser
 import string
-from redis.exceptions import ConnectionError
 from requests.exceptions import ConnectionError
 from rest_framework import status
 from content_parser import ParserProvider
 import logging
 import requests
 import json
-import sys
 
 from threading import Lock
 from thread_with_exc import ThreadWithExc
+from mime_content_type import MimeContentType
 
 
 class CrawlerState:
@@ -70,12 +69,14 @@ class Crawler(ThreadWithExc):
             raise Exception("'Content-type' unknown")
         return result
 
-    def _process_one_link(self, link, crawling_policy):
+    def _process_one_link(self, link, mime_types):
         _response = self.browser.open_novisit(link)
         _header_data = self._analyse_header(_response)
         _content_type = _header_data[self.__class__.CONTENT_TYPE]
+        if not MimeContentType(_content_type).one_of(mime_types):
+            raise Exception("Page skipped because does not meet MIME content type criteria.")
         _parser = ParserProvider.get_parser(_content_type)
-        _data = _parser.parse(_response.read(), policy=crawling_policy, url=link)
+        _data = _parser.parse(_response.read(), url=link)
         _results = dict()
         _results["url"] = link
         _results["content"], _results["links"] = (_data[0], _data[1])
@@ -85,11 +86,12 @@ class Crawler(ThreadWithExc):
         while not self.link_package_queue.empty() and not self._get_exit_flag():
 
             _final_results = []
-            (_id, _server_address, _crawling_policy, _links) = self.link_package_queue.get()
+            (_id, _server_address, _mime_types, _links) = self.link_package_queue.get()
+            _mime_types = [MimeContentType(x) for x in _mime_types]
             for _link in _links:
                 self.logger.info("Processing url %s started..." % _link)
                 try:
-                    _results = self._process_one_link(_link, _crawling_policy)
+                    _results = self._process_one_link(_link, _mime_types)
                 except Exception as e:
                     self.logger.error("Exception in %s : %s" % (_link, e.message))
                     _results = {"url": _link, "links": [], "content": ""}
