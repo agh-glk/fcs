@@ -22,11 +22,11 @@ def register_task_server(request):
         server.save()
         task.server = server
         task.save()
-        return Response({'whitelist': task.whitelist, 'blacklist': task.blacklist, 'priority': task.priority,
-                            'max_links': task.max_links, 'crawling_type': 0, 'active': task.active,
-                            'finished': task.finished, 'query': '', "expire_date": str(task.expire_date),
-                            'uuid': server.uuid})
-                            # TODO: remove query, change crawling type values
+        return Response({'whitelist': task.whitelist.split(), 'blacklist': task.blacklist.split(),
+                         'priority': task.priority, 'max_links': task.max_links, 'active': task.active,
+                            'finished': task.finished, "expire_date": str(task.expire_date),
+                            'uuid': server.uuid, 'mime_type': task.mime_type.split(),
+                            'start_links': task.start_links.split()})
     except Task.DoesNotExist:
         return Response('Task not found', status=status.HTTP_404_NOT_FOUND)
 

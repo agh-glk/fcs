@@ -29,3 +29,9 @@ class MimeContentType(object):
             return True
         return False
 
+    def one_of(self, mime_types):
+        for mime_type in mime_types:
+            if mime_type.contains(self):
+                return True
+        return False
+

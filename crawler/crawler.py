@@ -52,7 +52,7 @@ class Crawler(ThreadWithExc):
     def put_into_link_queue(self, link_package):
         self.link_package_queue.put(link_package)
 
-    def _analyse_header(self, response, mime_type): #TODO
+    def _analyse_header(self, response):
         _header = response.info()
         _header_dict = dict(zip(map(string.lower, _header.keys()), _header.values()))
         result = {}
@@ -69,11 +69,11 @@ class Crawler(ThreadWithExc):
             raise Exception("'Content-type' unknown")
         return result
 
-    def _process_one_link(self, link, mime_type):
+    def _process_one_link(self, link, mime_types):
         _response = self.browser.open_novisit(link)
-        _header_data = self._analyse_header(_response, mime_type)
+        _header_data = self._analyse_header(_response)
         _content_type = _header_data[self.__class__.CONTENT_TYPE]
-        if not MimeContentType(mime_type).contains(MimeContentType(_content_type)):
+        if not MimeContentType(_content_type).one_of(mime_types):
             raise Exception("Page skipped because does not meet MIME content type criteria.")
         _parser = ParserProvider.get_parser(_content_type)
         _data = _parser.parse(_response.read(), url=link)
@@ -86,11 +86,12 @@ class Crawler(ThreadWithExc):
         while not self.link_package_queue.empty() and not self._get_exit_flag():
 
             _final_results = []
-            (_id, _server_address, _crawling_policy, _links) = self.link_package_queue.get()
+            (_id, _server_address, _mime_types, _links) = self.link_package_queue.get()
+            _mime_types = [MimeContentType(x) for x in _mime_types]
             for _link in _links:
                 self.logger.info("Processing url %s started..." % _link)
                 try:
-                    _results = self._process_one_link(_link, _crawling_policy)
+                    _results = self._process_one_link(_link, _mime_types)
                 except Exception as e:
                     self.logger.error("Exception in %s : %s" % (_link, e.message))
                     _results = {"url": _link, "links": [], "content": ""}
