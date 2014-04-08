@@ -1,6 +1,5 @@
 import django_tables2 as tables
 from models import Task
-import itertools
 from django_tables2.utils import A
 import django_tables2.rows
 
@@ -37,10 +36,26 @@ class TaskTable(ColoredRowsTable):
     def render_created(self, value):
         return value.strftime("%Y-%m-%d %H:%M")
 
+    def render_whitelist(self, value):
+        return self.parse_value(value, 20, 2)
+
+    def render_blacklist(self, value):
+        return self.parse_value(value, 20, 2)
+
+    def render_start_links(self, value):
+        return self.parse_value(value, 20, 2)
+
+    def render_mime_type(self, value):
+        return self.parse_value(value, 20, 2)
+
+    def parse_value(self, value, max_len, max_lines):
+        lines = [val if len(val) <= max_len else val[:max_len] + '...' for val in value.split()]
+        return '\n'.join(lines if len(lines) <= max_lines else lines[:max_lines] + ['...'])
+
     class Meta:
         model = Task
         attrs = {"class": "table"}
         order_by = "created"
-        fields = ('id', 'name', 'priority', 'whitelist', 'blacklist', 'max_links', 'mime_type', 'created',
+        fields = ('id', 'name', 'priority', 'start_links', 'whitelist', 'blacklist', 'max_links', 'mime_type', 'created',
                   'expire_date', 'active', 'finished')
 

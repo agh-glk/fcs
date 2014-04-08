@@ -184,6 +184,11 @@ class Task(models.Model):
             self.active = False
         if not self.mime_type:
             self.mime_type = 'text/html'
+        self.start_links = ' '.join(self.start_links.split())
+        self.whitelist = ' '.join(self.whitelist.split())
+        self.blacklist = ' '.join(self.blacklist.split())
+        self.mime_type = ' '.join(self.mime_type.split())
+
         if self.priority <= 0:
             raise ValidationError('Priority must be positive')
         if self.max_links <= 0:
