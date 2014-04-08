@@ -47,9 +47,10 @@ class TaskServer(threading.Thread):
         self.max_links = 0
         self.priority = 0
         self.expire_date = None
-        self.crawling_type = 0
-        self.query = ''
+        self.mime_type = []
         self.uuid = ''
+        self.whitelist = []
+        self.blacklist = []
 
         self.package_cache = {}
         self.package_id = 0
@@ -88,10 +89,8 @@ class TaskServer(threading.Thread):
         try:
             data = r.json()
             self.update(data)
-
+            self.add_links(data['start_links'], self.link_db.DEFAULT_PRIORITY, 0)
             self.data_lock.acquire()
-            self.crawling_type = int(data['crawling_type'])
-            self.query = data['query']
             self.uuid = data['uuid']
             self.data_lock.release()
         except (KeyError, ValueError) as e:
@@ -109,11 +108,13 @@ class TaskServer(threading.Thread):
             self.stop()
             return
 
-        self.add_links(data['whitelist'].split(','), BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, 0)  # TODO: parse whitelist?
-        # TODO: move this method to task server
-        #self.link_db.update_blacklist(data['blacklist'])
-
         self.data_lock.acquire()
+        self.whitelist = data['whitelist']
+        # TODO: parse whitelist!
+        self.blacklist = data['blacklist']
+        # TODO: parse blacklist!
+        self.mime_type = data['mime_type']
+        # TODO: parse mime_type!
         self.priority = int(data['priority'])
         self.max_links = int(data['max_links'])
         self.expire_date = datetime.strptime(data['expire_date'], DATE_FORMAT)
@@ -203,9 +204,9 @@ class TaskServer(threading.Thread):
         _links = [link for link in _links if link]
         if _links:
             address = self.get_address()
-            crawl_type = self.crawling_type
+            crawling_type = self.mime_type
             package_id = self.package_id
-            package = {'server_address': address, 'crawling_type': crawl_type, 'id': package_id, 'links': _links}
+            package = {'server_address': address, 'crawling_type': crawling_type, 'id': package_id, 'links': _links}
             self.cache(package_id, crawler, _links)
             self.package_id += 1
             return package
