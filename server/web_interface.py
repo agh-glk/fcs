@@ -37,6 +37,7 @@ class add:
 
 class put_data:
     def POST(self):
+        # TODO: return some error if package has timed out so crawler will know that new packages were sent
         data = json.loads(web.data())
         package_id = data['id']
         package_data = data['data']

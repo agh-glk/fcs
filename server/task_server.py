@@ -1,4 +1,5 @@
 import json
+import re
 import threading
 import time
 import requests
@@ -14,8 +15,8 @@ sys.path.append('../')
 from common.content_coder import Base64ContentCoder
 
 
-URL_PACKAGE_SIZE = 10
-URL_PACKAGE_TIMEOUT = 15
+URL_PACKAGE_SIZE = 8
+URL_PACKAGE_TIMEOUT = 30
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 WAIT_FOR_DOWNLOAD_TIME = 25    # in seconds
 DATA_PACKAGE_SIZE = 5
@@ -252,16 +253,32 @@ class TaskServer(threading.Thread):
         #self.link_db.change_link_priority(regex, rate)
         pass
 
+    def evaluate_link(self, link):
+        try:
+            # TODO: use urlparse
+            domain = link.split('://')[1].split('/')[0]
+        except IndexError:
+            print 'Bad link format: ', link
+            return False
+        for regex in self.blacklist:
+            if re.match(regex, domain):
+                return False
+        for regex in self.whitelist:
+            if re.match(regex, domain):
+                return True
+        return False
+
     def add_links(self, links, priority, depth, domain=None):
         _counter = 0
         for link in links:
             _link = URLProcessor.process(link, domain=domain)
-            if not self.link_db.is_in_base(_link):
+            if self.evaluate_link(_link) and not self.link_db.is_in_base(_link):
                 print "Added:%s" % _link
                 self.link_db.add_link(_link, priority, depth)
                 _counter += 1
         print "%d new links added into DB." % _counter
 
+    # TODO: it looks... baaad; readded links shouldn't have best priority
     def readd_links(self, links):
         for link in links:
             self.link_db.change_link_priority(link, BerkeleyBTreeLinkDB.BEST_PRIORITY)

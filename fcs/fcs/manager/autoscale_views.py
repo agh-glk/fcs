@@ -22,7 +22,7 @@ def register_task_server(request):
         server.save()
         task.server = server
         task.save()
-        return Response({'whitelist': task.whitelist.split(), 'blacklist': task.blacklist.split(),
+        return Response({'whitelist': task.get_parsed_whitelist(), 'blacklist': task.get_parsed_blacklist(),
                          'priority': task.priority, 'max_links': task.max_links, 'active': task.active,
                             'finished': task.finished, "expire_date": str(task.expire_date),
                             'uuid': server.uuid, 'mime_type': task.mime_type.split(),

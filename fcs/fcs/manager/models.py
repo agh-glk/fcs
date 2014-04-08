@@ -83,7 +83,7 @@ class TaskManager(models.Manager):
     """
 
     @staticmethod
-    def create_task(user, name, priority, expire, start_links, whitelist='', blacklist='', max_links=1000, mime_type='text/html'):
+    def create_task(user, name, priority, expire, start_links, whitelist='*', blacklist='', max_links=1000, mime_type='text/html'):
         """Return new task.
 
         Raises QuotaException when user quota is exceeded.
@@ -184,6 +184,8 @@ class Task(models.Model):
             self.active = False
         if not self.mime_type:
             self.mime_type = 'text/html'
+        if not self.whitelist:
+            self.whitelist = '*'
         self.start_links = ' '.join(self.start_links.split())
         self.whitelist = ' '.join(self.whitelist.split())
         self.blacklist = ' '.join(self.blacklist.split())
@@ -311,7 +313,8 @@ def send_update_to_task_server(sender, **kwargs):
     task = kwargs['instance']
     if task.server:
         data = {'finished': task.finished, 'active': task.active, 'priority': task.priority,
-                'max_links': task.max_links, 'whitelist': task.whitelist.split(), 'blacklist': task.blacklist.split(),
+                'max_links': task.max_links, 'whitelist': task.get_parsed_whitelist(),
+                'blacklist': task.get_parsed_blacklist(),
                 'expire_date': str(task.expire_date), 'mime_type': task.mime_type.split()}
         requests.post(task.server.address + '/update', json.dumps(data))
 
