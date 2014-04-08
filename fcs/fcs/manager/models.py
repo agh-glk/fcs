@@ -212,6 +212,16 @@ class Task(models.Model):
         if [False for link in str(self.start_links).split() if not (link.startswith('http://') or link.startswith('https://'))]:
             raise ValidationError('Invalid protocol in start links! Only http and https are valid.')
 
+    def get_parsed_whitelist(self):
+        user_regexes = self.whitelist.split()
+        python_regexes = ['^' + regex.replace('.', '\.').replace('*', '.*') + '$' for regex in user_regexes]
+        return python_regexes
+
+    def get_parsed_blacklist(self):
+        user_regexes = self.blacklist.split()
+        python_regexes = ['^' + regex.replace('.', '\.').replace('*', '.*') + '$' for regex in user_regexes]
+        return python_regexes
+
     def change_priority(self, priority):
         """
         Sets task priority.
@@ -301,7 +311,8 @@ def send_update_to_task_server(sender, **kwargs):
     task = kwargs['instance']
     if task.server:
         data = {'finished': task.finished, 'active': task.active, 'priority': task.priority, 'max_links': task.max_links,
-                'whitelist': task.whitelist, 'blacklist': task.blacklist, 'expire_date': str(task.expire_date)}
+                'whitelist': task.get_parsed_whitelist(), 'blacklist': task.get_parsed_blacklist(),
+                'expire_date': str(task.expire_date)}
         requests.post(task.server.address + '/update', json.dumps(data))
 
 
