@@ -6,7 +6,7 @@ from requests.exceptions import ConnectionError
 from rest_framework import status
 from linkdb import BerkeleyBTreeLinkDB
 from key_policy_module import SimpleKeyPolicyModule
-from contentdb import ContentDB
+from contentdb import BerkeleyContentDB, ContentDB
 from django.utils.timezone import datetime
 import sys
 from url_processor import URLProcessor
@@ -40,7 +40,7 @@ class TaskServer(threading.Thread):
         self.web_server = web_server
         self.manager_address = manager_address
         self.link_db = BerkeleyBTreeLinkDB('link_db', SimpleKeyPolicyModule)
-        self.content_db = ContentDB()
+        self.content_db = BerkeleyContentDB('content_db')
 
         self.crawlers = []
         self.task_id = task_id
@@ -244,9 +244,6 @@ class TaskServer(threading.Thread):
         print r
         # TODO: handle errors if occur
 
-    def contents(self):
-        return self.content_db.content()
-
     def feedback(self, regex, rate):
         # TODO: change this method to feedback regex (which will be created soon)
         #self.link_db.change_link_priority(regex, rate)
@@ -273,7 +270,7 @@ class TaskServer(threading.Thread):
         if package_id in self.package_cache:
             self.clear_cache(package_id)
             for entry in data:
-                self.content_db.add_content(entry['url'], entry['links'], self._decode_content(entry['content']))
+                self.content_db.add_content(entry['url'], entry['links'], entry['content'])
                 print entry['url']
                 self.add_links(entry['links'], BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, 0, domain=entry['url'])
 
