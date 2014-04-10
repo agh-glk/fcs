@@ -149,6 +149,12 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
         _key = self.policy_module.generate_key(link, priority)
         self.priority_queue[_key] = link
 
+    def readd_link(self, link):
+        if link in self.found_links:
+            priority = int(self.found_links[link].split(';')[0])
+            depth = int(self.found_links[link].split(';')[2])
+            self.add_link(link, priority, depth)
+
     def get_link(self):
         try:
             _link = self.priority_queue.first()

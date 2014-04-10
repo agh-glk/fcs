@@ -2,6 +2,7 @@ import json
 import re
 import threading
 import time
+from urlparse import urlparse
 import requests
 from requests.exceptions import ConnectionError
 from rest_framework import status
@@ -111,11 +112,8 @@ class TaskServer(threading.Thread):
 
         self.data_lock.acquire()
         self.whitelist = data['whitelist']
-        # TODO: parse whitelist!
         self.blacklist = data['blacklist']
-        # TODO: parse blacklist!
         self.mime_type = data['mime_type']
-        # TODO: parse mime_type!
         self.priority = int(data['priority'])
         self.max_links = int(data['max_links'])
         self.expire_date = datetime.strptime(data['expire_date'], DATE_FORMAT)
@@ -146,6 +144,7 @@ class TaskServer(threading.Thread):
         self._register_to_management()
         try:
             while self._get_status() not in [Status.STOPPING, Status.KILLED]:
+                # TODO: stop crawling when no links in linkdb
                 if self._get_status() == Status.RUNNING:
                     for crawler in self.get_idle_crawlers():
                         package = self.get_links_package(crawler)
@@ -166,6 +165,7 @@ class TaskServer(threading.Thread):
         finally:
             self._unregister_from_management()
             self.web_server.stop()
+            self._clear()
             print "TaskServer stopped"
 
     def get_idle_crawlers(self):
@@ -254,12 +254,11 @@ class TaskServer(threading.Thread):
         pass
 
     def evaluate_link(self, link):
-        try:
-            # TODO: use urlparse
-            domain = link.split('://')[1].split('/')[0]
-        except IndexError:
+        domain = urlparse(link).netloc
+        if not domain:
             print 'Bad link format: ', link
             return False
+
         for regex in self.blacklist:
             if re.match(regex, domain):
                 return False
@@ -278,10 +277,10 @@ class TaskServer(threading.Thread):
                 _counter += 1
         print "%d new links added into DB." % _counter
 
-    # TODO: it looks... baaad; readded links shouldn't have best priority
     def readd_links(self, links):
         for link in links:
-            self.link_db.change_link_priority(link, BerkeleyBTreeLinkDB.BEST_PRIORITY)
+            # adds link only when it was earlier in linkdb
+            self.link_db.readd_link(link)
 
     def _decode_content(self, content):
         return Base64ContentCoder.decode(content)
@@ -292,6 +291,7 @@ class TaskServer(threading.Thread):
             for entry in data:
                 self.content_db.add_content(entry['url'], entry['links'], self._decode_content(entry['content']))
                 print entry['url']
+                # TODO: put correct depth and priority value (based on previous url)
                 self.add_links(entry['links'], BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, 0, domain=entry['url'])
 
     def _clear(self):
