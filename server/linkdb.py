@@ -144,6 +144,9 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
     def is_in_base(self, link):
         return str(link) in self.found_links
 
+    def size(self):
+        return len(self.priority_queue)
+
     def add_link(self, link, priority, depth, fetch_time=""):
         self.found_links[str(link)] = ";".join([str(priority), fetch_time, str(depth)])
         _key = self.policy_module.generate_key(link, priority)

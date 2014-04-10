@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 import threading
 import time
@@ -60,11 +61,19 @@ class TaskServer(threading.Thread):
 
         self.status = Status.INIT
 
+        self.logger = logging.getLogger('server')
+        _file_handler = logging.FileHandler('server%s.log' % task_id)
+        _formatter = logging.Formatter('<%(asctime)s>:%(levelname)s: %(message)s')
+        _file_handler.setFormatter(_formatter)
+        self.logger.addHandler(_file_handler)
+        self.logger.setLevel(logging.DEBUG)
+
     def assign_crawlers(self, addresses):
         # TODO: validate addresses
         self.data_lock.acquire()
         self.crawlers = addresses
         self.data_lock.release()
+        self.logger.debug('%d crawlers assigned' % len(addresses))
 
     def get_address(self):
         return 'http://' + self.web_server.get_host()
@@ -73,6 +82,7 @@ class TaskServer(threading.Thread):
         self.status_lock.acquire()
         self.status = status
         self.status_lock.release()
+        self.logger.debug('Changed status to: %d' % status)
 
     def _get_status(self):
         self.status_lock.acquire()
@@ -83,6 +93,7 @@ class TaskServer(threading.Thread):
     def _register_to_management(self):
         r = requests.post(self.manager_address + '/autoscale/server/register/',
                                 data={'task_id': self.task_id, 'address': self.get_address()})
+        self.logger.debug('Registering to management. Return code: %d' % r.status_code)
         if r.status_code in [status.HTTP_412_PRECONDITION_FAILED, status.HTTP_404_NOT_FOUND]:
             self.stop()
             return
@@ -95,15 +106,18 @@ class TaskServer(threading.Thread):
             self.data_lock.acquire()
             self.uuid = data['uuid']
             self.data_lock.release()
+            self.logger.debug('Registered to management')
         except (KeyError, ValueError) as e:
-            print e
+            self.logger.debug('Error while registering: %s' % str(e))
             self.stop()
 
     def _unregister_from_management(self):
-        requests.post(self.manager_address + '/autoscale/server/unregister/',
+        r = requests.post(self.manager_address + '/autoscale/server/unregister/',
                           data={'task_id': self.task_id, 'uuid': self.uuid})
+        self.logger.debug('Unregistering from management. Return code: %d' % r.status_code)
 
     def update(self, data):
+        self.logger.debug('Updating task server')
         if self._get_status() in [Status.STOPPING, Status.STARTING]:
             return
         if data['finished']:
@@ -150,10 +164,10 @@ class TaskServer(threading.Thread):
                         package = self.get_links_package(crawler)
                         if package:
                             try:
-                                requests.post(crawler + '/put_links', json.dumps(package))
-                            except ConnectionError as e:
+                                r = requests.post(crawler + '/put_links', json.dumps(package))
+                                self.logger.debug('Sending links to crawler %s' % crawler)
+                            except ConnectionError:
                                 self.ban_crawler(crawler)
-                                print e
                 self.check_cache()
                 self.check_limits()
                 time.sleep(5)
@@ -164,9 +178,10 @@ class TaskServer(threading.Thread):
                 time.sleep(30)
         finally:
             self._unregister_from_management()
-            self.web_server.stop()
             self._clear()
-            print "TaskServer stopped"
+            self.logger.debug('Stopping web interface')
+            self.web_server.stop()
+            self.logger.debug('Task server stopped')
 
     def get_idle_crawlers(self):
         self.data_lock.acquire()
@@ -182,13 +197,21 @@ class TaskServer(threading.Thread):
         expire_date = self.expire_date
         max_links = self.max_links
         self.data_lock.release()
+        self.cache_lock.acquire()
+        packages_cached = len(self.package_cache)
+        self.cache_lock.release()
         # TODO: change following comparison - size() depends if user downloaded some data
         if (datetime.now() > expire_date) or (self.content_db.size() > max_links):
+            self.logger.debug('Task limits exceeded')
+            self.stop_task()
+        if self.link_db.size() == 0 and packages_cached == 0:
+            self.logger.debug('No links to crawl')
             self.stop_task()
 
     def stop_task(self):
         r = requests.post(self.manager_address + '/autoscale/server/stop_task/',
                           data={'task_id': self.task_id, 'uuid': self.uuid})
+        self.logger.debug('Stopping task. Return code: %d' % r.status_code)
         if r.status_code in [status.HTTP_412_PRECONDITION_FAILED, status.HTTP_404_NOT_FOUND]:
             self.kill()
 
@@ -197,12 +220,14 @@ class TaskServer(threading.Thread):
         self.package_cache[package_id] = (time.time(), links, crawler)
         self.processing_crawlers.append(crawler)
         self.cache_lock.release()
+        self.logger.debug('Cached package %d' % package_id)
 
     def get_links_package(self, crawler):
         _links = []
         for i in range(URL_PACKAGE_SIZE):
             _links.append(self.link_db.get_link())
         _links = [link for link in _links if link]
+        self.logger.debug('Retrieved %d links from linkdb' % len(_links))
         if _links:
             address = self.get_address()
             crawling_type = self.mime_type
@@ -219,6 +244,7 @@ class TaskServer(threading.Thread):
         self.cache_lock.acquire()
         for package_id in self.package_cache.keys():
             if cur_time - self.package_cache[package_id][0] > URL_PACKAGE_TIMEOUT:
+                self.logger.debug('Package %d has timed out. Readding' % package_id)
                 self.readd_links(self.package_cache[package_id][1])
                 self.warn_crawler(self.package_cache[package_id][2])
                 self.clear_cache(package_id)
@@ -229,6 +255,7 @@ class TaskServer(threading.Thread):
         try:
             self.processing_crawlers.remove(self.package_cache[package_id][2])
             del self.package_cache[package_id]
+            self.logger.debug('Removed package %d from cache' % package_id)
         except KeyError:
             pass
         self.cache_lock.release()
@@ -236,14 +263,12 @@ class TaskServer(threading.Thread):
     def warn_crawler(self, crawler):
         r = requests.post(self.manager_address + '/autoscale/server/warn_crawler/',
                           data={'address': crawler})
-        print r
-        # TODO: handle errors if occur
+        self.logger.debug('Warning crawler %s. Return code %d' % (crawler, r.status_code))
 
     def ban_crawler(self, crawler):
         r = requests.post(self.manager_address + '/autoscale/server/ban_crawler/',
                           data={'address': crawler})
-        print r
-        # TODO: handle errors if occur
+        self.logger.debug('Banning crawler %s. Return code %d' % (crawler, r.status_code))
 
     def contents(self):
         return self.content_db.content()
@@ -256,7 +281,7 @@ class TaskServer(threading.Thread):
     def evaluate_link(self, link):
         domain = urlparse(link).netloc
         if not domain:
-            print 'Bad link format: ', link
+            self.logger.debug('Link evaluation failed. Bad link format: %s' % link)
             return False
 
         for regex in self.blacklist:
@@ -269,13 +294,13 @@ class TaskServer(threading.Thread):
 
     def add_links(self, links, priority, depth, domain=None):
         _counter = 0
+        self.logger.debug('Adding %d links' % len(links))
         for link in links:
             _link = URLProcessor.process(link, domain=domain)
             if self.evaluate_link(_link) and not self.link_db.is_in_base(_link):
-                print "Added:%s" % _link
                 self.link_db.add_link(_link, priority, depth)
                 _counter += 1
-        print "%d new links added into DB." % _counter
+        self.logger.debug("Added %d new links into DB." % _counter)
 
     def readd_links(self, links):
         for link in links:
@@ -287,15 +312,18 @@ class TaskServer(threading.Thread):
 
     def put_data(self, package_id, data):
         if package_id in self.package_cache:
+            self.logger.debug('Putting content from package %d' % package_id)
             self.clear_cache(package_id)
             for entry in data:
+                self.logger.debug('Adding content from url %s' % entry['url'])
                 self.content_db.add_content(entry['url'], entry['links'], self._decode_content(entry['content']))
-                print entry['url']
                 # TODO: put correct depth and priority value (based on previous url)
                 self.add_links(entry['links'], BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, 0, domain=entry['url'])
 
     def _clear(self):
+        self.logger.debug('Clearing db files')
         self.link_db.clear()
 
     def get_data(self, size=DATA_PACKAGE_SIZE):
+        self.logger.debug('Downloading content - %d size' % size)
         return self.content_db.get_data_package(size)

@@ -118,7 +118,7 @@ class WebServer(threading.Thread):
 
     def stop(self):
         self.app.stop()
-        sys.exit()
+        #sys.exit()
 
 
 # TODO: sys.argv[2] - task id!
