@@ -58,7 +58,8 @@ class BerkeleyContentDB(object):
         """
         _size = size * 1024 ** 2
         _current_size = 0
-        _file = open('file', 'w')
+        #_file = open('file', 'w')
+        _result = ""
         try:
             while _current_size < _size:
                 try:
@@ -66,12 +67,14 @@ class BerkeleyContentDB(object):
                     del self.content_db[self.get_data_iter]
                     self.get_data_iter += 1
                     _current_size += len(_entry)
-                    _file.write(_entry+'\n')
+                    #_file.write(_entry+'\n')
+                    _result = _result + _entry
                 except KeyError:
-                    raise
-                    return
+                    return _result
+            return _result
         finally:
-            _file.close()
+            pass
+            #_file.close()
 
     def size(self):
         return self.id_iterator - self.get_data_iter
@@ -86,8 +89,9 @@ class BerkeleyContentDB(object):
 if __name__ == '__main__':
     db = BerkeleyContentDB("aa")
     for i in range(100000):
-        db.add_content('http://ala.pl', ['http://onet.pl', 'http://wp.pl'], "AAAAAAAA")
+        db.add_content('http://ala.pl', ['http://onet.pl', 'http://wp.pl'], "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
     print 'F'
-    db.get_data_package(0.5)
+    #db.get_data_package(0.5)
     #db.show()
+    print db.content_db[1]
     db.clear()

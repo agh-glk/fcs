@@ -137,7 +137,7 @@ def get_data(request, task_id):
     size = 5    # TODO: bind this with request data
     if task.server:
         r = requests.post(task.server.address + '/get_data?size=' + str(size))
-        #print r.content
+        print r
         # TODO: should it return zip or json or something else?
         # TODO: should it wait for response from task server? handle errors?
         response = StreamingHttpResponse(r.content)
