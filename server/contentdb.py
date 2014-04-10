@@ -52,14 +52,14 @@ class BerkeleyContentDB(object):
         self.content_db[self.id_iterator] = _json_dict
         self.id_iterator += 1
 
-    def get_data_package(self, size):
+    def get_file_with_data_package(self, size):
         """
         Size in MB.
         """
         _size = size * 1024 ** 2
+        _size = 1024 ** 2
         _current_size = 0
-        #_file = open('file', 'w')
-        _result = ""
+        _file = open('file', 'w')
         try:
             while _current_size < _size:
                 try:
@@ -67,14 +67,13 @@ class BerkeleyContentDB(object):
                     del self.content_db[self.get_data_iter]
                     self.get_data_iter += 1
                     _current_size += len(_entry)
-                    #_file.write(_entry+'\n')
-                    _result = _result + _entry
+                    print _current_size
+                    _file.write(_entry)
                 except KeyError:
-                    return _result
-            return _result
+                    return os.path.abspath(_file.name)
+            return os.path.abspath(_file.name)
         finally:
-            pass
-            #_file.close()
+            _file.close()
 
     def size(self):
         return self.id_iterator - self.get_data_iter
@@ -91,7 +90,7 @@ if __name__ == '__main__':
     for i in range(100000):
         db.add_content('http://ala.pl', ['http://onet.pl', 'http://wp.pl'], "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
     print 'F'
-    #db.get_data_package(0.5)
+    db.get_file_with_data_package(1)
     #db.show()
-    print db.content_db[1]
+    #print db.content_db[1]
     db.clear()

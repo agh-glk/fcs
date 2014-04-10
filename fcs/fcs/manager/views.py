@@ -11,7 +11,7 @@ from models import Task
 from oauth2_provider.models import Application
 from tables import TaskTable
 from django_tables2 import RequestConfig
-from django.http import StreamingHttpResponse
+from django.http import StreamingHttpResponse, HttpResponseRedirect
 from datetime import datetime
 
 
@@ -127,22 +127,15 @@ def stop_task(request, task_id):
 
 
 @login_required()
-def get_data(request, task_id):
+def get_data(request, task_id, size):
     """
     Downloads data gathered by crawler.
     """
     task = get_object_or_404(Task, id=task_id, user=request.user.id)
     task.last_data_download = datetime.now()
     task.save()
-    size = 5    # TODO: bind this with request data
     if task.server:
-        r = requests.post(task.server.address + '/get_data?size=' + str(size))
-        print r
-        # TODO: should it return zip or json or something else?
-        # TODO: should it wait for response from task server? handle errors?
-        response = StreamingHttpResponse(r.content)
-        response['Content-Disposition'] = 'attachment; filename="too.txt"'
-        return response
+        return HttpResponseRedirect(task.server.address + '/get_data?size=' + str(size))
     else:
         return StreamingHttpResponse("No task server to download data from")
 

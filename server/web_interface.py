@@ -4,6 +4,8 @@ import web
 import json
 from task_server import TaskServer
 from common.web_application import WebApplication
+import os
+
 
 server = None
 
@@ -66,10 +68,23 @@ class stop:
 
 
 class get_data:
-    def POST(self):
-        #size = web.input(size='0.5').size
-        data = server.get_data(0.5)
-        return data
+    def GET(self):
+        size = web.input(size='0.5').size
+        _file_path = server.get_data(size)
+        web.header('Content-type', 'text/html')
+        web.header('Transfer-Encoding', 'chunked')
+        web.header('Content-Disposition', 'attachment; filename=test.txt')
+        _crawling_results_file = None
+        try:
+            _crawling_results_file = open(_file_path, 'rb')
+            while True:
+                _data = _crawling_results_file.read(1024)
+                if not _data:
+                    break
+                yield _data
+        finally:
+            _crawling_results_file.close()
+            #os.remove(_crawlin_results_file.name)
 
 
 class alive:

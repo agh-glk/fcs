@@ -277,5 +277,8 @@ class TaskServer(threading.Thread):
     def _clear(self):
         self.link_db.clear()
 
-    def get_data(self, size=DATA_PACKAGE_SIZE):
-        return self.content_db.get_data_package(size)
+    def get_data(self, size):
+        """
+        Returns path to file with crawling results.
+        """
+        return self.content_db.get_file_with_data_package(size)
