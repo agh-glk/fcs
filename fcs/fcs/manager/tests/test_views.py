@@ -168,17 +168,17 @@ class TestViews:
         task = Task.objects.create_task(self.user, 'task', 5, timezone.now(),
                                         'http://onet.pl', max_links=400)
 
-        resp = self.client.get(reverse('get_data', kwargs={'task_id': task.id}), follow=True)
+        resp = self.client.get(reverse('get_data', kwargs={'task_id': task.id, 'size': 1}), follow=True)
         assert resp.status_code == 200
         old_date = Task.objects.get(id=task.id).last_data_download
 
-        resp = self.client.get(reverse('get_data', kwargs={'task_id': task.id}), follow=True)
+        resp = self.client.get(reverse('get_data', kwargs={'task_id': task.id, 'size': 1}), follow=True)
         assert resp.status_code == 200
         new_date = Task.objects.get(id=task.id).last_data_download
         assert new_date > old_date
 
     def test_get_data_failed_incorrect_id(self, client):
-        resp = self.client.get(reverse('get_data', kwargs={'task_id': '500'}), follow=True)
+        resp = self.client.get(reverse('get_data', kwargs={'task_id': '500', 'size': 1}), follow=True)
         assert resp.status_code == 404
 
     def test_edit_user_data_get(self, client):

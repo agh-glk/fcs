@@ -4,6 +4,8 @@ import web
 import json
 from task_server import TaskServer
 from common.web_application import WebApplication
+import os
+
 
 server = None
 
@@ -68,11 +70,23 @@ class stop:
 
 class get_data:
     def GET(self):
-        size = web.input(size='5').size
-        data = server.get_data(int(size))
-        # TODO: handle Unicode Errors
-        print len(data)
-        return json.dumps(data)
+        size = int(web.input().size)
+        _file_path = server.get_data(size)
+        web.header('Content-type', 'text/html')
+        web.header('Transfer-Encoding', 'chunked')
+        _file_name = "task_id_%s_%s.dat" % (server.task_id, os.path.basename(_file_path))
+        web.header('Content-Disposition', 'attachment; filename=%s' % _file_name)
+        _crawling_results_file = None
+        try:
+            _crawling_results_file = open(_file_path, 'rb')
+            while True:
+                _data = _crawling_results_file.read(1024)
+                if not _data:
+                    break
+                yield _data
+        finally:
+            _crawling_results_file.close()
+            os.remove(_crawling_results_file.name)
 
 
 class alive:

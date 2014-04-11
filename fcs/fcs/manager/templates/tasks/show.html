@@ -24,9 +24,11 @@
     {% endif %}
 
     {% if task.server %}
+        <script type="text/javascript" src="{{ STATIC_URL }}js/ask_for_package_size.js"
+                xmlns="http://www.w3.org/1999/html"></script>
         <div class="col-sm-4 col-sm-offset-4">
             <br>
-            <a  type="button" href="{% url 'get_data' task.id %}" class="btn btn-lg btn-primary col-sm-12">
+            <a  type="button" onclick="askForPackageSize('{% url 'get_data' task.id %}')" class="btn btn-lg btn-primary col-sm-12">
                         <span class="glyphicon glyphicon-download-alt"></span>Get data</a>
             <div><br></div>
             {% if not task.finished %}
