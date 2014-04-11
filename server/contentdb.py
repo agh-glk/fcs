@@ -57,7 +57,6 @@ class BerkeleyContentDB(object):
         Size in MB.
         """
         _size = size * 1024 ** 2
-        _size = 1024 ** 2
         _current_size = 0
         _file = open('file', 'w')
         try:

@@ -69,7 +69,7 @@ class stop:
 
 class get_data:
     def GET(self):
-        size = web.input(size='0.5').size
+        size = int(web.input().size)
         _file_path = server.get_data(size)
         web.header('Content-type', 'text/html')
         web.header('Transfer-Encoding', 'chunked')
@@ -84,7 +84,7 @@ class get_data:
                 yield _data
         finally:
             _crawling_results_file.close()
-            #os.remove(_crawlin_results_file.name)
+            os.remove(_crawling_results_file.name)
 
 
 class alive:
