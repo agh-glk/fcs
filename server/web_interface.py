@@ -73,7 +73,8 @@ class get_data:
         _file_path = server.get_data(size)
         web.header('Content-type', 'text/html')
         web.header('Transfer-Encoding', 'chunked')
-        web.header('Content-Disposition', 'attachment; filename=test.txt')
+        _file_name = "task_id_%s_%s.dat" % (server.task_id, os.path.basename(_file_path))
+        web.header('Content-Disposition', 'attachment; filename=%s' % _file_name)
         _crawling_results_file = None
         try:
             _crawling_results_file = open(_file_path, 'rb')

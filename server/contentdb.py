@@ -40,8 +40,9 @@ class BerkeleyContentDB(object):
     def __init__(self, base_name):
         self.content_db_name = base_name + self.__class__.CONTENT_DB + str(uuid.uuid4())
         self.content_db = bsddb.rnopen(self.content_db_name)
-        self.id_iterator = 1
+        self.id_iter = 1
         self.get_data_iter = 1
+        self.parts_iter = 1
 
     def add_content(self, url, links, content):
         _json_dict = json.dumps({'url': url, 'links': links, 'content': None})
@@ -49,8 +50,8 @@ class BerkeleyContentDB(object):
             _json_dict = json.dumps({'url': url, 'links': links, 'content': content})
         except:
             raise
-        self.content_db[self.id_iterator] = _json_dict
-        self.id_iterator += 1
+        self.content_db[self.id_iter] = _json_dict
+        self.id_iter += 1
 
     def get_file_with_data_package(self, size):
         """
@@ -58,7 +59,8 @@ class BerkeleyContentDB(object):
         """
         _size = size * 1024 ** 2
         _current_size = 0
-        _file = open('file', 'w')
+        _file = open('part_%s' % self.parts_iter, 'w')
+        self.parts_iter += 1
         try:
             while _current_size < _size:
                 try:
@@ -75,7 +77,7 @@ class BerkeleyContentDB(object):
             _file.close()
 
     def size(self):
-        return self.id_iterator - self.get_data_iter
+        return self.id_iter - self.get_data_iter
 
     def clear(self):
         self.content_db.close()
