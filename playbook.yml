@@ -34,6 +34,8 @@
         - git
         - vim
         - python-software-properties
+        - libxml2-dev
+        - libxslt1-dev
 
     - name: add apt repositories
       command: apt-add-repository -y ppa:rwky/redis

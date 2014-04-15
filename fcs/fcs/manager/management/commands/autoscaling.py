@@ -26,10 +26,13 @@ CRAWLER_TIMEOUTS_LIMIT = 4
 class Command(BaseCommand):
     def __init__(self):
         BaseCommand.__init__(self)
+        self.address = '0.0.0.0'
         self.server_port = max([int(server.address.split(':')[2]) for server in TaskServer.objects.all()] + [INIT_SERVER_PORT]) + 1
         self.crawler_port = max([int(crawler.address.split(':')[2]) for crawler in Crawler.objects.all()] + [INIT_CRAWLER_PORT]) + 1
 
     def handle(self, *args, **options):
+        if len(args) > 0:
+            self.address = args[0]
         while True:
             self.stdout.write('\n' + str(datetime.now()))
             for task in Task.objects.all():
@@ -50,7 +53,8 @@ class Command(BaseCommand):
     def spawn_task_server(self, task):
         print os.path.abspath(PATH_TO_SERVER)
         print 'Spawn server for task: ', task
-        subprocess.Popen(['python', PATH_TO_SERVER, str(self.server_port), str(task.id), 'http://localhost:8000'])
+        subprocess.Popen(['python', PATH_TO_SERVER, str(self.server_port), str(task.id), 'http://'+self.address+':8000',
+                          self.address])
         # TODO: change management address
         task.last_server_spawn = datetime.now()
         task.save()
@@ -61,7 +65,7 @@ class Command(BaseCommand):
             return
         print os.path.abspath(PATH_TO_CRAWLER)
         print 'Spawn crawler'
-        subprocess.Popen(['python', PATH_TO_CRAWLER, str(self.crawler_port), 'http://localhost:8000'])
+        subprocess.Popen(['python', PATH_TO_CRAWLER, str(self.crawler_port), 'http://' + self.address + ':8000'])
         # TODO: change management address
         self.crawler_port += 1
 

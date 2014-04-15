@@ -102,7 +102,7 @@ class kill:
 
 class WebServer(threading.Thread):
 
-    def __init__(self, address='127.0.0.1', port=8800):
+    def __init__(self, address='0.0.0.0', port=8800):
         threading.Thread.__init__(self)
         self.address = address
         self.port = port
@@ -140,5 +140,6 @@ if __name__ == '__main__':
     port = int(sys.argv[1])
     task_id = sys.argv[2]
     manager_address = sys.argv[3]
-    server = TaskServer(WebServer(port=port), task_id, manager_address)
+    address = sys.argv[4]
+    server = TaskServer(WebServer(port=port, address=address), task_id, manager_address)
     server.start()

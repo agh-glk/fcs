@@ -64,14 +64,15 @@ class Server(ThreadWithExc):
             '/alive', 'alive'
         )
 
-    def __init__(self, port=8080):
+    def __init__(self, port=8080, address='0.0.0.0'):
         super(Server, self).__init__()
         self.app = WebApplication(self.__class__.urls, globals())
         self.port = port
+        self.address = address
 
     def run(self):
         try:
-            self.app.run(port=self.port)
+            self.app.run(port=self.port, address=self.address)
         finally:
             crawler.stop()
             event.set()
@@ -83,11 +84,15 @@ class Server(ThreadWithExc):
 
 
 if __name__ == "__main__":
+    #TODO : przerobic pobieranie parametrow
     _port = 8080
+    _address = '0.0.0.0'
+    if len(sys.argv) > 3:
+        _address = sys.argv[3]
     if len(sys.argv) > 1:
         _port = int(sys.argv[1])
     event.clear()
-    server = Server(_port)
+    server = Server(_port, _address)
     server.start()
     manager_address = sys.argv[2]
     crawler = Crawler(server, event, _port, manager_address)
