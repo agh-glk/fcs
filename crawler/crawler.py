@@ -3,12 +3,13 @@ from mechanize import Browser
 import string
 from requests.exceptions import ConnectionError
 from rest_framework import status
+import time
 from content_parser import ParserProvider
 import logging
 import requests
 import json
 
-from threading import Lock
+from threading import Lock, RLock
 from thread_with_exc import ThreadWithExc
 from mime_content_type import MimeContentType
 
@@ -41,6 +42,11 @@ class Crawler(ThreadWithExc):
         self.manager_address = manager_address
         self.port = port
         self.web_server = web_server
+
+        self.stats_lock = RLock()
+        self.start_time = time.time()
+        self.crawled_links = 0
+        self.crawled_links_times = []
 
         self.logger = logging.getLogger('crawler')
         _file_handler = logging.FileHandler('crawler.log')
@@ -102,13 +108,41 @@ class Crawler(ThreadWithExc):
 
             self.logger.info("Crawling package from %s ended." % _server_address)
             self._send_results_to_task_server(_id, _server_address, _final_results)
+            self.update_stats(len(_final_results))
+
+    def update_stats(self, links_num):
+        self.stats_lock.acquire()
+        self.crawled_links += links_num
+        self.crawled_links_times.append((time.time(), links_num))
+        self.crawled_links_times = self.crawled_links_times[-10:]
+        self.stats_lock.release()
+
+    def get_mean_efficiency(self):
+        self.stats_lock.acquire()
+        links = self.crawled_links
+        time_diff = time.time() - self.start_time
+        self.stats_lock.release()
+        return 1. * links / time_diff
+
+    def get_last_efficiency(self):
+        self.stats_lock.acquire()
+        links_sum = sum([x[1] for x in self.crawled_links_times])
+        time_diff = time.time() - self.crawled_links_times[0][0] if len(self.crawled_links_times) \
+            else time.time() - self.start_time
+        self.stats_lock.release()
+        return 1. * links_sum / time_diff
+
+    def get_stats(self):
+        data = dict()
+        data['mean_efficiency'] = self.get_mean_efficiency()
+        data['last_efficiency'] = self.get_last_efficiency()
+        return data
 
     def _send_results_to_task_server(self, package_id, server_address, results):
         try:
             requests.post(server_address + '/put_data', json.dumps({"id": package_id, "data": results}))
             self.logger.info("Data send to Task Server.")
         except ConnectionError as e:
-            # TODO: should management be informed?
             self.logger.exception(e)
 
     def _get_exit_flag(self):
@@ -144,6 +178,7 @@ class Crawler(ThreadWithExc):
     def stop(self):
         self.exit_flag_lock.acquire()
         self.exit_flag = True
+        self.logger.debug('Exit flag set true')
         self.exit_flag_lock.release()
 
     def kill(self):
@@ -160,6 +195,7 @@ class Crawler(ThreadWithExc):
                 else:
                     self.event.wait()
         finally:
+            self.logger.debug('Finishing crawler')
             self._unregister_from_management()
             self.web_server.kill()
         print "Crawler stop"

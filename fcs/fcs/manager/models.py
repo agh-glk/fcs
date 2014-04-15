@@ -60,10 +60,10 @@ class Quota(models.Model):
     Represents limitations in creating tasks. Each user object is connected with his personal quota.
     """
     max_priority = models.IntegerField(default=10)
-    priority_pool = models.IntegerField(default=100)
     max_tasks = models.IntegerField(default=5)
     link_pool = models.IntegerField(default=1000000)
     max_links = models.IntegerField(default=100000)
+    urls_per_time = models.IntegerField(default=10000)
     user = models.OneToOneField(User)
 
     def __unicode__(self):
@@ -202,10 +202,6 @@ class Task(models.Model):
             raise QuotaException('User has too many opened tasks! Limit: ' + str(self.user.quota.max_tasks))
         if self.user.quota.max_links < self.max_links:
             raise QuotaException('Task link limit exceeds user quota! Limit: ' + str(self.user.quota.max_links))
-
-        priorities = self.user.task_set.filter(active=True).exclude(pk=self.pk).aggregate(Sum('priority'))['priority__sum']
-        if self.user.quota.priority_pool < (priorities + self.priority if priorities else self.priority):
-            raise QuotaException("User priority pool exceeded! Limit: " + str(self.user.quota.priority_pool))
 
         links = self.user.task_set.filter(finished=False).exclude(pk=self.pk).aggregate(Sum('max_links'))['max_links__sum']
         if self.user.quota.link_pool < (links + self.max_links if links else self.max_links):

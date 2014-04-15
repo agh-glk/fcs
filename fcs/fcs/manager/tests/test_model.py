@@ -17,7 +17,7 @@ class TestTask:
         self.get_user().quota.max_links = 1000
         self.get_user().quota.max_priority = 10
         self.get_user().quota.link_pool = 1500
-        self.get_user().quota.priority_pool = 15
+        self.get_user().quota.urls_per_time = 1000
         self.get_user().quota.save()
 
     def teardown(self):
@@ -55,6 +55,7 @@ class TestTask:
         task = Task.objects.create_task(self.get_user(), 'Task1', 5, timezone.now(), 'http://onet.pl', max_links=400)
         assert task.priority == 5
         task.change_priority(7)
+        assert task.priority == 7
 
     def test_change_priority_failed_priority_quota(self, client):
         task = Task.objects.create_task(self.get_user(), 'Task1', 5, timezone.now(), 'http://onet.pl', max_links=400)
@@ -65,16 +66,6 @@ class TestTask:
         except QuotaException as e:
             assert str(e).startswith('Task priority exceeds user quota!'), 'Wrong exception message!'
         assert task.priority == 5
-
-    def test_change_priority_failed_priority_pool_quota(self, client):
-        task = Task.objects.create_task(self.get_user(), 'Task1', 7, timezone.now(), 'http://onet.pl', max_links=400)
-        Task.objects.create_task(self.get_user(), 'Task2', 7, timezone.now(), 'http://onet.pl', max_links=400)
-        try:
-            task.change_priority(9)
-            assert False, 'Exception should be raised!'
-        except QuotaException as e:
-            assert str(e).startswith('User priority pool exceeded!'), 'Wrong exception message!' + str(e)
-        assert task.priority == 7
 
     def test_pause(self, client):
         task = Task.objects.create_task(self.get_user(), 'Task1', 5, timezone.now(), 'http://onet.pl', max_links=400)

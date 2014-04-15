@@ -54,6 +54,11 @@ class alive:
         return 'OK'
 
 
+class stats:
+    def GET(self):
+        return json.dumps(crawler.get_stats())
+
+
 class Server(ThreadWithExc):
 
     urls = (
@@ -61,7 +66,8 @@ class Server(ThreadWithExc):
             '/put_links', 'put_links',
             '/kill', 'kill',
             '/stop', 'stop',
-            '/alive', 'alive'
+            '/alive', 'alive',
+            '/stats', 'stats'
         )
 
     def __init__(self, port=8080):

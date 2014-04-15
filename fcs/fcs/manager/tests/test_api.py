@@ -17,7 +17,7 @@ class TestREST:
         self.user.quota.max_links = 1000
         self.user.quota.max_priority = 10
         self.user.quota.link_pool = 1500
-        self.user.quota.priority_pool = 15
+        self.user.quota.urls_per_time = 1000
         self.user.quota.save()
         
         self.user2 = User.objects.create_user(username='test_user2', password='test_pwd2', email='test@gmail.pl')
@@ -91,17 +91,6 @@ class TestREST:
                                 AUTHORIZATION=self.token_type + ' ' + self.token)
         assert resp.status_code == 200
         assert Task.objects.filter(id=task.id).first().active, resp.content
-
-    def test_resume_task_failed_priority_pool(self, client):
-        task = Task.objects.create_task(self.user, 'Task1', 10, timezone.now(), 'http://onet.pl', max_links=400)
-        task.pause()
-        Task.objects.create_task(self.user, 'Task2', 7, timezone.now(), 'http://onet.pl', max_links=400)
-        assert not Task.objects.filter(id=task.id).first().active
-
-        resp = self.client.post(reverse('api:resume_task', kwargs={'task_id': task.id}),
-                                AUTHORIZATION=self.token_type + ' ' + self.token)
-        assert resp.status_code == 412
-        assert not Task.objects.filter(id=task.id).first().active, resp.content
 
     def test_pause_task_failed_authorization(self, client):
         resp = self.client.post(reverse('api:pause_task', kwargs={'task_id': self.user2_task.id}),
