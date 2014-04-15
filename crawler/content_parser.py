@@ -22,7 +22,7 @@ class ParserProvider(object):
             try:
                 instance = getattr(__import__(ParserProvider.__module__), _class_name)()
             except Exception:
-                raise Exception("Unknown parser type")
+                raise Exception("Unknown parser type for content type %s" % content_type)
             ParserProvider.parsers[_content_type] = instance
             return instance
 

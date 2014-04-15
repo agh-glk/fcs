@@ -3,16 +3,19 @@ import logging
 import re
 import threading
 import time
-from urlparse import urlparse
+import sys
+
 import requests
 from requests.exceptions import ConnectionError
 from rest_framework import status
 from linkdb import BerkeleyBTreeLinkDB
 from key_policy_module import SimpleKeyPolicyModule
-from contentdb import BerkeleyContentDB, ContentDB
+from contentdb import BerkeleyContentDB
 from django.utils.timezone import datetime
 import sys
 from url_processor import URLProcessor
+from crawling_depth_policy import SimpleCrawlingDepthPolicy, RealDepthCrawlingDepthPolicy
+
 sys.path.append('../')
 from common.content_coder import Base64ContentCoder
 
@@ -34,7 +37,7 @@ class Status(object):
 
 
 class TaskServer(threading.Thread):
-    def __init__(self, web_server, task_id, manager_address):
+    def __init__(self, web_server, task_id, manager_address, max_url_depth=1):
         threading.Thread.__init__(self)
         self.status_lock = threading.Lock()
         self.cache_lock = threading.RLock()
@@ -58,7 +61,7 @@ class TaskServer(threading.Thread):
         self.package_cache = {}
         self.package_id = 0
         self.processing_crawlers = []
-
+        self.max_url_depth = max_url_depth
         self.status = Status.INIT
 
         self.logger = logging.getLogger('server')
@@ -289,14 +292,18 @@ class TaskServer(threading.Thread):
                 return True
         return False
 
-    def add_links(self, links, priority, depth, domain=None):
+    def add_links(self, links, priority, depth=0, source_url=""):
         _counter = 0
         self.logger.debug('Trying to add %d links' % len(links))
         for link in links:
-            _link = URLProcessor.process(link, domain=domain)
+            _link = URLProcessor.validate(link, source_url)
             if self.evaluate_link(_link) and not self.link_db.is_in_base(_link):
-                self.link_db.add_link(_link, priority, depth)
-                _counter += 1
+                #_depth = SimpleCrawlingDepthPolicy.calculate_depth(link, source_url, depth)
+                _depth = RealDepthCrawlingDepthPolicy.calculate_depth(link, self.link_db)
+                if _depth <= self.max_url_depth:
+                    self.logger.debug("Added:%s with priority %d" % (_link, _depth))
+                    self.link_db.add_link(_link, priority, _depth)
+                    _counter += 1
         self.logger.debug("Added %d new links into DB." % _counter)
 
     def readd_links(self, links):
@@ -316,7 +323,9 @@ class TaskServer(threading.Thread):
                 self.logger.debug('Adding content from url %s' % entry['url'])
                 self.content_db.add_content(entry['url'], entry['links'], entry['content'])
                 print entry['url']
-                self.add_links(entry['links'], BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, 0, domain=entry['url'])
+                _details = self.link_db.get_details(entry['url'])
+                _url_depth = _details is not None and _details[2] or 0
+                self.add_links(entry['links'], BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, _url_depth, entry['url'])
 
     def _clear(self):
         self.link_db.clear()

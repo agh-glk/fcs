@@ -14,7 +14,7 @@ from mime_content_type import MimeContentType
 
 
 class CrawlerState:
-    STARTING, WORKING, WAITING = range(3)
+    UNDEFINED, WORKING, WAITING, CLOSING = range(4)
 
 
 class Crawler(ThreadWithExc):
@@ -135,11 +135,15 @@ class Crawler(ThreadWithExc):
         return 'http://localhost:' + str(self.port)
 
     def get_state(self):
-        #TODO : unregistered, starting etc. states
-        if self.link_package_queue.empty():
-            return CrawlerState.WAITING
-        else:
-            return CrawlerState.WORKING
+        try:
+            if self._get_exit_flag():
+                return CrawlerState.CLOSING
+            if self.link_package_queue.empty():
+                return CrawlerState.WAITING
+            else:
+                return CrawlerState.WORKING
+        except:
+            return CrawlerState.UNDEFINED
 
     def stop(self):
         self.exit_flag_lock.acquire()

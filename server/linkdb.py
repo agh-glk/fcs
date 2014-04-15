@@ -183,7 +183,12 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
         self.add_link(link, rate, int(_details[2]), _details[1])
 
     def get_details(self, link):
-        return self.found_links.get(link).split(';')
+        """
+        Returns list with 3 strings - priority, fetch date(could be empty string) and depth.
+        """
+        if self.is_in_base(link):
+            return self.found_links[str(link)].split(';')
+        return None
 
     def close(self):
         self.found_links.close()
