@@ -161,6 +161,7 @@ class TaskServer(threading.Thread):
                 # TODO: stop crawling when no links in linkdb
                 if self._get_status() == Status.RUNNING:
                     for crawler in self.get_idle_crawlers():
+                        # TODO: don't send links to crawler which you didn't receive answer from (adjust timeout or sth)
                         package = self.get_links_package(crawler)
                         if package:
                             try:

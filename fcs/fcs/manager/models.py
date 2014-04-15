@@ -63,7 +63,7 @@ class Quota(models.Model):
     max_tasks = models.IntegerField(default=5)
     link_pool = models.IntegerField(default=1000000)
     max_links = models.IntegerField(default=100000)
-    urls_per_time = models.IntegerField(default=10000)
+    urls_per_min = models.IntegerField(default=10000)
     user = models.OneToOneField(User)
 
     def __unicode__(self):
@@ -176,6 +176,7 @@ class Task(models.Model):
     last_data_download = models.DateTimeField(null=True, blank=True)
     server = models.OneToOneField(TaskServer, null=True, on_delete=models.SET_NULL)
     last_server_spawn = models.DateTimeField(null=True)
+    autoscale_change = models.BooleanField(default=False)
 
     objects = TaskManager()
 
@@ -209,6 +210,14 @@ class Task(models.Model):
 
         if [False for link in str(self.start_links).split() if not (link.startswith('http://') or link.startswith('https://'))]:
             raise ValidationError('Invalid protocol in start links! Only http and https are valid.')
+
+    def save(self, *args, **kwargs):
+        if self.pk is not None:
+            orig = Task.objects.get(pk=self.pk)
+            if orig.finished != self.finished or orig.active != self.active or orig.priority != self.priority \
+                    or orig.server != self.server:
+                self.autoscale_change = True
+        super(Task, self).save(*args, **kwargs)
 
     def get_parsed_whitelist(self):
         user_regexes = self.whitelist.split()

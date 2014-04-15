@@ -2,11 +2,11 @@ import json
 import os
 import subprocess
 from django.core.management.base import BaseCommand
-from django.db.models.aggregates import Count
+from django.db.models.aggregates import Count, Sum
 from django.utils.timezone import datetime
 import time
 from requests.exceptions import ConnectionError
-from fcs.manager.models import Task, Crawler, TaskServer
+from fcs.manager.models import Task, Crawler, TaskServer, User
 import requests
 
 
@@ -32,11 +32,37 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         while True:
             self.stdout.write('\n' + str(datetime.now()))
-            for task in Task.objects.all():
-                self.stdout.write('%s %s %s %s %s' % (str(task.user), str(task.name), str(task.active), str(task.finished), str(task.expire_date)))
-                self.check_server_assignment(task)
-            self.balance_load()
+            self.print_tasks()
+            self.check_tasks_state()
+            self.handle_priority_changes()
+            self.autoscale()
             time.sleep(10)
+
+    def print_tasks(self):
+        for task in Task.objects.all():
+            self.stdout.write('%s %s %s %s %s %s' % (str(task.user), str(task.name), str(task.active),
+                    str(task.finished), str(task.expire_date), 'changed' if task.autoscale_change else ''))
+
+    def check_tasks_state(self):
+        for task in Task.objects.all():
+            self.check_server_assignment(task)
+
+    def handle_priority_changes(self):
+        for user in User.objects.all():
+            urls_per_min = user.quota.urls_per_min
+            reassign = False
+            for task in user.task_set:
+                if task.autoscale_change:
+                    reassign = True
+                    task.autoscale_change = False
+                    task.save()
+            if reassign:
+                active_tasks = user.task_set.filter(active=True).exclude(server=None)
+                priority_sum = active_tasks.aggregate(Sum('priority'))['priority__sum']
+                for task in user.task_set: #tasks with server
+                    pass
+                    # TODO: make server url_per_min=0 if not active
+
 
     # TODO: change management address, keep alive crawlers and servers, crawler spawn timeout?
     # TODO: improve shutdowns of server and crawlers when exception occurs
@@ -82,7 +108,7 @@ class Command(BaseCommand):
             except ConnectionError:
                 server.delete()
 
-    def balance_load(self):
+    def autoscale(self):
         # TODO: in future - get and check crawler load time and adjust assignment
         task_servers = TaskServer.objects.all()
         crawlers = Crawler.objects.annotate(Count('taskserver'))
