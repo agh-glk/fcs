@@ -3,8 +3,7 @@ import logging
 import re
 import threading
 import time
-import sys
-
+from urlparse import urlparse
 import requests
 from requests.exceptions import ConnectionError
 from rest_framework import status
@@ -14,7 +13,7 @@ from contentdb import BerkeleyContentDB
 from django.utils.timezone import datetime
 import sys
 from url_processor import URLProcessor
-from crawling_depth_policy import SimpleCrawlingDepthPolicy, RealDepthCrawlingDepthPolicy
+from crawling_depth_policy import SimpleCrawlingDepthPolicy, RealDepthCrawlingDepthPolicy, IgnoreDepthPolicy
 
 sys.path.append('../')
 from common.content_coder import Base64ContentCoder
@@ -299,7 +298,8 @@ class TaskServer(threading.Thread):
             _link = URLProcessor.validate(link, source_url)
             if self.evaluate_link(_link) and not self.link_db.is_in_base(_link):
                 #_depth = SimpleCrawlingDepthPolicy.calculate_depth(link, source_url, depth)
-                _depth = RealDepthCrawlingDepthPolicy.calculate_depth(link, self.link_db)
+                #_depth = RealDepthCrawlingDepthPolicy.calculate_depth(link, self.link_db)
+                _depth = IgnoreDepthPolicy.calculate_depth()
                 if _depth <= self.max_url_depth:
                     self.logger.debug("Added:%s with priority %d" % (_link, _depth))
                     self.link_db.add_link(_link, priority, _depth)

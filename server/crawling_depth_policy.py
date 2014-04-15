@@ -8,6 +8,16 @@ class BaseCrawlingDepthPolicy(object):
         pass
 
 
+class IgnoreDepthPolicy(BaseCrawlingDepthPolicy):
+    """
+    Ignores depth
+    """
+
+    @staticmethod
+    def calculate_depth():
+        return 0
+
+
 class SimpleCrawlingDepthPolicy(BaseCrawlingDepthPolicy):
     """
     * - new domain
