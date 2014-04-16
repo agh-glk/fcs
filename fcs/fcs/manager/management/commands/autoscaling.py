@@ -3,6 +3,7 @@ import os
 import subprocess
 from django.core.management.base import BaseCommand
 from django.db.models.aggregates import Count, Sum
+from django.forms.models import model_to_dict
 from django.utils.timezone import datetime
 import time
 from requests.exceptions import ConnectionError
@@ -48,10 +49,10 @@ class Command(BaseCommand):
             self.check_server_assignment(task)
 
     def handle_priority_changes(self):
-        for user in User.objects.all():
+        for user in User.objects.filter(quota__isnull=False):
             urls_per_min = user.quota.urls_per_min
             reassign = False
-            for task in user.task_set:
+            for task in user.task_set.all():
                 if task.autoscale_change:
                     reassign = True
                     task.autoscale_change = False
@@ -59,7 +60,7 @@ class Command(BaseCommand):
             if reassign:
                 active_tasks = user.task_set.filter(active=True).exclude(server=None)
                 priority_sum = active_tasks.aggregate(Sum('priority'))['priority__sum']
-                for task in user.task_set: #tasks with server
+                for task in user.task_set.all(): #tasks with server
                     pass
                     # TODO: make server url_per_min=0 if not active
 

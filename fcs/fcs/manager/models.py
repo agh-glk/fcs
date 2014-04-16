@@ -2,8 +2,6 @@ import json
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.aggregates import Sum
-from django.db.models.signals import post_save
-from django.dispatch.dispatcher import receiver
 
 from django.utils import timezone
 import django.contrib.auth.models
@@ -12,6 +10,7 @@ from requests.exceptions import ConnectionError
 from rest_framework import status
 from userena.signals import activation_complete
 from oauth2_provider.models import Application
+from fcs.backend.utils import changed_fields
 
 
 class UserManager(django.contrib.auth.models.BaseUserManager):
@@ -212,12 +211,14 @@ class Task(models.Model):
             raise ValidationError('Invalid protocol in start links! Only http and https are valid.')
 
     def save(self, *args, **kwargs):
-        if self.pk is not None:
-            orig = Task.objects.get(pk=self.pk)
-            if orig.finished != self.finished or orig.active != self.active or orig.priority != self.priority \
-                    or orig.server != self.server:
-                self.autoscale_change = True
+        changed = changed_fields(self)
+        if 'server' in changed or (self.server is not None
+                                    and any(x in changed for x in ['finished', 'active', 'priority'])):
+            self.autoscale_change = True
         super(Task, self).save(*args, **kwargs)
+        if any(x in changed for x in ['finished', 'active', 'priority', 'max_links', 'whitelist', 'blacklist',
+                'expire_date', 'mime_type']):
+            self.send_update_to_task_server()
 
     def get_parsed_whitelist(self):
         user_regexes = self.whitelist.split()
@@ -300,6 +301,14 @@ class Task(models.Model):
     def __unicode__(self):
         return "Task %s of user %s" % (self.name, self.user)
 
+    def send_update_to_task_server(self):
+        if self.server:
+            data = {'finished': self.finished, 'active': self.active, 'priority': self.priority, #TODO: remove priority
+                    'max_links': self.max_links, 'whitelist': self.get_parsed_whitelist(),
+                    'blacklist': self.get_parsed_blacklist(),
+                    'expire_date': str(self.expire_date), 'mime_type': self.mime_type.split()}
+            requests.post(self.server.address + '/update', json.dumps(data))
+
 
 def create_api_keys(sender, **kwargs):
     """
@@ -311,17 +320,6 @@ def create_api_keys(sender, **kwargs):
 
 
 activation_complete.connect(create_api_keys)
-
-
-@receiver(post_save, sender=Task, dispatch_uid="server_updater_identifier")
-def send_update_to_task_server(sender, **kwargs):
-    task = kwargs['instance']
-    if task.server:
-        data = {'finished': task.finished, 'active': task.active, 'priority': task.priority,
-                'max_links': task.max_links, 'whitelist': task.get_parsed_whitelist(),
-                'blacklist': task.get_parsed_blacklist(),
-                'expire_date': str(task.expire_date), 'mime_type': task.mime_type.split()}
-        requests.post(task.server.address + '/update', json.dumps(data))
 
 
 class MailSent(models.Model):
