@@ -27,14 +27,6 @@ class feedback:
         return 'OK'
 
 
-class add:
-    def POST(self):
-        data = json.loads(web.data())
-        links = data['links']
-        server.add_links(links)
-        return 'OK'
-
-
 class put_data:
     def POST(self):
         # TODO: return some error if package has timed out so crawler will know that new packages were sent
@@ -50,6 +42,14 @@ class crawlers:
         data = json.loads(web.data())
         crawlers_addresses = data['addresses']
         server.assign_crawlers(crawlers_addresses)
+        return 'OK'
+
+
+class speed:
+    def POST(self):
+        data = json.loads(web.data())
+        new_speed = data['speed']
+        server.assign_speed(new_speed)
         return 'OK'
 
 
@@ -96,13 +96,13 @@ class WebServer(threading.Thread):
         urls = (
             '/', 'index',
             '/feedback', 'feedback',
-            '/add', 'add',
             '/put_data', 'put_data',
             '/crawlers', 'crawlers',
+            '/speed', 'speed',
             '/update', 'update',
-            '/stop', 'stop',
             '/get_data', 'get_data',
             '/alive', 'alive',
+            '/stop', 'stop',
             '/kill', 'kill'
         )
         self.app = WebApplication(urls, globals())

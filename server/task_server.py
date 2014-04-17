@@ -48,12 +48,13 @@ class TaskServer(threading.Thread):
         self.crawlers = []
         self.task_id = task_id
         self.max_links = 0
-        self.priority = 0
         self.expire_date = None
         self.mime_type = []
         self.uuid = ''
         self.whitelist = []
         self.blacklist = []
+        # TODO: consider speed while sending links to crawlers
+        self.speed = 0
 
         self.package_cache = {}
         self.package_id = 0
@@ -69,13 +70,19 @@ class TaskServer(threading.Thread):
         self.logger.setLevel(logging.DEBUG)
 
     def assign_crawlers(self, addresses):
-        # TODO: validate addresses
         self.data_lock.acquire()
         self.crawlers = addresses
         self.data_lock.release()
         self.logger.debug('%d crawlers assigned' % len(addresses))
 
+    def assign_speed(self, speed):
+        self.data_lock.acquire()
+        self.speed = int(speed)
+        self.data_lock.release()
+        self.logger.debug('Changed speed to %d', self.speed)
+
     def get_address(self):
+        # TODO: change this address to external ip address (and in crawler too)
         return 'http://' + self.web_server.get_host()
 
     def _set_status(self, status):
@@ -86,9 +93,9 @@ class TaskServer(threading.Thread):
 
     def _get_status(self):
         self.status_lock.acquire()
-        status = self.status
+        _status = self.status
         self.status_lock.release()
-        return status
+        return _status
 
     def _register_to_management(self):
         r = requests.post(self.manager_address + '/autoscale/server/register/',
@@ -128,7 +135,6 @@ class TaskServer(threading.Thread):
         self.whitelist = data['whitelist']
         self.blacklist = data['blacklist']
         self.mime_type = data['mime_type']
-        self.priority = int(data['priority'])
         self.max_links = int(data['max_links'])
         self.expire_date = datetime.strptime(data['expire_date'], DATE_FORMAT)
         self.data_lock.release()

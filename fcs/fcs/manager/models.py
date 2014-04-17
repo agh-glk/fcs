@@ -62,7 +62,7 @@ class Quota(models.Model):
     max_tasks = models.IntegerField(default=5)
     link_pool = models.IntegerField(default=1000000)
     max_links = models.IntegerField(default=100000)
-    urls_per_min = models.IntegerField(default=10000)
+    urls_per_min = models.IntegerField(default=1000)
     user = models.OneToOneField(User)
 
     def __unicode__(self):
@@ -143,17 +143,28 @@ class TaskServer(models.Model):
     uuid = models.CharField(max_length=100, unique=True)
 
     def is_alive(self):
-        try:
-            r = requests.get(self.address + '/alive')
-            return r.status_code == status.HTTP_200_OK
-        except ConnectionError:
+        r = self.send('/alive')
+        if not r:
             return False
+        return r.status_code == status.HTTP_200_OK
 
     def kill(self):
-        try:
-            requests.post(self.address + '/kill')
-        except ConnectionError:
+        if not self.send('/kill', 'post'):
             self.delete()
+
+    def send(self, path, method='get', data=None):
+        try:
+            if method == 'get':
+                return requests.get(self.address + path)
+            else:
+                return requests.post(self.address + path, data)
+        except ConnectionError:
+            return None
+
+    def delete(self, using=None):
+        self.task.autoscale_change = True
+        self.task.save()
+        super(TaskServer, self).delete(using)
 
 
 class Task(models.Model):
@@ -212,11 +223,13 @@ class Task(models.Model):
 
     def save(self, *args, **kwargs):
         changed = changed_fields(self)
-        if 'server' in changed or (self.server is not None
-                                    and any(x in changed for x in ['finished', 'active', 'priority'])):
+        if ('server' in changed and 'active' in changed) \
+                or (self.server and 'active' in changed) \
+                or (self.active and 'server' in changed) \
+                or (self.server and self.active and 'priority' in changed):
             self.autoscale_change = True
         super(Task, self).save(*args, **kwargs)
-        if any(x in changed for x in ['finished', 'active', 'priority', 'max_links', 'whitelist', 'blacklist',
+        if any(x in changed for x in ['finished', 'active', 'max_links', 'whitelist', 'blacklist',
                 'expire_date', 'mime_type']):
             self.send_update_to_task_server()
 
@@ -303,11 +316,11 @@ class Task(models.Model):
 
     def send_update_to_task_server(self):
         if self.server:
-            data = {'finished': self.finished, 'active': self.active, 'priority': self.priority, #TODO: remove priority
+            data = {'finished': self.finished, 'active': self.active,
                     'max_links': self.max_links, 'whitelist': self.get_parsed_whitelist(),
                     'blacklist': self.get_parsed_blacklist(),
                     'expire_date': str(self.expire_date), 'mime_type': self.mime_type.split()}
-            requests.post(self.server.address + '/update', json.dumps(data))
+            self.server.send('/update', 'post', json.dumps(data))
 
 
 def create_api_keys(sender, **kwargs):

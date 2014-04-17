@@ -18,6 +18,8 @@ PATH_TO_CRAWLER = CURRENT_PATH + '/../../../../../crawler/web_interface.py'
 SERVER_SPAWN_TIMEOUT = 10
 MAX_CRAWLERS = 10    # recommended value: greater than 10 (because priority max value can be 10)
 MAX_ASSIGNMENT_DIFFERENCE = 1
+MAX_CRAWLER_LINK_QUEUE = 20
+MIN_LINK_PACKAGE_SIZE = 3
 INIT_SERVER_PORT = 18000
 INIT_CRAWLER_PORT = 19000
 
@@ -30,12 +32,17 @@ class Command(BaseCommand):
         self.server_port = max([int(server.address.split(':')[2]) for server in TaskServer.objects.all()] + [INIT_SERVER_PORT]) + 1
         self.crawler_port = max([int(crawler.address.split(':')[2]) for crawler in Crawler.objects.all()] + [INIT_CRAWLER_PORT]) + 1
 
+        self.expected_crawlers = len(Crawler.objects.all())
+        self.old_crawlers = [crawler.address for crawler in Crawler.objects.all()]
+        self.changed = False
+
     def handle(self, *args, **options):
         while True:
             self.stdout.write('\n' + str(datetime.now()))
             self.print_tasks()
             self.check_tasks_state()
             self.handle_priority_changes()
+            self.assign_crawlers_to_servers()
             self.autoscale()
             time.sleep(10)
 
@@ -51,22 +58,24 @@ class Command(BaseCommand):
     def handle_priority_changes(self):
         for user in User.objects.filter(quota__isnull=False):
             urls_per_min = user.quota.urls_per_min
-            reassign = False
+            reassign_speed = False
             for task in user.task_set.all():
                 if task.autoscale_change:
-                    reassign = True
+                    reassign_speed = True
                     task.autoscale_change = False
                     task.save()
-            if reassign:
-                active_tasks = user.task_set.filter(active=True).exclude(server=None)
+            if reassign_speed:
+                self.changed = True
+                active_tasks = user.task_set.filter(active=True, server__isnull=False)
                 priority_sum = active_tasks.aggregate(Sum('priority'))['priority__sum']
-                for task in user.task_set.all(): #tasks with server
-                    pass
-                    # TODO: make server url_per_min=0 if not active
+                for task in user.task_set.filter(server__isnull=False):
+                    if task.active:
+                        task.server.send('/speed', 'post',
+                                    json.dumps({'speed': urls_per_min * task.priority / priority_sum}))
+                    else:
+                        task.server.send('/speed', 'post', json.dumps({'speed': 0}))
 
-
-    # TODO: change management address, keep alive crawlers and servers, crawler spawn timeout?
-    # TODO: improve shutdowns of server and crawlers when exception occurs
+    # TODO: change management address, crawler spawn timeout?
     def check_server_assignment(self, task):
         if task.is_waiting_for_server():
             if task.last_server_spawn is None:
@@ -93,6 +102,12 @@ class Command(BaseCommand):
         self.crawler_port += 1
 
     def assign_crawlers_to_servers(self):
+        actual_crawlers = [crawler.address for crawler in Crawler.objects.all()]
+        if self.changed or self.old_crawlers != actual_crawlers:
+            #TODO: do reassignment else return
+            #TODO: in autoscale method check stats and spawn/stop crawler
+            pass
+        #TODO: remove crawler warnings
         servers = TaskServer.objects.all()
         for server in servers:
             crawlers = []
