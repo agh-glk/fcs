@@ -100,7 +100,7 @@ class Crawler(models.Model):
     Represents crawler unit
     """
     address = models.CharField(max_length=100, unique=True)
-    timeouts = models.IntegerField(default=0)
+    timeouts = models.IntegerField(default=0)       #TODO: remove
     uuid = models.CharField(max_length=100, unique=True)
 
     def increase_timeouts(self):

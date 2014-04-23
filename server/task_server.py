@@ -78,6 +78,7 @@ class TaskServer(threading.Thread):
     def assign_speed(self, speed):
         self.data_lock.acquire()
         self.speed = int(speed)
+        #TODO: reset statistics
         self.data_lock.release()
         self.logger.debug('Changed speed to %d', self.speed)
 
@@ -164,14 +165,12 @@ class TaskServer(threading.Thread):
         self._register_to_management()
         try:
             while self._get_status() not in [Status.STOPPING, Status.KILLED]:
-                # TODO: stop crawling when no links in linkdb
                 if self._get_status() == Status.RUNNING:
                     for crawler in self.get_idle_crawlers():
-                        # TODO: don't send links to crawler which you didn't receive answer from (adjust timeout or sth)
                         package = self.get_links_package(crawler)
                         if package:
                             try:
-                                r = requests.post(crawler + '/put_links', json.dumps(package))
+                                requests.post(crawler + '/put_links', json.dumps(package))
                                 self.logger.debug('Sending links to crawler %s' % crawler)
                             except ConnectionError:
                                 self.ban_crawler(crawler)
@@ -224,7 +223,8 @@ class TaskServer(threading.Thread):
 
     def cache(self, package_id, crawler, links):
         self.cache_lock.acquire()
-        self.package_cache[package_id] = (time.time(), links, crawler)
+        has_timed_out = False
+        self.package_cache[package_id] = [time.time(), links, crawler, has_timed_out]
         self.processing_crawlers.append(crawler)
         self.cache_lock.release()
         self.logger.debug('Cached package %d' % package_id)
@@ -239,6 +239,7 @@ class TaskServer(threading.Thread):
             address = self.get_address()
             crawling_type = self.mime_type
             package_id = self.package_id
+            #TODO: change 'crawling_type' to 'mime_type'
             package = {'server_address': address, 'crawling_type': crawling_type, 'id': package_id, 'links': _links}
             self.cache(package_id, crawler, _links)
             self.package_id += 1
@@ -250,11 +251,12 @@ class TaskServer(threading.Thread):
         cur_time = time.time()
         self.cache_lock.acquire()
         for package_id in self.package_cache.keys():
-            if cur_time - self.package_cache[package_id][0] > URL_PACKAGE_TIMEOUT:
+            if (cur_time - self.package_cache[package_id][0] > URL_PACKAGE_TIMEOUT) and \
+                    not self.package_cache[package_id][3]:
                 self.logger.debug('Package %d has timed out. Readding' % package_id)
                 self.readd_links(self.package_cache[package_id][1])
                 self.warn_crawler(self.package_cache[package_id][2])
-                self.clear_cache(package_id)
+                self.package_cache[package_id][3] = True
         self.cache_lock.release()
 
     def clear_cache(self, package_id):
@@ -319,13 +321,15 @@ class TaskServer(threading.Thread):
 
     def put_data(self, package_id, data):
         if package_id in self.package_cache:
-            self.logger.debug('Putting content from package %d' % package_id)
+            has_timed_out = self.package_cache[package_id][3]
+            if not has_timed_out:
+                self.logger.debug('Putting content from package %d' % package_id)
+                for entry in data:
+                    self.logger.debug('Adding content from url %s' % entry['url'])
+                    self.content_db.add_content(entry['url'], entry['links'], self._decode_content(entry['content']))
+                    # TODO: put correct depth and priority value (based on previous url)
+                    self.add_links(entry['links'], BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, 0, domain=entry['url'])
             self.clear_cache(package_id)
-            for entry in data:
-                self.logger.debug('Adding content from url %s' % entry['url'])
-                self.content_db.add_content(entry['url'], entry['links'], self._decode_content(entry['content']))
-                # TODO: put correct depth and priority value (based on previous url)
-                self.add_links(entry['links'], BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, 0, domain=entry['url'])
 
     def _clear(self):
         self.logger.debug('Clearing db files')
