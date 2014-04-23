@@ -22,6 +22,8 @@ URL_PACKAGE_TIMEOUT = 30
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 WAIT_FOR_DOWNLOAD_TIME = 25    # in seconds
 DATA_PACKAGE_SIZE = 5
+KEEP_STATS_SECONDS = 900
+CRAWLING_PERIOD = 60
 
 
 class Status(object):
@@ -39,6 +41,7 @@ class TaskServer(threading.Thread):
         self.status_lock = threading.Lock()
         self.cache_lock = threading.RLock()
         self.data_lock = threading.RLock()
+        self.statistics_lock = threading.RLock()
 
         self.web_server = web_server
         self.manager_address = manager_address
@@ -53,7 +56,6 @@ class TaskServer(threading.Thread):
         self.uuid = ''
         self.whitelist = []
         self.blacklist = []
-        # TODO: consider speed while sending links to crawlers
         self.speed = 0
 
         self.package_cache = {}
@@ -61,6 +63,9 @@ class TaskServer(threading.Thread):
         self.processing_crawlers = []
 
         self.status = Status.INIT
+
+        self.crawled_links = []
+        self.stats_reset_time = time.time()
 
         self.logger = logging.getLogger('server')
         _file_handler = logging.FileHandler('server%s.log' % task_id)
@@ -78,7 +83,7 @@ class TaskServer(threading.Thread):
     def assign_speed(self, speed):
         self.data_lock.acquire()
         self.speed = int(speed)
-        #TODO: reset statistics
+        self.reset_stats()
         self.data_lock.release()
         self.logger.debug('Changed speed to %d', self.speed)
 
@@ -165,7 +170,7 @@ class TaskServer(threading.Thread):
         self._register_to_management()
         try:
             while self._get_status() not in [Status.STOPPING, Status.KILLED]:
-                if self._get_status() == Status.RUNNING:
+                if self._get_status() == Status.RUNNING and not self.efficiency_achieved():
                     for crawler in self.get_idle_crawlers():
                         package = self.get_links_package(crawler)
                         if package:
@@ -324,6 +329,7 @@ class TaskServer(threading.Thread):
             has_timed_out = self.package_cache[package_id][3]
             if not has_timed_out:
                 self.logger.debug('Putting content from package %d' % package_id)
+                self.add_stats(len(data))
                 for entry in data:
                     self.logger.debug('Adding content from url %s' % entry['url'])
                     self.content_db.add_content(entry['url'], entry['links'], self._decode_content(entry['content']))
@@ -338,3 +344,51 @@ class TaskServer(threading.Thread):
     def get_data(self, size=DATA_PACKAGE_SIZE):
         self.logger.debug('Downloading content - %d size' % size)
         return self.content_db.get_data_package(size)
+
+    def add_stats(self, links):
+        self.statistics_lock.acquire()
+        self.crawled_links.append((time.time(), links))
+        self.statistics_lock.release()
+
+    def reset_stats(self):
+        self.statistics_lock.acquire()
+        self.crawled_links = []
+        self.stats_reset_time = time.time()
+        self.statistics_lock.release()
+
+    def get_stats(self, seconds):
+        self.statistics_lock.acquire()
+        now = time.time()
+        from_time = now - seconds
+        if self.stats_reset_time > from_time:
+            from_time = self.stats_reset_time
+
+        links = 0
+        for entry in self.crawled_links:
+            if entry[0] > from_time:
+                links += entry[1]
+        self.statistics_lock.release()
+
+        ret = dict()
+        ret['seconds'] = int(now - from_time)
+        ret['links'] = links
+        self.data_lock.acquire()
+        ret['speed'] = self.speed
+        self.data_lock.release()
+        return ret
+
+    def clear_stats(self):
+        self.statistics_lock.acquire()
+        from_time = time.time() - KEEP_STATS_SECONDS
+        index = 0
+        for i in range(len(self.crawled_links)):
+            if self.crawled_links[i][0] > from_time:
+                index = i
+                break
+        self.crawled_links = self.crawled_links[index:]
+        self.stats_reset_time = from_time
+        self.statistics_lock.release()
+
+    def efficiency_achieved(self):
+        stats = self.get_stats(CRAWLING_PERIOD)
+        return stats['links'] >= stats['speed']

@@ -37,6 +37,13 @@ class put_data:
         return 'OK'
 
 
+class stats:
+    def POST(self):
+        data = json.loads(web.data())
+        seconds = int(data['seconds'])
+        return json.dumps(server.get_stats(seconds))
+
+
 class crawlers:
     def POST(self):
         data = json.loads(web.data())
