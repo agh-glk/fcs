@@ -17,7 +17,6 @@ sys.path.append('../')
 from common.content_coder import Base64ContentCoder
 
 
-URL_PACKAGE_SIZE = 8
 URL_PACKAGE_TIMEOUT = 30
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 WAIT_FOR_DOWNLOAD_TIME = 25    # in seconds
@@ -48,7 +47,7 @@ class TaskServer(threading.Thread):
         self.link_db = BerkeleyBTreeLinkDB('link_db', SimpleKeyPolicyModule)
         self.content_db = ContentDB()
 
-        self.crawlers = []
+        self.crawlers = {}
         self.task_id = task_id
         self.max_links = 0
         self.expire_date = None
@@ -74,11 +73,11 @@ class TaskServer(threading.Thread):
         self.logger.addHandler(_file_handler)
         self.logger.setLevel(logging.DEBUG)
 
-    def assign_crawlers(self, addresses):
+    def assign_crawlers(self, assignment):
         self.data_lock.acquire()
-        self.crawlers = addresses
+        self.crawlers = assignment
         self.data_lock.release()
-        self.logger.debug('%d crawlers assigned' % len(addresses))
+        self.logger.debug('%d crawlers assigned' % len(assignment))
 
     def assign_speed(self, speed):
         self.data_lock.acquire()
@@ -172,7 +171,7 @@ class TaskServer(threading.Thread):
             while self._get_status() not in [Status.STOPPING, Status.KILLED]:
                 if self._get_status() == Status.RUNNING and not self.efficiency_achieved():
                     for crawler in self.get_idle_crawlers():
-                        package = self.get_links_package(crawler)
+                        package = self.get_links_package(crawler, self.crawlers[crawler])
                         if package:
                             try:
                                 requests.post(crawler + '/put_links', json.dumps(package))
@@ -234,9 +233,9 @@ class TaskServer(threading.Thread):
         self.cache_lock.release()
         self.logger.debug('Cached package %d' % package_id)
 
-    def get_links_package(self, crawler):
+    def get_links_package(self, crawler, size):
         _links = []
-        for i in range(URL_PACKAGE_SIZE):
+        for i in range(size):
             _links.append(self.link_db.get_link())
         _links = [link for link in _links if link]
         self.logger.debug('Retrieved %d links from linkdb' % len(_links))

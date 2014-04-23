@@ -139,7 +139,8 @@ class TaskServer(models.Model):
     Represents server which executes crawling tasks
     """
     address = models.CharField(max_length=100, unique=True)
-    crawlers = models.ManyToManyField(Crawler)
+    crawlers = models.ManyToManyField(Crawler)      #TODO: remove
+    urls_per_min = models.IntegerField(default=0)
     uuid = models.CharField(max_length=100, unique=True)
 
     def is_alive(self):

@@ -55,6 +55,14 @@ class Command(BaseCommand):
         for task in Task.objects.all():
             self.check_server_assignment(task)
 
+    # TODO: change management address, crawler spawn timeout?
+    def check_server_assignment(self, task):
+        if task.is_waiting_for_server():
+            if task.last_server_spawn is None:
+                self.spawn_task_server(task)
+            elif (datetime.now() - task.last_server_spawn).seconds > SERVER_SPAWN_TIMEOUT:
+                self.spawn_task_server(task)
+
     def handle_priority_changes(self):
         for user in User.objects.filter(quota__isnull=False):
             urls_per_min = user.quota.urls_per_min
@@ -70,18 +78,14 @@ class Command(BaseCommand):
                 priority_sum = active_tasks.aggregate(Sum('priority'))['priority__sum']
                 for task in user.task_set.filter(server__isnull=False):
                     if task.active:
-                        task.server.send('/speed', 'post',
-                                    json.dumps({'speed': urls_per_min * task.priority / priority_sum}))
+                        speed = urls_per_min * task.priority / priority_sum
+                        task.server.send('/speed', 'post', json.dumps({'speed': speed}))
+                        task.server.urls_per_min = speed
+                        task.server.save()
                     else:
                         task.server.send('/speed', 'post', json.dumps({'speed': 0}))
-
-    # TODO: change management address, crawler spawn timeout?
-    def check_server_assignment(self, task):
-        if task.is_waiting_for_server():
-            if task.last_server_spawn is None:
-                self.spawn_task_server(task)
-            elif (datetime.now() - task.last_server_spawn).seconds > SERVER_SPAWN_TIMEOUT:
-                self.spawn_task_server(task)
+                        task.server.urls_per_min = 0
+                        task.server.save()
 
     def spawn_task_server(self, task):
         print os.path.abspath(PATH_TO_SERVER)
@@ -103,26 +107,42 @@ class Command(BaseCommand):
 
     def assign_crawlers_to_servers(self):
         actual_crawlers = [crawler.address for crawler in Crawler.objects.all()]
+
         if self.changed or self.old_crawlers != actual_crawlers:
-            #TODO: do reassignment else return
-            #TODO: in autoscale method check stats and spawn/stop crawler
-            pass
+            self.changed = False
+            self.old_crawlers = actual_crawlers
+            servers = TaskServer.objects.all()
+            total_speed = sum([server.urls_per_min for server in servers])
+            total_power = len(actual_crawlers) * MAX_CRAWLER_LINK_QUEUE
+            if total_power == 0:
+                for server in servers:
+                    server.send('/crawlers', 'post', json.dumps({}))
+                return
+
+            speed_factor = total_speed / total_power
+
+            crawlers_load = [[address, 0] for address in actual_crawlers]
+            length = len(crawlers_load)
+
+            for server in servers:
+                if server.speed == 0:
+                    server.send('/crawlers', 'post', json.dumps({}))
+                else:
+                    assignment = {}
+                    link_pool = max(1, server.speed / speed_factor)
+                    crawlers_num = min(len(actual_crawlers), max(1, link_pool / MIN_LINK_PACKAGE_SIZE))
+                    crawlers_load.sort(key=lambda x: x[1], reverse=True)
+                    for i in range(crawlers_num, 0, -1):
+                        entry = crawlers_load[length - i]
+                        links = max(0, min(link_pool / i, MAX_CRAWLER_LINK_QUEUE - entry[1]))
+                        if i == 1:
+                            links = link_pool
+                        link_pool -= links
+                        entry[1] += links
+                        assignment[entry[0]] = links
+                    server.send('/crawlers', 'post', json.dumps(assignment))
+        #TODO: in autoscale method check stats and spawn/stop crawler
         #TODO: remove crawler warnings
-        servers = TaskServer.objects.all()
-        for server in servers:
-            crawlers = []
-            if server.task.active:
-                crawlers = Crawler.objects.annotate(Count('taskserver'))
-                crawlers = sorted(crawlers, key=lambda crawl: crawl.taskserver__count)
-                print crawlers
-                crawlers = crawlers[:server.task.priority]
-            server.crawlers = crawlers
-            server.save()
-            addresses = [crawler.address for crawler in crawlers]
-            try:
-                requests.post(server.address + '/crawlers', data=json.dumps({'addresses': addresses}))
-            except ConnectionError:
-                server.delete()
 
     def autoscale(self):
         # TODO: in future - get and check crawler load time and adjust assignment
