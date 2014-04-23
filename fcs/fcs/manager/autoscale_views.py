@@ -98,6 +98,7 @@ def unregister_crawler(request):
         return Response('Crawler not found', status=status.HTTP_404_NOT_FOUND)
 
 
+#TODO: remove this view
 @api_view(['POST'])
 @permission_classes((permissions.AllowAny,))
 def warn_crawler(request):
@@ -105,7 +106,7 @@ def warn_crawler(request):
     crawler_address = data['address']
     try:
         crawler = Crawler.objects.get(address=crawler_address)
-        crawler.increase_timeouts()
+        #crawler.increase_timeouts()
         return Response('Crawler warned')
     except Crawler.DoesNotExist:
         return Response('Crawler not found', status=status.HTTP_404_NOT_FOUND)

@@ -14,6 +14,8 @@ class index:
         ret += json.dumps({'crawled_links': server.content_db.size()}) + '\n\n'
         ret += json.dumps({'processing_crawlers': server.processing_crawlers}) + '\n\n'
         ret += json.dumps({'idle_crawlers': server.get_idle_crawlers()}) + '\n\n'
+        ret += json.dumps({'crawlers_assignment': server.crawlers}) + '\n\n'
+        ret += json.dumps({'stats': server.get_stats(60)}) + '\n\n'
         ret += json.dumps(server.package_cache) + '\n\n'
         return ret
 
@@ -47,7 +49,7 @@ class stats:
 class crawlers:
     def POST(self):
         data = json.loads(web.data())
-        crawlers_addresses = data['addresses']
+        crawlers_addresses = data['crawlers']
         server.assign_crawlers(crawlers_addresses)
         return 'OK'
 
@@ -110,7 +112,8 @@ class WebServer(threading.Thread):
             '/get_data', 'get_data',
             '/alive', 'alive',
             '/stop', 'stop',
-            '/kill', 'kill'
+            '/kill', 'kill',
+            '/stats', 'stats'
         )
         self.app = WebApplication(urls, globals())
 

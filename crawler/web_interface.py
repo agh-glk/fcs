@@ -15,7 +15,7 @@ event = Event()
 
 class index:
     def GET(self):
-        return str(crawler.get_state())
+        return str(str(crawler.get_state()) + '\n\n' + json.dumps(crawler.get_stats(60)))
 
 
 class put_links:
@@ -55,8 +55,10 @@ class alive:
 
 
 class stats:
-    def GET(self):
-        return json.dumps(crawler.get_stats())
+    def POST(self):
+        data = json.loads(web.data())
+        seconds = int(data['seconds'])
+        return json.dumps(crawler.get_stats(seconds))
 
 
 class Server(ThreadWithExc):

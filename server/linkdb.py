@@ -145,6 +145,7 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
         return str(link) in self.found_links
 
     def size(self):
+        #TODO: check why was Value Error "__len__() should return >=0"
         return len(self.priority_queue)
 
     def add_link(self, link, priority, depth, fetch_time=""):

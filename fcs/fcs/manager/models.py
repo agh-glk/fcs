@@ -100,7 +100,6 @@ class Crawler(models.Model):
     Represents crawler unit
     """
     address = models.CharField(max_length=100, unique=True)
-    timeouts = models.IntegerField(default=0)       #TODO: remove
     uuid = models.CharField(max_length=100, unique=True)
 
     def increase_timeouts(self):
@@ -115,23 +114,27 @@ class Crawler(models.Model):
         self.save()
 
     def is_alive(self):
-        try:
-            r = requests.get(self.address + '/alive')
-            return r.status_code == status.HTTP_200_OK
-        except ConnectionError:
+        r = self.send('/alive')
+        if r is None:
             return False
+        return r.status_code == status.HTTP_200_OK
 
     def stop(self):
-        try:
-            requests.post(self.address + '/stop')
-        except ConnectionError:
+        if self.send('/stop', 'post') is None:
             self.delete()
 
     def kill(self):
-        try:
-            requests.post(self.address + '/kill')
-        except ConnectionError:
+        if self.send('/kill', 'post') is None:
             self.delete()
+
+    def send(self, path, method='get', data=None):
+        try:
+            if method == 'get':
+                return requests.get(self.address + path)
+            else:
+                return requests.post(self.address + path, data)
+        except ConnectionError:
+            return None
 
 
 class TaskServer(models.Model):
@@ -139,7 +142,6 @@ class TaskServer(models.Model):
     Represents server which executes crawling tasks
     """
     address = models.CharField(max_length=100, unique=True)
-    crawlers = models.ManyToManyField(Crawler)      #TODO: remove
     urls_per_min = models.IntegerField(default=0)
     uuid = models.CharField(max_length=100, unique=True)
 

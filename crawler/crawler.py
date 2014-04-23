@@ -14,6 +14,9 @@ from thread_with_exc import ThreadWithExc
 from mime_content_type import MimeContentType
 
 
+KEEP_STATS_SECONDS = 900
+
+
 class CrawlerState:
     STARTING, WORKING, WAITING = range(3)
 
@@ -44,9 +47,8 @@ class Crawler(ThreadWithExc):
         self.web_server = web_server
 
         self.stats_lock = RLock()
-        self.start_time = time.time()
-        self.crawled_links = 0
-        self.crawled_links_times = []
+        self.stats_reset_time = time.time()
+        self.crawled_links = []
 
         self.logger = logging.getLogger('crawler')
         _file_handler = logging.FileHandler('crawler.log')
@@ -90,7 +92,7 @@ class Crawler(ThreadWithExc):
 
     def _crawl(self):
         while not self.link_package_queue.empty() and not self._get_exit_flag():
-
+            start_time = time.time()
             _final_results = []
             (_id, _server_address, _mime_types, _links) = self.link_package_queue.get()
             _mime_types = [MimeContentType(x) for x in _mime_types]
@@ -108,35 +110,46 @@ class Crawler(ThreadWithExc):
 
             self.logger.info("Crawling package from %s ended." % _server_address)
             self._send_results_to_task_server(_id, _server_address, _final_results)
-            self.update_stats(len(_final_results))
+            end_time = time.time()
+            self.add_stats(start_time, end_time, len(_final_results))
 
-    def update_stats(self, links_num):
+    def add_stats(self, start_time, end_time, links_num):
         self.stats_lock.acquire()
-        self.crawled_links += links_num
-        self.crawled_links_times.append((time.time(), links_num))
-        self.crawled_links_times = self.crawled_links_times[-10:]
+        self.crawled_links.append((start_time, end_time, links_num))
         self.stats_lock.release()
 
-    def get_mean_efficiency(self):
+    def clear_stats(self):
         self.stats_lock.acquire()
-        links = self.crawled_links
-        time_diff = time.time() - self.start_time
+        from_time = max(time.time() - KEEP_STATS_SECONDS, self.stats_reset_time)
+        index = 0
+        for i in range(len(self.crawled_links)):
+            if self.crawled_links[i][0] > from_time:
+                index = i
+                break
+        self.crawled_links = self.crawled_links[index:]
+        self.stats_reset_time = from_time
         self.stats_lock.release()
-        return 1. * links / time_diff
 
-    def get_last_efficiency(self):
+    def get_stats(self, seconds):
         self.stats_lock.acquire()
-        links_sum = sum([x[1] for x in self.crawled_links_times])
-        time_diff = time.time() - self.crawled_links_times[0][0] if len(self.crawled_links_times) \
-            else time.time() - self.start_time
-        self.stats_lock.release()
-        return 1. * links_sum / time_diff
+        now = time.time()
+        from_time = now - seconds
+        if self.stats_reset_time > from_time:
+            from_time = self.stats_reset_time
 
-    def get_stats(self):
-        data = dict()
-        data['mean_efficiency'] = self.get_mean_efficiency()
-        data['last_efficiency'] = self.get_last_efficiency()
-        return data
+        links = 0
+        load_time = 0
+        for entry in self.crawled_links:
+            if entry[0] > from_time:
+                links += entry[2]
+                load_time += entry[1] - entry[0]
+        self.stats_lock.release()
+
+        ret = dict()
+        ret['seconds'] = int(now - from_time)
+        ret['links'] = links
+        ret['load'] = int(load_time)
+        return ret
 
     def _send_results_to_task_server(self, package_id, server_address, results):
         try:
@@ -192,6 +205,7 @@ class Crawler(ThreadWithExc):
                 if self.event.isSet():
                     self._crawl()
                     self.event.clear()
+                    self.clear_stats()
                 else:
                     self.event.wait()
         finally:

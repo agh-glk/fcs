@@ -180,7 +180,8 @@ class TaskServer(threading.Thread):
                                 self.ban_crawler(crawler)
                 self.check_cache()
                 self.check_limits()
-                time.sleep(5)
+                self.clear_stats()
+                time.sleep(1)
 
             shutdown_time = time.time()
             while (time.time() - shutdown_time) < WAIT_FOR_DOWNLOAD_TIME and self.content_db.size() > 0 \
@@ -378,7 +379,7 @@ class TaskServer(threading.Thread):
 
     def clear_stats(self):
         self.statistics_lock.acquire()
-        from_time = time.time() - KEEP_STATS_SECONDS
+        from_time = max(time.time() - KEEP_STATS_SECONDS, self.stats_reset_time)
         index = 0
         for i in range(len(self.crawled_links)):
             if self.crawled_links[i][0] > from_time:
