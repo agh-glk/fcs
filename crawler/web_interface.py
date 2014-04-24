@@ -37,7 +37,7 @@ class stop:
     def POST(self):
         crawler.stop()
         event.set()
-        server.kill()
+        #server.kill()
         return "Stop successful"
 
 
@@ -45,7 +45,7 @@ class kill:
     def POST(self):
         crawler.kill()
         event.set()
-        server.kill()
+        #server.kill()
         return "Kill successful"
 
 
@@ -80,6 +80,7 @@ class Server(ThreadWithExc):
 
     def run(self):
         try:
+            #TODO: check why sometimes something strange happens ('NoneType no attribute stop')
             self.app.run(port=self.port, address=self.address)
         finally:
             crawler.stop()

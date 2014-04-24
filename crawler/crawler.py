@@ -131,6 +131,7 @@ class Crawler(ThreadWithExc):
         self.stats_lock.release()
 
     def get_stats(self, seconds):
+        # TODO: consider entries which started earlier and ended later than from_time
         self.stats_lock.acquire()
         now = time.time()
         from_time = now - seconds
@@ -215,6 +216,7 @@ class Crawler(ThreadWithExc):
         finally:
             self.logger.debug('Finishing crawler')
             self._unregister_from_management()
+            time.sleep(2)
             self.web_server.kill()
         print "Crawler stop"
 

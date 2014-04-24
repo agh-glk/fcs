@@ -57,6 +57,7 @@ class TaskServer(threading.Thread):
         self.uuid = ''
         self.whitelist = []
         self.blacklist = []
+        #TODO: rename to url_per_min for unification
         self.speed = 0
 
         self.package_cache = {}
@@ -131,7 +132,7 @@ class TaskServer(threading.Thread):
         """
         r = requests.post(self.manager_address + '/autoscale/server/register/',
                                 data={'task_id': self.task_id, 'address': self.get_address()})
-        self.logger.debug('Registering to management. Return code: %d' % r.status_code)
+        self.logger.debug('Registering to management. Return code: %d, message: %s' % (r.status_code, r.content))
         if r.status_code in [status.HTTP_412_PRECONDITION_FAILED, status.HTTP_404_NOT_FOUND]:
             self.stop()
             return
@@ -153,9 +154,11 @@ class TaskServer(threading.Thread):
         """
         Sends unregister request to FCS main application.
         """
+        #TODO: check why task not found!!!!
+        #TODO: check why precondition failed (task not stopped)
         r = requests.post(self.manager_address + '/autoscale/server/unregister/',
                           data={'task_id': self.task_id, 'uuid': self.uuid})
-        self.logger.debug('Unregistering from management. Return code: %d' % r.status_code)
+        self.logger.debug('Unregistering from management. Return code: %d, message: %s' % (r.status_code, r.content))
 
     def update(self, data):
         """
@@ -243,6 +246,7 @@ class TaskServer(threading.Thread):
                 time.sleep(30)
         finally:
             self._unregister_from_management()
+            #check what happens here sometimes that server doesn't shutdown
             self._clear()
             self.logger.debug('Stopping web interface')
             self.web_server.stop()
@@ -291,7 +295,7 @@ class TaskServer(threading.Thread):
         """
         r = requests.post(self.manager_address + '/autoscale/server/stop_task/',
                           data={'task_id': self.task_id, 'uuid': self.uuid})
-        self.logger.debug('Stopping task. Return code: %d' % r.status_code)
+        self.logger.debug('Stopping task. Return code: %d, message: %s' % (r.status_code, r.content))
         if r.status_code in [status.HTTP_412_PRECONDITION_FAILED, status.HTTP_404_NOT_FOUND]:
             self.kill()
 
@@ -438,6 +442,7 @@ class TaskServer(threading.Thread):
         """
         self.logger.debug('Clearing db files')
         self.link_db.clear()
+        self.content_db.clear()
 
     def get_data(self, size):
         """

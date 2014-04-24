@@ -36,7 +36,7 @@ INIT_CRAWLER_PORT = 19000
 class Command(BaseCommand):
     def __init__(self):
         BaseCommand.__init__(self)
-        self.address = '0.0.0.0'
+        self.address = '127.0.0.1'
         self.server_port = max([int(server.address.split(':')[2]) for server in TaskServer.objects.all()] + [INIT_SERVER_PORT]) + 1
         self.crawler_port = max([int(crawler.address.split(':')[2]) for crawler in Crawler.objects.all()] + [INIT_CRAWLER_PORT]) + 1
 
