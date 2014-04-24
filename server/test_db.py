@@ -3,7 +3,7 @@ from key_policy_module import SimpleKeyPolicyModule
 import datetime
 
 
-class TestDataBase(object):
+class TestLinkDataBase(object):
 
     def setup(self):
         self.links_db = BerkeleyBTreeLinkDB("test_db", SimpleKeyPolicyModule)
@@ -123,3 +123,7 @@ class TestDataBase(object):
 
     def teardown(self):
         self.links_db.clear()
+
+
+class TestContentDataBase(object):
+    pass

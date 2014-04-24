@@ -4,6 +4,8 @@ import web
 import json
 from task_server import TaskServer
 from common.web_application import WebApplication
+import os
+
 
 server = None
 
@@ -77,11 +79,23 @@ class stop:
 
 class get_data:
     def GET(self):
-        size = web.input(size='5').size
-        data = server.get_data(int(size))
-        # TODO: handle Unicode Errors
-        print len(data)
-        return json.dumps(data)
+        size = int(web.input().size)
+        _file_path = server.get_data(size)
+        web.header('Content-type', 'text/html')
+        web.header('Transfer-Encoding', 'chunked')
+        _file_name = "task_id_%s_%s.dat" % (server.task_id, os.path.basename(_file_path))
+        web.header('Content-Disposition', 'attachment; filename=%s' % _file_name)
+        _crawling_results_file = None
+        try:
+            _crawling_results_file = open(_file_path, 'rb')
+            while True:
+                _data = _crawling_results_file.read(1024)
+                if not _data:
+                    break
+                yield _data
+        finally:
+            _crawling_results_file.close()
+            os.remove(_crawling_results_file.name)
 
 
 class alive:
@@ -97,7 +111,7 @@ class kill:
 
 class WebServer(threading.Thread):
 
-    def __init__(self, address='127.0.0.1', port=8800):
+    def __init__(self, address='0.0.0.0', port=8800):
         threading.Thread.__init__(self)
         self.address = address
         self.port = port
@@ -136,5 +150,6 @@ if __name__ == '__main__':
     port = int(sys.argv[1])
     task_id = sys.argv[2]
     manager_address = sys.argv[3]
-    server = TaskServer(WebServer(port=port), task_id, manager_address)
+    address = sys.argv[4]
+    server = TaskServer(WebServer(port=port, address=address), task_id, manager_address)
     server.start()

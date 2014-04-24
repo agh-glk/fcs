@@ -11,6 +11,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   quickstart
    manager/models
    manager/api_views
 
