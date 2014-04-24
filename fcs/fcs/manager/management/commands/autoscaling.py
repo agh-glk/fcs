@@ -23,6 +23,7 @@ MAX_CRAWLER_LINK_QUEUE = 20
 MIN_LINK_PACKAGE_SIZE = 3
 STATS_PERIOD = 120
 MIN_STATS_PERIOD = 30
+AUTOSCALING_PERIOD = 30
 
 EFFICIENCY_THRESHOLD = 0.9
 LOWER_LOAD_THRESHOLD = 0.4
@@ -113,6 +114,7 @@ class Command(BaseCommand):
 
     def assign_crawlers_to_servers(self):
         # TODO: in future - get and check crawler load time and adjust assignment
+        # TODO: remove prints
         actual_crawlers = [crawler.address for crawler in Crawler.objects.all()]
 
         if self.changed or self.old_crawlers != actual_crawlers:
@@ -126,8 +128,8 @@ class Command(BaseCommand):
                     server.send('/crawlers', 'post', json.dumps({'crawlers': {}}))
                 return
 
-            speed_factor = total_speed / total_power
-
+            speed_factor = 1. * total_speed / total_power
+            print total_speed, total_power, speed_factor
             crawlers_load = [[address, 0] for address in actual_crawlers]
             length = len(crawlers_load)
 
@@ -136,16 +138,18 @@ class Command(BaseCommand):
                     server.send('/crawlers', 'post', json.dumps({'crawlers': {}}))
                 else:
                     assignment = {}
-                    link_pool = max(1, server.urls_per_min / speed_factor)
+                    link_pool = max(1, int(server.urls_per_min / speed_factor))
                     crawlers_num = min(len(actual_crawlers), max(1, link_pool / MIN_LINK_PACKAGE_SIZE))
+                    print server.address, server.urls_per_min, link_pool, crawlers_num
                     crawlers_load.sort(key=lambda x: x[1], reverse=True)
                     for i in range(crawlers_num, 0, -1):
                         entry = crawlers_load[length - i]
-                        links = max(0, min(link_pool / i, MAX_CRAWLER_LINK_QUEUE - entry[1]))
+                        links = min(link_pool / i, max(MAX_CRAWLER_LINK_QUEUE - entry[1], MIN_LINK_PACKAGE_SIZE))
                         if i == 1:
                             links = link_pool
                         link_pool -= links
                         entry[1] += links
+                        print link_pool, links
                         assignment[entry[0]] = links
                     server.send('/crawlers', 'post', json.dumps({'crawlers': assignment}))
 
@@ -159,7 +163,7 @@ class Command(BaseCommand):
             if not server.is_alive():
                 server.kill()
 
-        if time.time() - self.last_scaling < 30:
+        if time.time() - self.last_scaling < AUTOSCALING_PERIOD:
             return
 
         expected_efficiency = 0

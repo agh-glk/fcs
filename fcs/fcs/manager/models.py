@@ -185,9 +185,11 @@ class TaskServer(models.Model):
             return None
 
     def delete(self, using=None):
-        self.task.autoscale_change = True
-        self.task.save()
-        super(TaskServer, self).delete(using)
+        try:
+            self.task.autoscale_change = True
+            self.task.save()
+        finally:
+            super(TaskServer, self).delete(using)
 
 
 class Task(models.Model):

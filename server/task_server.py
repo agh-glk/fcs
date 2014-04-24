@@ -17,7 +17,7 @@ sys.path.append('../')
 from common.content_coder import Base64ContentCoder
 
 
-URL_PACKAGE_TIMEOUT = 30
+URL_PACKAGE_TIMEOUT = 60
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 WAIT_FOR_DOWNLOAD_TIME = 25    # in seconds
 DATA_PACKAGE_SIZE = 5
@@ -270,10 +270,13 @@ class TaskServer(threading.Thread):
         packages_cached = len(self.package_cache)
         self.cache_lock.release()
         # TODO: change following comparison - size() depends if user downloaded some data
-        if (datetime.now() > expire_date) or (self.content_db.size() > max_links):
-            self.logger.debug('Task limits exceeded')
+        if datetime.now() > expire_date:
+            self.logger.debug('Task expired')
             self._stop_task()
-        if self.link_db.size() == 0 and packages_cached == 0:
+        elif self.content_db.size() > max_links:
+            self.logger.debug('Task max links limit exceeded')
+            self._stop_task()
+        elif self.link_db.size() == 0 and packages_cached == 0:
             self.logger.debug('No links to crawl')
             self._stop_task()
 
@@ -502,4 +505,6 @@ class TaskServer(threading.Thread):
         Checks if crawled links number in the last time is above expectation.
         """
         stats = self._get_stats(CRAWLING_PERIOD)
-        return stats['links'] >= stats['speed']
+        if stats['seconds'] > 0:
+            return 60. * stats['links'] / stats['seconds'] >= stats['speed']
+        return False
