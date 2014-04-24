@@ -2,8 +2,8 @@
 - model: sites.site
   pk: 1
   fields:
-    domain: localhost:8000
-    name: localhost:8000
+    domain: 192.168.0.2:8000
+    name: 192.168.0.2:8000
 
 #Administrator. Hasło: "admin".
 - model: manager.User
