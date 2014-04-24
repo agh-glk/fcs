@@ -102,32 +102,39 @@ class Crawler(models.Model):
     address = models.CharField(max_length=100, unique=True)
     uuid = models.CharField(max_length=100, unique=True)
 
-    def increase_timeouts(self):
-        self.timeouts += 1
-        self.save()
-
-    def get_timeouts(self):
-        return self.timeouts
-
-    def reset_timeouts(self):
-        self.timeouts = 0
-        self.save()
-
     def is_alive(self):
+        """
+        Checks if crawler represented by this object responds for requests
+        """
         r = self.send('/alive')
         if r is None:
             return False
         return r.status_code == status.HTTP_200_OK
 
     def stop(self):
+        """
+        Sends stop request to crawler represented by this object.
+
+        If crawler doesn't respond this object will be deleted.
+        """
         if self.send('/stop', 'post') is None:
             self.delete()
 
     def kill(self):
+        """
+        Sends kill request to crawler represented by this object.
+
+        If crawler doesn't respond this object will be deleted.
+        """
         if self.send('/kill', 'post') is None:
             self.delete()
 
     def send(self, path, method='get', data=None):
+        """
+        Sends request to crawler represented by this object.
+
+        If connection cannot be established (ConnectionError) None will be returned.
+        """
         try:
             if method == 'get':
                 return requests.get(self.address + path)
@@ -146,16 +153,29 @@ class TaskServer(models.Model):
     uuid = models.CharField(max_length=100, unique=True)
 
     def is_alive(self):
+        """
+        Checks if task server represented by this object responds for requests.
+        """
         r = self.send('/alive')
         if not r:
             return False
         return r.status_code == status.HTTP_200_OK
 
     def kill(self):
+        """
+        Sends kill request to task server represented by this object.
+
+        If server doesn't respond this object will be deleted.
+        """
         if not self.send('/kill', 'post'):
             self.delete()
 
     def send(self, path, method='get', data=None):
+        """
+        Sends request to task server represented by this object.
+
+        If connection cannot be established (ConnectionError) None will be returned.
+        """
         try:
             if method == 'get':
                 return requests.get(self.address + path)
@@ -237,11 +257,17 @@ class Task(models.Model):
             self.send_update_to_task_server()
 
     def get_parsed_whitelist(self):
+        """
+        Returns whitelist converted from user-friendly regex to python regex
+        """
         user_regexes = self.whitelist.split()
         python_regexes = ['^' + regex.replace('.', '\.').replace('*', '.*') + '$' for regex in user_regexes]
         return python_regexes
 
     def get_parsed_blacklist(self):
+        """
+        Returns blacklist converted from user-friendly regex to python regex
+        """
         user_regexes = self.blacklist.split()
         python_regexes = ['^' + regex.replace('.', '\.').replace('*', '.*') + '$' for regex in user_regexes]
         return python_regexes

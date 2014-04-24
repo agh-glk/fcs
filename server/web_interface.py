@@ -15,7 +15,7 @@ class index:
         ret += json.dumps({'processing_crawlers': server.processing_crawlers}) + '\n\n'
         ret += json.dumps({'idle_crawlers': server.get_idle_crawlers()}) + '\n\n'
         ret += json.dumps({'crawlers_assignment': server.crawlers}) + '\n\n'
-        ret += json.dumps({'stats': server.get_stats(60)}) + '\n\n'
+        ret += json.dumps({'stats': server._get_stats(60)}) + '\n\n'
         ret += json.dumps(server.package_cache) + '\n\n'
         return ret
 
@@ -43,7 +43,7 @@ class stats:
     def POST(self):
         data = json.loads(web.data())
         seconds = int(data['seconds'])
-        return json.dumps(server.get_stats(seconds))
+        return json.dumps(server._get_stats(seconds))
 
 
 class crawlers:

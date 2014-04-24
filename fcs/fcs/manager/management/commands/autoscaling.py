@@ -48,8 +48,8 @@ class Command(BaseCommand):
             self.print_tasks()
             self.check_tasks_state()
             self.handle_priority_changes()
-            self.assign_crawlers_to_servers()
             self.autoscale()
+            self.assign_crawlers_to_servers()
             time.sleep(10)
 
     def print_tasks(self):

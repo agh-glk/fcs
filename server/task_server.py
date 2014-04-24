@@ -74,15 +74,27 @@ class TaskServer(threading.Thread):
         self.logger.setLevel(logging.DEBUG)
 
     def assign_crawlers(self, assignment):
+        """
+        Sets actual crawler assignment.
+
+        Task server can send crawling requests only to these crawlers
+        and size of packages must be specified in assignment dict for each crawler.
+        It allows to control crawling efficiency of all task servers.
+        """
         self.data_lock.acquire()
         self.crawlers = assignment
         self.data_lock.release()
         self.logger.debug('%d crawlers assigned' % len(assignment))
 
     def assign_speed(self, speed):
+        """
+        Sets task server's crawling speed.
+
+        After each speed change statistics are reset.
+        """
         self.data_lock.acquire()
         self.speed = int(speed)
-        self.reset_stats()
+        self._reset_stats()
         self.data_lock.release()
         self.logger.debug('Changed speed to %d', self.speed)
 
@@ -91,18 +103,29 @@ class TaskServer(threading.Thread):
         return 'http://' + self.web_server.get_host()
 
     def _set_status(self, status):
+        """
+        Sets task server state.
+        """
         self.status_lock.acquire()
         self.status = status
         self.status_lock.release()
         self.logger.debug('Changed status to: %d' % status)
 
     def _get_status(self):
+        """
+        Returns actual task server state.
+        """
         self.status_lock.acquire()
         _status = self.status
         self.status_lock.release()
         return _status
 
     def _register_to_management(self):
+        """
+        Sends register request to FCS main application.
+
+        Received data is used to set crawling parameters.
+        """
         r = requests.post(self.manager_address + '/autoscale/server/register/',
                                 data={'task_id': self.task_id, 'address': self.get_address()})
         self.logger.debug('Registering to management. Return code: %d' % r.status_code)
@@ -124,11 +147,19 @@ class TaskServer(threading.Thread):
             self.stop()
 
     def _unregister_from_management(self):
+        """
+        Sends unregister request to FCS main application.
+        """
         r = requests.post(self.manager_address + '/autoscale/server/unregister/',
                           data={'task_id': self.task_id, 'uuid': self.uuid})
         self.logger.debug('Unregistering from management. Return code: %d' % r.status_code)
 
     def update(self, data):
+        """
+        Updates crawling parameters and status.
+
+        It is called usually when user makes some changes in task data using GUI or API.
+        """
         self.logger.debug('Updating task server')
         if self._get_status() in [Status.STOPPING, Status.STARTING]:
             return
@@ -150,37 +181,57 @@ class TaskServer(threading.Thread):
             self.pause()
 
     def pause(self):
+        """
+        Pauses task server if it was running.
+        """
         if self._get_status() == Status.RUNNING:
             self._set_status(Status.PAUSED)
 
     def resume(self):
+        """
+        Resumes task server if it was paused.
+        """
         if self._get_status() == Status.PAUSED:
             self._set_status(Status.RUNNING)
 
     def stop(self):
+        """
+        Sets STOPPING status
+
+        Task server in this state won't send crawling requests anymore.
+        It will wait WAIT_FOR_DOWNLOAD_TIME seconds for user to download gathered data.
+        """
         self._set_status(Status.STOPPING)
 
     def kill(self):
+        """
+        Sets KILLED status
+
+        Task server in this state will be stopped as soon as possible
+        """
         self._set_status(Status.KILLED)
 
     def run(self):
+        """
+        Main task server loop
+        """
         self._set_status(Status.STARTING)
         self.web_server.start()
         self._register_to_management()
         try:
             while self._get_status() not in [Status.STOPPING, Status.KILLED]:
-                if self._get_status() == Status.RUNNING and not self.efficiency_achieved():
+                if self._get_status() == Status.RUNNING and not self._efficiency_achieved():
                     for crawler in self.get_idle_crawlers():
-                        package = self.get_links_package(crawler, self.crawlers[crawler])
+                        package = self._get_links_package(crawler, self.crawlers[crawler])
                         if package:
                             try:
                                 requests.post(crawler + '/put_links', json.dumps(package))
                                 self.logger.debug('Sending links to crawler %s' % crawler)
                             except ConnectionError:
-                                self.ban_crawler(crawler)
-                self.check_cache()
-                self.check_limits()
-                self.clear_stats()
+                                pass
+                self._check_cache()
+                self._check_limits()
+                self._clear_stats()
                 time.sleep(1)
 
             shutdown_time = time.time()
@@ -195,6 +246,9 @@ class TaskServer(threading.Thread):
             self.logger.debug('Task server stopped')
 
     def get_idle_crawlers(self):
+        """
+        Returns list of crawlers which are not processing any requests.
+        """
         self.data_lock.acquire()
         crawlers = self.crawlers
         self.data_lock.release()
@@ -203,7 +257,11 @@ class TaskServer(threading.Thread):
         self.cache_lock.release()
         return [crawler for crawler in crawlers if crawler not in processing]
 
-    def check_limits(self):
+    def _check_limits(self):
+        """
+        Checks if crawling limits are exceeded or no link left to crawl.
+        If so, tries to stop task.
+        """
         self.data_lock.acquire()
         expire_date = self.expire_date
         max_links = self.max_links
@@ -214,19 +272,27 @@ class TaskServer(threading.Thread):
         # TODO: change following comparison - size() depends if user downloaded some data
         if (datetime.now() > expire_date) or (self.content_db.size() > max_links):
             self.logger.debug('Task limits exceeded')
-            self.stop_task()
+            self._stop_task()
         if self.link_db.size() == 0 and packages_cached == 0:
             self.logger.debug('No links to crawl')
-            self.stop_task()
+            self._stop_task()
 
-    def stop_task(self):
+    def _stop_task(self):
+        """
+        Sends request to FCS main application to stop this task server's task.
+
+        If case of error task server will be killed.
+        """
         r = requests.post(self.manager_address + '/autoscale/server/stop_task/',
                           data={'task_id': self.task_id, 'uuid': self.uuid})
         self.logger.debug('Stopping task. Return code: %d' % r.status_code)
         if r.status_code in [status.HTTP_412_PRECONDITION_FAILED, status.HTTP_404_NOT_FOUND]:
             self.kill()
 
-    def cache(self, package_id, crawler, links):
+    def _cache(self, package_id, crawler, links):
+        """
+        Puts link package into cache and marks assigned crawler as 'processing'
+        """
         self.cache_lock.acquire()
         has_timed_out = False
         self.package_cache[package_id] = [time.time(), links, crawler, has_timed_out]
@@ -234,7 +300,10 @@ class TaskServer(threading.Thread):
         self.cache_lock.release()
         self.logger.debug('Cached package %d' % package_id)
 
-    def get_links_package(self, crawler, size):
+    def _get_links_package(self, crawler, size):
+        """
+        Prepares link package of given size for given crawler and caches it.
+        """
         _links = []
         for i in range(size):
             _links.append(self.link_db.get_link())
@@ -246,13 +315,19 @@ class TaskServer(threading.Thread):
             package_id = self.package_id
             #TODO: change 'crawling_type' to 'mime_type'
             package = {'server_address': address, 'crawling_type': crawling_type, 'id': package_id, 'links': _links}
-            self.cache(package_id, crawler, _links)
+            self._cache(package_id, crawler, _links)
             self.package_id += 1
             return package
         else:
             return None
 
-    def check_cache(self):
+    def _check_cache(self):
+        """
+        Scans package cache looking for timed out packages.
+
+        Marks timed out packages as such
+        and again puts links that they contained into database.
+        """
         cur_time = time.time()
         self.cache_lock.acquire()
         for package_id in self.package_cache.keys():
@@ -260,11 +335,18 @@ class TaskServer(threading.Thread):
                     not self.package_cache[package_id][3]:
                 self.logger.debug('Package %d has timed out. Readding' % package_id)
                 self.readd_links(self.package_cache[package_id][1])
-                self.warn_crawler(self.package_cache[package_id][2])
                 self.package_cache[package_id][3] = True
+            elif (cur_time - self.package_cache[package_id][0]) > 5 * URL_PACKAGE_TIMEOUT:
+                self._clear_cache(package_id)
         self.cache_lock.release()
 
-    def clear_cache(self, package_id):
+    def _clear_cache(self, package_id):
+        """
+        Removes entry from package cache for given package id.
+
+        It also marks crawler which was assigned to this crawling request as 'idle'
+        so next request can be sent to this crawler.
+        """
         self.cache_lock.acquire()
         try:
             self.processing_crawlers.remove(self.package_cache[package_id][2])
@@ -274,16 +356,6 @@ class TaskServer(threading.Thread):
             pass
         self.cache_lock.release()
 
-    def warn_crawler(self, crawler):
-        r = requests.post(self.manager_address + '/autoscale/server/warn_crawler/',
-                          data={'address': crawler})
-        self.logger.debug('Warning crawler %s. Return code %d' % (crawler, r.status_code))
-
-    def ban_crawler(self, crawler):
-        r = requests.post(self.manager_address + '/autoscale/server/ban_crawler/',
-                          data={'address': crawler})
-        self.logger.debug('Banning crawler %s. Return code %d' % (crawler, r.status_code))
-
     def contents(self):
         return self.content_db.content()
 
@@ -292,7 +364,11 @@ class TaskServer(threading.Thread):
         #self.link_db.change_link_priority(regex, rate)
         pass
 
-    def evaluate_link(self, link):
+    def _evaluate_link(self, link):
+        """
+        Checks blacklist and whitelist and decides
+        if link can be put into link queue.
+        """
         domain = urlparse(link).netloc
         if not domain:
             self.logger.debug('Link evaluation failed. Bad link format: %s' % link)
@@ -311,7 +387,7 @@ class TaskServer(threading.Thread):
         self.logger.debug('Adding %d links' % len(links))
         for link in links:
             _link = URLProcessor.process(link, domain=domain)
-            if self.evaluate_link(_link) and not self.link_db.is_in_base(_link):
+            if self._evaluate_link(_link) and not self.link_db.is_in_base(_link):
                 self.link_db.add_link(_link, priority, depth)
                 _counter += 1
         self.logger.debug("Added %d new links into DB." % _counter)
@@ -325,38 +401,67 @@ class TaskServer(threading.Thread):
         return Base64ContentCoder.decode(content)
 
     def put_data(self, package_id, data):
+        """
+        Handles data package received from crawler and puts it into content database
+
+        If received package isn't in package cache (or crawling request has timed out)
+        no data will be stored in database.
+        It also marks crawler which was assigned to this crawling request as 'idle'
+        so next request can be sent to this crawler.
+        """
         if package_id in self.package_cache:
             has_timed_out = self.package_cache[package_id][3]
             if not has_timed_out:
                 self.logger.debug('Putting content from package %d' % package_id)
-                self.add_stats(len(data))
+                self._add_stats(len(data))
                 for entry in data:
                     self.logger.debug('Adding content from url %s' % entry['url'])
                     self.content_db.add_content(entry['url'], entry['links'], self._decode_content(entry['content']))
                     # TODO: put correct depth and priority value (based on previous url)
                     self.add_links(entry['links'], BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, 0, domain=entry['url'])
-            self.clear_cache(package_id)
+            self._clear_cache(package_id)
 
     def _clear(self):
+        """
+        Clears database files
+        """
         self.logger.debug('Clearing db files')
         self.link_db.clear()
 
     def get_data(self, size=DATA_PACKAGE_SIZE):
+        """
+        Retrieves size MB of crawled data from content database.
+        """
         self.logger.debug('Downloading content - %d size' % size)
         return self.content_db.get_data_package(size)
 
-    def add_stats(self, links):
+    def _add_stats(self, links):
+        """
+        Adds new statistics entry - links number with current time
+        """
         self.statistics_lock.acquire()
         self.crawled_links.append((time.time(), links))
         self.statistics_lock.release()
 
-    def reset_stats(self):
+    def _reset_stats(self):
+        """
+        Removes all statistics entries and
+        resets time from which statistics can be measured.
+        """
         self.statistics_lock.acquire()
         self.crawled_links = []
         self.stats_reset_time = time.time()
         self.statistics_lock.release()
 
-    def get_stats(self, seconds):
+    def _get_stats(self, seconds):
+        """
+        Returns statistics summarise for the last seconds in a dict.
+
+        Dict keys:
+        'seconds' - actual number of seconds for which measurement was done
+        'links' - number of links crawled during this time
+        'speed' - crawling speed assigned to this task server
+        """
         self.statistics_lock.acquire()
         now = time.time()
         from_time = now - seconds
@@ -377,7 +482,10 @@ class TaskServer(threading.Thread):
         self.data_lock.release()
         return ret
 
-    def clear_stats(self):
+    def _clear_stats(self):
+        """
+        Removes statistics entries which are too old
+        """
         self.statistics_lock.acquire()
         from_time = max(time.time() - KEEP_STATS_SECONDS, self.stats_reset_time)
         index = 0
@@ -389,6 +497,9 @@ class TaskServer(threading.Thread):
         self.stats_reset_time = from_time
         self.statistics_lock.release()
 
-    def efficiency_achieved(self):
-        stats = self.get_stats(CRAWLING_PERIOD)
+    def _efficiency_achieved(self):
+        """
+        Checks if crawled links number in the last time is above expectation.
+        """
+        stats = self._get_stats(CRAWLING_PERIOD)
         return stats['links'] >= stats['speed']
