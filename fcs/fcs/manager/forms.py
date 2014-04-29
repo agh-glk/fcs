@@ -23,7 +23,13 @@ class EditTaskForm(forms.ModelForm):
     class Meta:
         model = Task
         exclude = ['name', 'user', 'start_links', 'created', 'active', 'server', 'last_server_spawn', 'finished',
-                'last_data_download', 'autoscale_change']
+                   'last_data_download']
+
+    def is_valid(self):
+        try:
+            return super(EditTaskForm, self).is_valid()
+        except QuotaException as e:
+            self._errors[forms.forms.NON_FIELD_ERRORS] = [e.message]
 
 
 class CreateTaskForm(forms.Form):

@@ -27,6 +27,6 @@ Short instruction presenting how to launch Focused Crawling Search.
 #. Open browser and go to ``http://192.168.0.2:8000``.
 #. Register new user. Activation mail should be displayed in console.
 #. Log in.
-#. Click :menuselection:`Tasks --> Add new`. Fill form. Confirm with :guilabel:`Add` button.
+#. Click :menuselection:`Tasks --> Add new`. Fill the form. Confirm with :guilabel:`Add` button.
 #. Crawling process will begin soon. You can monitor it in terminal's windows and logs of crawler and server located in :file:`./fcs/fcs`.
 #. In task details(hyperlink in tasks table) you can download crawling results.
