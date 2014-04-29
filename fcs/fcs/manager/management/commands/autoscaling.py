@@ -58,9 +58,11 @@ class Command(BaseCommand):
             time.sleep(10)
 
     def print_tasks(self):
+        self.stdout.write('Task list:')
         for task in Task.objects.all():
             self.stdout.write('%s %s %s %s %s %s' % (str(task.user), str(task.name), str(task.active),
                     str(task.finished), str(task.expire_date), 'changed' if task.autoscale_change else ''))
+        self.stdout.write('')
 
     def check_tasks_state(self):
         for task in Task.objects.all():
@@ -99,7 +101,6 @@ class Command(BaseCommand):
                         task.server.save()
 
     def spawn_task_server(self, task):
-        print os.path.abspath(PATH_TO_SERVER)
         print 'Spawn server for task: ', task
         subprocess.Popen(['python', PATH_TO_SERVER, str(self.server_port), str(task.id), 'http://'+self.address+':8000',
                           self.address])
@@ -111,7 +112,6 @@ class Command(BaseCommand):
     def spawn_crawler(self):
         if len(Crawler.objects.all()) >= MAX_CRAWLERS:
             return
-        print os.path.abspath(PATH_TO_CRAWLER)
         print 'Spawn crawler'
         subprocess.Popen(['python', PATH_TO_CRAWLER, str(self.crawler_port), 'http://' + self.address + ':8000'])
         # TODO: change management address
@@ -123,6 +123,8 @@ class Command(BaseCommand):
         actual_crawlers = [crawler.address for crawler in Crawler.objects.all()]
 
         if self.changed or self.old_crawlers != actual_crawlers:
+            print ''
+            print 'Assigning crawlers'
             self.changed = False
             self.old_crawlers = actual_crawlers
             servers = TaskServer.objects.all()
@@ -134,7 +136,6 @@ class Command(BaseCommand):
                 return
 
             speed_factor = 1. * total_speed / total_power
-            print total_speed, total_power, speed_factor
             crawlers_load = [[address, 0] for address in actual_crawlers]
             length = len(crawlers_load)
 
@@ -145,7 +146,10 @@ class Command(BaseCommand):
                     assignment = {}
                     link_pool = max(1, int(server.urls_per_min / speed_factor))
                     crawlers_num = min(len(actual_crawlers), max(1, link_pool / MIN_LINK_PACKAGE_SIZE))
-                    print server.address, server.urls_per_min, link_pool, crawlers_num
+                    print 'Server', server.address, 'stats:'
+                    print '\tspeed:', server.urls_per_min
+                    print '\tlink pool:', link_pool
+                    print '\tcrawlers:', crawlers_num
                     crawlers_load.sort(key=lambda x: x[1], reverse=True)
                     for i in range(crawlers_num, 0, -1):
                         entry = crawlers_load[length - i]
@@ -154,9 +158,9 @@ class Command(BaseCommand):
                             links = link_pool
                         link_pool -= links
                         entry[1] += links
-                        print link_pool, links
                         assignment[entry[0]] = links
                     server.send('/crawlers', 'post', json.dumps({'crawlers': assignment}))
+            print ''
 
     def autoscale(self):
         task_servers = TaskServer.objects.all()
@@ -171,6 +175,8 @@ class Command(BaseCommand):
         if time.time() - self.last_scaling < AUTOSCALING_PERIOD:
             return
 
+        print ''
+        print 'Autoscaling'
         expected_efficiency = 0
         actual_efficiency = 0
         for server in task_servers:
@@ -191,7 +197,13 @@ class Command(BaseCommand):
                     expected_load += data['seconds']
                     actual_load += data['load']
 
-        print '\n\nSTATS:\n%d\n%f\n%d\n%f' % (expected_efficiency, actual_efficiency, expected_load, actual_load)
+        print 'Expected efficiency:', expected_efficiency
+        print 'Actual efficiency:', actual_efficiency
+        print 'Efficiency percentage:', (1. * actual_efficiency / expected_efficiency) if expected_efficiency else 0.0
+        print 'Crawlers up time:', expected_load
+        print 'Crawlers load time:', actual_load
+        print 'Load percentage:', (1. * actual_load / expected_load) if expected_load else 0.0
+        print ''
 
         if actual_efficiency < EFFICIENCY_THRESHOLD * expected_efficiency:
             if expected_load == 0 or (1. * actual_load / expected_load) > UPPER_LOAD_THRESHOLD:

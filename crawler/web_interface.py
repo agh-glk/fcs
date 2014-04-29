@@ -35,17 +35,21 @@ class put_links:
 
 class stop:
     def POST(self):
-        crawler.stop()
-        event.set()
-        #server.kill()
+        try:
+            crawler.stop()
+            event.set()
+        except:
+            server.kill()
         return "Stop successful"
 
 
 class kill:
     def POST(self):
-        crawler.kill()
-        event.set()
-        #server.kill()
+        try:
+            crawler.kill()
+            event.set()
+        except:
+            server.kill()
         return "Kill successful"
 
 

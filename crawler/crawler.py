@@ -56,6 +56,7 @@ class Crawler(ThreadWithExc):
         _file_handler.setFormatter(_formatter)
         self.logger.addHandler(_file_handler)
         self.logger.setLevel(logging.DEBUG)
+        self.logger.debug('Crawler initialized')
 
     def put_into_link_queue(self, link_package):
         self.link_package_queue.put(link_package)
