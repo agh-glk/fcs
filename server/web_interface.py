@@ -13,7 +13,7 @@ server = None
 class index:
     def GET(self):
         ret = json.dumps({'status': server.status}) + '\n\n'
-        ret += json.dumps({'crawled_links': server.content_db.size()}) + '\n\n'
+        ret += json.dumps({'crawled_links': server.content_db.added_records_num()}) + '\n\n'
         ret += json.dumps({'processing_crawlers': server.processing_crawlers}) + '\n\n'
         ret += json.dumps({'idle_crawlers': server.get_idle_crawlers()}) + '\n\n'
         ret += json.dumps({'crawlers_assignment': server.crawlers}) + '\n\n'
@@ -33,7 +33,6 @@ class feedback:
 
 class put_data:
     def POST(self):
-        # TODO: return some error if package has timed out so crawler will know that new packages were sent
         data = json.loads(web.data())
         package_id = data['id']
         package_data = data['data']
@@ -59,7 +58,7 @@ class crawlers:
 class speed:
     def POST(self):
         data = json.loads(web.data())
-        new_speed = data['speed']
+        new_speed = data['urls_per_min']
         server.assign_speed(new_speed)
         return 'OK'
 

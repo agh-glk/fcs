@@ -23,7 +23,7 @@ class EditTaskForm(forms.ModelForm):
     class Meta:
         model = Task
         exclude = ['name', 'user', 'start_links', 'created', 'active', 'server', 'last_server_spawn', 'finished',
-                   'last_data_download']
+                   'last_data_download', 'autoscale_change']
 
     def is_valid(self):
         try:

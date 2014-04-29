@@ -57,8 +57,7 @@ class TaskServer(threading.Thread):
         self.uuid = ''
         self.whitelist = []
         self.blacklist = []
-        #TODO: rename to url_per_min for unification
-        self.speed = 0
+        self.urls_per_min = 0
 
         self.package_cache = {}
         self.package_id = 0
@@ -97,10 +96,10 @@ class TaskServer(threading.Thread):
         After each speed change statistics are reset.
         """
         self.data_lock.acquire()
-        self.speed = int(speed)
+        self.urls_per_min = int(speed)
         self._reset_stats()
         self.data_lock.release()
-        self.logger.debug('Changed speed to %d', self.speed)
+        self.logger.debug('Changed speed to %d', self.urls_per_min)
 
     def get_address(self):
         # TODO: change this address to external ip address (and in crawler too)
@@ -154,7 +153,6 @@ class TaskServer(threading.Thread):
         """
         Sends unregister request to FCS main application.
         """
-        #TODO: check why task not found!!!!
         #TODO: check why precondition failed (task not stopped)
         r = requests.post(self.manager_address + '/autoscale/server/unregister/',
                           data={'task_id': self.task_id, 'uuid': self.uuid})
@@ -276,11 +274,10 @@ class TaskServer(threading.Thread):
         self.cache_lock.acquire()
         packages_cached = len(self.package_cache)
         self.cache_lock.release()
-        # TODO: change following comparison - size() depends if user downloaded some data
         if datetime.now() > expire_date:
             self.logger.debug('Task expired')
             self._stop_task()
-        elif self.content_db.size() > max_links:
+        elif self.content_db.added_records_num() > max_links:
             self.logger.debug('Task max links limit exceeded')
             self._stop_task()
         elif self.link_db.size() == 0 and packages_cached == 0:
@@ -494,7 +491,7 @@ class TaskServer(threading.Thread):
         ret['seconds'] = int(now - from_time)
         ret['links'] = links
         self.data_lock.acquire()
-        ret['speed'] = self.speed
+        ret['speed'] = self.urls_per_min
         self.data_lock.release()
         return ret
 
