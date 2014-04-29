@@ -22,7 +22,8 @@ DEFAULT_CRAWLER_SPEED = 1000
 MAX_CRAWLER_LINK_QUEUE = 20
 MIN_LINK_PACKAGE_SIZE = 3
 STATS_PERIOD = 120
-MIN_STATS_PERIOD = 30
+MIN_CRAWLER_STATS_PERIOD = 30
+MIN_SERVER_STATS_PERIOD = 10
 AUTOSCALING_PERIOD = 30
 
 EFFICIENCY_THRESHOLD = 0.9
@@ -176,7 +177,7 @@ class Command(BaseCommand):
             r = server.send('/stats', 'post', data=json.dumps({'seconds': STATS_PERIOD}))
             if r:
                 data = r.json()
-                if data['seconds'] > MIN_STATS_PERIOD:
+                if data['seconds'] > MIN_SERVER_STATS_PERIOD:
                     expected_efficiency += data['speed']
                     actual_efficiency += (60. * data['links'] / data['seconds'])
 
@@ -186,7 +187,7 @@ class Command(BaseCommand):
             r = crawler.send('/stats', 'post', data=json.dumps({'seconds': STATS_PERIOD}))
             if r:
                 data = r.json()
-                if data['seconds'] > MIN_STATS_PERIOD:
+                if data['seconds'] > MIN_CRAWLER_STATS_PERIOD:
                     expected_load += data['seconds']
                     actual_load += data['load']
 

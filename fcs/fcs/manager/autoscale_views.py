@@ -45,10 +45,7 @@ def unregister_task_server(request):
             return Response('Task not stopped yet', status=status.HTTP_412_PRECONDITION_FAILED)
         if task.server.uuid != server_uuid:
             return Response('Bad UUID provided', status=status.HTTP_412_PRECONDITION_FAILED)
-        server = task.server
-        task.server = None
-        task.save()
-        server.delete()
+        task.server.delete()
         return Response('Task server unregistered')
     except Task.DoesNotExist:
         return Response('Task not found', status=status.HTTP_404_NOT_FOUND)

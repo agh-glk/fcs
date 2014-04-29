@@ -166,7 +166,7 @@ class TaskServer(threading.Thread):
 
         It is called usually when user makes some changes in task data using GUI or API.
         """
-        self.logger.debug('Updating task server')
+        self.logger.debug('Updating task server: %s' % json.dumps(data))
         if self._get_status() in [Status.STOPPING, Status.STARTING]:
             return
         if data['finished']:
