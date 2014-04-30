@@ -188,7 +188,7 @@ class Command(BaseCommand):
             if r:
                 data = r.json()
                 if data['seconds'] > MIN_SERVER_STATS_PERIOD:
-                    expected_efficiency += data['speed']
+                    expected_efficiency += data['urls_per_min']
                     actual_efficiency += (60. * data['links'] / data['seconds'])
 
         expected_load = 0

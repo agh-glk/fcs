@@ -423,7 +423,9 @@ class TaskServer(threading.Thread):
             has_timed_out = self.package_cache[package_id][3]
             if not has_timed_out:
                 self.logger.debug('Putting content from package %d' % package_id)
-                self._add_stats(len(data))
+                start_time = self.package_cache[package_id][0]
+                end_time = time.time()
+                self._add_stats(start_time, end_time, len(data))
                 for entry in data:
                     self.logger.debug('Adding content from url %s' % entry['url'])
                     self.content_db.add_content(entry['url'], entry['links'], entry['content'])
@@ -448,12 +450,12 @@ class TaskServer(threading.Thread):
         self.logger.debug('Downloading content - %d size' % size)
         return self.content_db.get_file_with_data_package(size)
 
-    def _add_stats(self, links):
+    def _add_stats(self, start_time, end_time, links):
         """
         Adds new statistics entry - links number with current time
         """
         self.statistics_lock.acquire()
-        self.crawled_links.append((time.time(), links))
+        self.crawled_links.append((start_time, end_time, links))
         self.statistics_lock.release()
 
     def _reset_stats(self):
@@ -484,14 +486,16 @@ class TaskServer(threading.Thread):
         links = 0
         for entry in self.crawled_links:
             if entry[0] > from_time:
-                links += entry[1]
+                links += entry[2]
+            elif entry[1] > from_time:
+                links += int(entry[2] * (entry[1] - from_time) / (entry[1] - entry[0]))
         self.statistics_lock.release()
 
         ret = dict()
         ret['seconds'] = int(now - from_time)
         ret['links'] = links
         self.data_lock.acquire()
-        ret['speed'] = self.urls_per_min
+        ret['urls_per_min'] = self.urls_per_min
         self.data_lock.release()
         return ret
 
@@ -516,5 +520,5 @@ class TaskServer(threading.Thread):
         """
         stats = self._get_stats(CRAWLING_PERIOD)
         if stats['seconds'] > 0:
-            return 60. * stats['links'] / stats['seconds'] >= stats['speed']
+            return 60. * stats['links'] / stats['seconds'] >= stats['urls_per_min']
         return False

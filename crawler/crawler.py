@@ -132,7 +132,6 @@ class Crawler(ThreadWithExc):
         self.stats_lock.release()
 
     def get_stats(self, seconds):
-        # TODO: consider entries which started earlier and ended later than from_time
         self.stats_lock.acquire()
         now = time.time()
         from_time = now - seconds
@@ -145,6 +144,9 @@ class Crawler(ThreadWithExc):
             if entry[0] > from_time:
                 links += entry[2]
                 load_time += entry[1] - entry[0]
+            elif entry[1] > from_time:
+                links += int(entry[2] * (entry[1] - from_time) / (entry[1] - entry[0]))
+                load_time += entry[1] - from_time
         self.stats_lock.release()
 
         ret = dict()

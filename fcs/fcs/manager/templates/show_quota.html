@@ -4,10 +4,9 @@
      <h3 class="title">{% block form-title %}Available quota{% endblock form-title %}</h3>
      <table type="table" class="table">
          <tr><td>Max priority:</td> <td>{{ quota.max_priority }}</td></tr>
-         <tr><td>Max priority:</td> <td> {{ quota.max_priority }}</td></tr>
-         <tr><td>Priority pool:</td> <td> {{ quota.priority_pool }}</td></tr>
-         <tr><td>Max task number:</td> <td>{{ quota.max_tasks }}</td></tr>
-         <tr><td>Links pool:</td> <td>{{ quota.link_pool }}</td></tr>
+         <tr><td>Max opened tasks:</td> <td>{{ quota.max_tasks }}</td></tr>
          <tr><td>Max links number:</td> <td>{{ quota.max_links }}</td></tr>
+         <tr><td>Links pool:</td> <td>{{ quota.link_pool }}</td></tr>
+         <tr><td>Crawling speed (URLs per min):</td> <td> {{ quota.urls_per_min }}</td></tr>
      </table>
 {% endblock content %}
