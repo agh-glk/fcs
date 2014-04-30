@@ -7,6 +7,7 @@ from key_policy_module import SimpleKeyPolicyModule
 import datetime
 import os
 import uuid
+from graph_db import GraphDB
 
 
 class BaseLinkDB(object):
@@ -208,6 +209,66 @@ class BerkeleyBTreeLinkDB(BaseLinkDB):
     def _print(self):
         self._print_db(self.priority_queue)
         self._print_db(self.found_links)
+
+
+class GraphAndBTreeDB(BaseLinkDB):
+    FOUND_LINKS_DB = "_found_links_db"
+    PRIORITY_QUEUE_DB = "_priority_queue_db"
+
+    DEFAULT_PRIORITY = 500
+    BEST_PRIORITY = 0
+
+    def __init__(self, base_name, policy_module):
+        self.policy_module = policy_module
+        self.base_name = base_name
+
+        self.found_links = GraphDB("http://localhost:8182/graphs/testgraph")
+
+        self.priority_queue_db_name = base_name + self.__class__.PRIORITY_QUEUE_DB + str(uuid.uuid4())
+        self.priority_queue = bsddb.btopen(self.priority_queue_db_name)
+
+    def is_in_base(self, link):
+        return self.found_links.is_in_base(link)
+
+    def add_link(self, link, priority, depth):
+        self.found_links.add_page(link, priority, depth)
+        _key = self.policy_module.generate_key(link, priority)
+        self.priority_queue[_key] = link
+
+    def get_link(self):
+        try:
+            _link = self.priority_queue.first()
+        except bsddb.db.DBNotFoundError:
+            return None
+        if _link is not None:
+            del self.priority_queue[_link[0]]
+            return _link[1]
+        return _link
+
+    def set_as_fetched(self, link):
+        self.found_links.set_as_fetched(link)
+
+    def change_link_priority(self, link, rate):
+        _old_priority = self.found_links.change_link_priority(link, rate)
+        _key = self.policy_module.generate_key(link, int(_old_priority))
+        if _key in self.priority_queue:
+            del self.priority_queue[_key]
+        _key = self.policy_module.generate_key(link, rate)
+        self.priority_queue[_key] = link
+
+    def get_details(self, link):
+        self.found_links.get_details(link)
+
+    def points(self, url_a, url_b):
+        self.found_links.points(url_a, url_b)
+
+    def close(self):
+        self.priority_queue.close()
+
+    def clear(self):
+        self.close()
+        os.remove(self.priority_queue_db_name)
+        self.found_links.clear()
 
 
 if __name__ == '__main__':

@@ -22,3 +22,5 @@ beautifulsoup4
 requests
 mechanize
 lxml
+
+bulbs

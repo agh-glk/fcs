@@ -7,7 +7,7 @@ from urlparse import urlparse
 import requests
 from requests.exceptions import ConnectionError
 from rest_framework import status
-from linkdb import BerkeleyBTreeLinkDB
+from linkdb import BerkeleyBTreeLinkDB, GraphAndBTreeDB
 from key_policy_module import SimpleKeyPolicyModule
 from contentdb import BerkeleyContentDB
 from django.utils.timezone import datetime
@@ -46,7 +46,7 @@ class TaskServer(threading.Thread):
 
         self.web_server = web_server
         self.manager_address = manager_address
-        self.link_db = BerkeleyBTreeLinkDB('link_db', SimpleKeyPolicyModule)
+        self.link_db = GraphAndBTreeDB('link_db', SimpleKeyPolicyModule)
         self.content_db = BerkeleyContentDB('content_db')
 
         self.crawlers = {}
