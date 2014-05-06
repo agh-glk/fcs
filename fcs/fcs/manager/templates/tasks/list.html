@@ -10,8 +10,12 @@
 
 {% block content %}
 <h3>Your tasks</h3>
+<form action="" method="get">
+    {{ filter_form }}
+    <input type="submit" value="Filter">
+</form>
 <div class="list-group">
-    {% render_table table "colored_table.html" %}
+    {% render_table table %}
 </div>
 <a href="{% url 'add_task' %}"><button class="btn btn-lg btn-primary">Add new</button></a>
 {% endblock content %}

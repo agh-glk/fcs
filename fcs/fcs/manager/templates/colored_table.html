@@ -1,5 +1,7 @@
 {% extends "django_tables2/table.html" %}
 {% load custom_tags %}
+{% load django_tables2 %}
+{% load i18n %}
 
 {% block table.tbody.row %}
     {% if row.finished|is_true %}
@@ -14,3 +16,39 @@
       {% endfor %}
     </tr>
 {% endblock table.tbody.row %}
+
+{% block pagination %}
+<ul class="pagination">
+    {% with table.page.number|pages:table.paginator.num_pages as pages_list %}
+    {% if 1 not in pages_list %}
+    <li class="first"><a href="{% querystring table.prefixed_page_field=1 %}">&laquo;</a></li>
+    {% endif %}
+
+    {% block pagination.previous %}
+    {% if table.page.has_previous %}
+    <li class="previous"><a href="{% querystring table.prefixed_page_field=table.page.previous_page_number %}">&lsaquo;</a></li>
+    {% endif %}
+    {% endblock pagination.previous %}
+
+    {% block pagination.current %}
+    {% for pagenum in pages_list %}
+    {% if pagenum == table.page.number %}
+    <li class="current"><span><b>{{ pagenum }}</b></span></li>
+    {% else %}
+    <li><a href="{% querystring table.prefixed_page_field=pagenum %}">{{ pagenum }}</a></li>
+    {% endif %}
+    {% endfor %}
+    {% endblock pagination.current %}
+
+    {% block pagination.next %}
+    {% if table.page.has_next %}
+    <li class="previous"><a href="{% querystring table.prefixed_page_field=table.page.next_page_number %}">&rsaquo;</a></li>
+    {% endif %}
+    {% endblock pagination.next %}
+
+    {% if table.paginator.num_pages not in pages_list %}
+    <li class="last"><a href="{% querystring table.prefixed_page_field=table.paginator.num_pages %}">&raquo;</a></li>
+    {% endif %}
+    {% endwith %}
+</ul>
+{% endblock pagination %}
