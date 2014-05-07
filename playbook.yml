@@ -37,6 +37,7 @@
         - libxml2-dev
         - libxslt1-dev
         - libdb4.8
+        - libdb4.8-dev
 
     - name: add apt repositories
       command: apt-add-repository -y ppa:rwky/redis
