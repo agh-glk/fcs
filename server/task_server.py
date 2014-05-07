@@ -394,14 +394,19 @@ class TaskServer(threading.Thread):
         self.logger.debug('Trying to add %d links' % len(links))
         for link in links:
             _link = URLProcessor.validate(link, source_url)
-            if self._evaluate_link(_link) and not self.link_db.is_in_base(_link):
-                #_depth = SimpleCrawlingDepthPolicy.calculate_depth(link, source_url, depth)
-                #_depth = RealDepthCrawlingDepthPolicy.calculate_depth(link, self.link_db)
-                _depth = IgnoreDepthPolicy.calculate_depth()
-                if _depth <= self.max_url_depth:
-                    self.logger.debug("Added:%s with priority %d" % (_link, _depth))
-                    self.link_db.add_link(_link, priority, _depth)
-                    _counter += 1
+            try:
+                if self._evaluate_link(_link) and not self.link_db.is_in_base(_link):
+                    #_depth = SimpleCrawlingDepthPolicy.calculate_depth(link, source_url, depth)
+                    #_depth = RealDepthCrawlingDepthPolicy.calculate_depth(link, self.link_db)
+                    _depth = IgnoreDepthPolicy.calculate_depth()
+                    if _depth <= self.max_url_depth:
+                        self.logger.debug("Added:%s with priority %d" % (_link, _depth))
+                        self.link_db.add_link(_link, priority, _depth)
+                        _counter += 1
+            except Exception as e:
+                self.logger.error("Add links error:"+"|"+str(_link)+"|"+"M:"+str(e.message))
+                print "Add links error:" + "|" + str(_link) + "|" + "M:" + str(e.message)
+                raise
         self.logger.debug("Added %d new links into DB." % _counter)
 
     def readd_links(self, links):

@@ -222,7 +222,7 @@ class GraphAndBTreeDB(BaseLinkDB):
         self.policy_module = policy_module
         self.base_name = base_name
 
-        self.found_links = GraphDB("http://localhost:8182/graphs/testgraph")
+        self.found_links = GraphDB("http://localhost:8182/graphs/linkgraph")
 
         self.priority_queue_db_name = base_name + self.__class__.PRIORITY_QUEUE_DB + str(uuid.uuid4())
         self.priority_queue = bsddb.btopen(self.priority_queue_db_name)
@@ -231,7 +231,7 @@ class GraphAndBTreeDB(BaseLinkDB):
         return self.found_links.is_in_base(link)
 
     def add_link(self, link, priority, depth):
-        self.found_links.add_page(link, priority, depth)
+        self.found_links.add_page(link, int(priority), int(depth))
         _key = self.policy_module.generate_key(link, priority)
         self.priority_queue[_key] = link
 
@@ -261,6 +261,10 @@ class GraphAndBTreeDB(BaseLinkDB):
 
     def points(self, url_a, url_b):
         self.found_links.points(url_a, url_b)
+
+    def size(self):
+        #TODO: check why was Value Error "__len__() should return >=0"
+        return len(self.priority_queue)
 
     def close(self):
         self.priority_queue.close()
