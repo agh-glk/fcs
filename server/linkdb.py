@@ -2,7 +2,7 @@ import heapq
 import re
 import sre_constants
 import threading
-import bsddb
+import bsddb3 as bssdb
 from key_policy_module import SimpleKeyPolicyModule
 import datetime
 import os
