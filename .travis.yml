@@ -3,6 +3,7 @@ python:
   - "2.7"
 
 install:
+  - apt-get install libdb4.8 libdb4.8-dev
   - pip install -r requirements.txt --use-mirrors
   - pip install -e .
 
