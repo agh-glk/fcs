@@ -31,6 +31,7 @@
     {% endblock pagination.previous %}
 
     {% block pagination.current %}
+    {% if table.page.has_previous or table.page.has_next %}
     {% for pagenum in pages_list %}
     {% if pagenum == table.page.number %}
     <li class="current"><span><b>{{ pagenum }}</b></span></li>
@@ -38,6 +39,7 @@
     <li><a href="{% querystring table.prefixed_page_field=pagenum %}">{{ pagenum }}</a></li>
     {% endif %}
     {% endfor %}
+    {% endif %}
     {% endblock pagination.current %}
 
     {% block pagination.next %}
