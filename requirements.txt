@@ -22,4 +22,3 @@ beautifulsoup4
 requests
 mechanize
 lxml
-bsddb3
