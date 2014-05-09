@@ -4,7 +4,7 @@ python:
 
 install:
   - wget http://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz
-  - tar -xzvf db-4.8.30.NC.tar.gz
+  - tar -xzf db-4.8.30.NC.tar.gz
   - cd db-4.8.30.NC/build_unix
   - ../dist/configure --enable-cxx
   - make
@@ -12,7 +12,6 @@ install:
   - cd ../..
   - export BDB_INCLUDE_PATH="/usr/local/BerkeleyDB.4.8/include"
   - export BDB_LIB_PATH="/usr/local/BerkeleyDB.4.8/lib"
-  - pip install bsddb3
   - pip install -r requirements.txt --use-mirrors
   - pip install -e .
 
