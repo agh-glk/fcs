@@ -38,6 +38,8 @@
         - libxslt1-dev
         - libdb4.8
         - libdb4.8-dev
+        - make
+        - g++
 
     - name: add apt repositories
       command: apt-add-repository -y ppa:rwky/redis
@@ -56,7 +58,6 @@
       sudo: yes
       notify:
         - reload postgres
-
 
     - name: fixing postrgres authentication configuration
       lineinfile: regexp="^local\s+all\s+all\s+" line="local all all md5" dest=/etc/postgresql/9.1/main/pg_hba.conf
@@ -88,6 +89,10 @@
       action: service name=redis-server state=started
       sudo: yes
 
+    - name: get berkeley db
+      command: /bin/sh /vagrant/setup.sh
+      sudo: yes
+
     - name: creating virtualenv
       action: command virtualenv /home/vagrant/{{ project_name }} creates=/home/vagrant/{{ project_name }}/bin/activate
 
@@ -98,6 +103,10 @@
       
     - name: installing python packages to virtualenv
       action: pip virtualenv=/home/vagrant/{{ project_name }} requirements=/vagrant/requirements.txt extra_args='--no-use-wheel'
+      environment:
+              BERKELEYDB_DIR: /usr/local/BerkeleyDB.4.8
+              BERKELEYDB_LIBDIR: /usr/local/BerkeleyDB.4.8/lib
+              BERKELEYDB_INCDIR: /usr/local/BerkeleyDB.4.8/include
       sudo: yes
 
     - name: installing python dev packages to virtualenv - dev
