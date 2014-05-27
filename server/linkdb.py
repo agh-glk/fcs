@@ -222,7 +222,7 @@ class GraphAndBTreeDB(BaseLinkDB):
         self.policy_module = policy_module
         self.base_name = base_name
 
-        self.found_links = GraphDB("http://localhost:8182/graphs/linkgraph")
+        self.found_links = GraphDB("neo4j_graph_db")
 
         self.priority_queue_db_name = base_name + self.__class__.PRIORITY_QUEUE_DB + str(uuid.uuid4())
         self.priority_queue = bsddb.btopen(self.priority_queue_db_name)

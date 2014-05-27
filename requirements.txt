@@ -23,4 +23,5 @@ requests
 mechanize
 lxml
 
-bulbs
+neo4j-embedded
+jpype

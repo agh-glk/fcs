@@ -1,94 +1,134 @@
-from graph_model import Page, Link
-from bulbs.rexster import Graph, Config, DEBUG
 import datetime
 import sys
-
-sys.path.append('../')
-from omnijson import JSONError
+import shutil
 
 
 class GraphDB(object):
 
-    def __init__(self, uri):
-        self.graph = Graph(Config(uri))
-        self.graph.add_proxy("pages", Page)
-        self.graph.add_proxy("links", Link)
-        self.clear()
-        self.graph.config.set_logger(DEBUG)
-
-    def is_in_base(self, link):
+    def __init__(self, location):
         try:
-            return self._find_pages(link) is not None
-        except JSONError:
-            return False
+            import jpype
+            from neo4j import GraphDatabase
+            jpype.attachThreadToJVM()
+        except Exception:
+            raise
+        self.location = location
+        self.graph = GraphDatabase(location)
 
+        with self.graph.transaction:
+            self.pages = self.graph.node()
+            self.graph.reference_node.PAGES(self.pages)
+
+            PAGES_INDEX = "pages"
+            if self.graph.node.indexes.exists(PAGES_INDEX) == 0:
+                self.pages_idx = self.graph.node.indexes.create(PAGES_INDEX)
+            else:
+                self.pages_idx = self.graph.node.indexes.get(PAGES_INDEX)
+        print 'Done'
+
+    def check_if_attached_to_jvm(function):
+        def wrapped(*args):
+            import jpype
+            if (not jpype.isThreadAttachedToJVM()):
+                jpype.attachThreadToJVM()
+            return function(*args)
+        return wrapped
+
+    @check_if_attached_to_jvm
+    def is_in_base(self, link):
+        return self._find_pages(link) is not None
+
+    @check_if_attached_to_jvm
     def add_link(self, link, priority, depth):
         return self.add_page(link, priority, depth)
 
+    @check_if_attached_to_jvm
     def set_as_fetched(self, link):
-        page = next(self._find_pages(link))
-        page.fetch_time = datetime.datetime.now()
+        page = self._find_pages(link)
+        with self.graph.transaction:
+            page['fetch_time'] = datetime.datetime.now()
 
+    @check_if_attached_to_jvm
     def change_link_priority(self, link, rate):
-        _page = next(self._find_pages(link))
-        _old_value = _page.priority
-        _page.priority = rate
+        _page = self._find_pages(link)
+        _old_value = _page['priority']
+        with self.graph.transaction:
+            _page['priority'] = rate
         return _old_value
 
+    @check_if_attached_to_jvm
     def get_details(self, link):
         """
         Returns list with 3 strings - priority, fetch date(could be empty string) and depth.
         """
-        page = next(self._find_pages(link))
-        return map(str, [page.priority, page.fetch_time, page.depth])
+        page = self._find_pages(link)
+        return map(str, [page['priority'], page['fetch_time'], page['depth']])
 
+    @check_if_attached_to_jvm
     def add_page(self, link, priority, depth):
-        ddd = {"url": link.encode("utf8"), "depth": depth, "priority": priority}
-        #return self.graph.pages.create(url=link, depth=depth, priority=priority)
-        return self.graph.vertices.create(ddd)
+        if(not self.is_in_base(link)):
+            with self.graph.transaction:
+                page = self.graph.node(url=link, priority=priority, depth=depth, fetch_time="")
+                page.INSTANCE_OF(self.pages)
+                self.pages_idx['url'][link] = page
+                return page
 
     def _update_depth(self, url_vertex_a, url_vertex_b):
-        if url_vertex_b.depth > url_vertex_a.depth + 1:
-            url_vertex_b.depth = url_vertex_a.depth+1
-            if url_vertex_b.outE() is not None:
-                for url_vertex in url_vertex_b.outE():
+        if url_vertex_b['depth'] > url_vertex_a['depth'] + 1:
+            url_vertex_b['depth'] = url_vertex_a['depth'] + 1
+            if len(url_vertex_b.links.outgoing) > 0:
+                for url_vertex in url_vertex_b.links.outgoing:
                     self._update_depth(url_vertex_b, url_vertex)
 
     def _find_pages(self, link):
-        return self.graph.pages.index.lookup(url=link.encode("utf8"))
+        return self.pages_idx['url'][link].single
 
+    @check_if_attached_to_jvm
     def points(self, url_a, url_b):
-        url_a_vertex = next(self._find_pages(url_a))
-        url_b_vertex = next(self._find_pages(url_b))
-        _edge = self.graph.links.create(url_a_vertex, url_b_vertex)
-        self._update_depth(url_a_vertex, url_b_vertex)
+        page_a_vertex = self._find_pages(url_a)
+        page_b_vertex = self._find_pages(url_b)
+        with self.graph.transaction:
+            _edge = page_a_vertex.links(page_b_vertex)
+        self._update_depth(page_a_vertex, page_b_vertex)
         return _edge
 
-    def get_pages_proxy(self):
-        return self.graph.pages
-
-    def get_links_proxy(self):
-        return self.graph.links
-
+    @check_if_attached_to_jvm
     def clear(self):
-        #TODO : remove later
-        try:
-            for page in self.graph.links.get_all():
-                self.graph.links.delete(page.eid)
-            for page in self.graph.pages.get_all():
-                self.graph.pages.delete(page.eid)
-        except:
-            pass
+        self.graph.shutdown()
+        shutil.rmtree(self.location, True)
+
 
 if __name__ == '__main__':
-    gdb = GraphDB("http://localhost:8182/graphs/linkgraph")
+
+    # db = GraphDatabase("~/tmp")
+    # with db.transaction:
+    #     firstNode = db.node(name='Hello')
+    #     secondNode = db.node(name='world!')
+    #
+    #     # Create a relationship with type 'knows'
+    #     relationship = firstNode.knows(secondNode, name='graphy')
+    #
+    # # Read operations can happen anywhere
+    # message = ' '.join([firstNode['name'], relationship['name'], secondNode['name']])
+    #
+    # print message
+    #
+    # # Delete the data
+    # with db.transaction:
+    #     firstNode.knows.single.delete()
+    #     firstNode.delete()
+    #     secondNode.delete()
+    #
+    # # Always shut down your database when your application exits
+    # db.shutdown()
+    gdb = GraphDB("neo4j_db")
     try:
         link_one = "http://link_one.pl"
         link_two = "http://link_two.pl"
         link_one_vertex = gdb.add_page(link_one, 0, 1)
         link_two_vertex = gdb.add_page(link_two, 2, 3)
-        print link_one_vertex.depth
-        print link_one_vertex.priority
+        print link_one_vertex['depth']
+        print link_one_vertex['priority']
         gdb.points(link_one, link_two)
     finally:
         gdb.clear()

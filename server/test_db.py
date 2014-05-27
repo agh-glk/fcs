@@ -132,11 +132,11 @@ class TestContentDataBase(object):
 
 class TestGraphDB(object):
     def setup(self):
-        self.gdb = GraphDB("http://localhost:8182/graphs/testgraph")
+        self.gdb = GraphDB("test_graph_db")
 
     def test_add(self):
-        self.gdb.add_page("http://link_one.pl", 0, 0)
-        assert len(list(self.gdb.get_pages_proxy().get_all())) == 1
+        self.gdb.add_page("http://link_one.pl", 12, 12)
+        assert self.gdb.get_details("http://link_one.pl")[2] == '12'
 
     def test_points(self):
         link_one = "http://link_one.pl"
@@ -144,7 +144,8 @@ class TestGraphDB(object):
         link_one_vertex = self.gdb.add_page(link_one, 0, 0)
         self.gdb.add_page(link_two, 0, 0)
         self.gdb.points(link_one, link_two)
-        assert len(list(link_one_vertex.outE())) == 1
+        assert len(link_one_vertex.links.outgoing) == 1
+        assert link_one_vertex.links.outgoing.next().end['url'] == link_two
 
     def teardown(self):
         self.gdb.clear()
