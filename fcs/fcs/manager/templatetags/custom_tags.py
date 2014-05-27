@@ -20,7 +20,13 @@ def alert_tag(message_tags):
     except KeyError:
         return 'alert-info'
 
+
 @register.filter
 def is_true(arg):
     return arg is True
 
+
+@register.filter
+def pages(current, total_pages):
+    r = 2
+    return range(max(1, current - r), min(total_pages, current + r) + 1)

@@ -4,6 +4,7 @@ from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
 from rest_framework_swagger import SWAGGER_SETTINGS
+from fcs.manager.forms import TaskFilterForm
 
 import forms
 from models import Task
@@ -26,10 +27,19 @@ def list_tasks(request):
     """
     List of all current user's tasks.
     """
+    choice = int(request.GET.get('tasks', TaskFilterForm.ALL))
+    page_size = int(request.GET.get('page_size', 25))
     tasks = Task.objects.filter(user=request.user)
+    f = TaskFilterForm(initial={'tasks': choice, 'page_size': page_size})
+    if choice == TaskFilterForm.FINISHED:
+        tasks = tasks.filter(finished=True)
+    elif choice == TaskFilterForm.RUNNING:
+        tasks = tasks.filter(finished=False).filter(active=True)
+    elif choice == TaskFilterForm.PAUSED:
+        tasks = tasks.filter(finished=False).filter(active=False)
     table = TaskTable(tasks)
-    RequestConfig(request).configure(table)
-    return render(request, 'tasks/list.html', {'table': table})
+    RequestConfig(request, paginate={'per_page': page_size}).configure(table)
+    return render(request, 'tasks/list.html', {'table': table, 'filter_form': f})
 
 
 @login_required()

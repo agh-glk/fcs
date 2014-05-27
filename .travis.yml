@@ -3,6 +3,7 @@ python:
   - "2.7"
 
 install:
+  - bash setup.sh
   - pip install -r requirements.txt --use-mirrors
   - pip install -e .
 

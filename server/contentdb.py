@@ -6,6 +6,9 @@ import json
 
 
 class ContentDB:
+    """
+    Deprecated. In-memory database.
+    """
     def __init__(self):
         self.lock = threading.RLock()
         self.db = {}
@@ -26,9 +29,7 @@ class ContentDB:
         keys = self.db.keys()[:size]
         data = []
         for key in keys:
-            data.append([key, self.db[key][0]])
-            # TODO: uncomment following line; line above is only for testing purposes
-            #data.append([key, self.db[key][0], self.db[key][1]])
+            data.append([key, self.db[key][0], self.db[key][1]])
             del self.db[key]
         self.lock.release()
         return data
@@ -77,6 +78,9 @@ class BerkeleyContentDB(object):
 
     def size(self):
         return self.id_iter - self.get_data_iter
+
+    def added_records_num(self):
+        return self.id_iter
 
     def clear(self):
         self.content_db.close()

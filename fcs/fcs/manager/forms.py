@@ -23,7 +23,7 @@ class EditTaskForm(forms.ModelForm):
     class Meta:
         model = Task
         exclude = ['name', 'user', 'start_links', 'created', 'active', 'server', 'last_server_spawn', 'finished',
-                   'last_data_download']
+                   'last_data_download', 'autoscale_change']
 
     def is_valid(self):
         try:
@@ -57,3 +57,13 @@ class CreateTaskForm(forms.Form):
         except QuotaException as e:
             raise ValidationError(e.message)
         return self.cleaned_data
+
+
+class TaskFilterForm(forms.Form):
+    ALL = 0
+    RUNNING = 1
+    PAUSED = 2
+    FINISHED = 3
+    tasks = forms.ChoiceField(choices=[(ALL, 'All'), (RUNNING, 'Running'), (PAUSED, 'Paused'), (FINISHED, 'Finished')],
+                                required=False)
+    page_size = forms.ChoiceField(choices=[(1, 1), (5, 5), (10, 10), (15, 15), (25, 25), (50, 50)], required=False)

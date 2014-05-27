@@ -57,8 +57,7 @@ class TaskServer(threading.Thread):
         self.uuid = ''
         self.whitelist = []
         self.blacklist = []
-        #TODO: rename to url_per_min for unification
-        self.speed = 0
+        self.urls_per_min = 0
 
         self.package_cache = {}
         self.package_id = 0
@@ -97,10 +96,10 @@ class TaskServer(threading.Thread):
         After each speed change statistics are reset.
         """
         self.data_lock.acquire()
-        self.speed = int(speed)
+        self.urls_per_min = int(speed)
         self._reset_stats()
         self.data_lock.release()
-        self.logger.debug('Changed speed to %d', self.speed)
+        self.logger.debug('Changed speed to %d', self.urls_per_min)
 
     def get_address(self):
         # TODO: change this address to external ip address (and in crawler too)
@@ -154,7 +153,6 @@ class TaskServer(threading.Thread):
         """
         Sends unregister request to FCS main application.
         """
-        #TODO: check why task not found!!!!
         #TODO: check why precondition failed (task not stopped)
         r = requests.post(self.manager_address + '/autoscale/server/unregister/',
                           data={'task_id': self.task_id, 'uuid': self.uuid})
@@ -276,11 +274,10 @@ class TaskServer(threading.Thread):
         self.cache_lock.acquire()
         packages_cached = len(self.package_cache)
         self.cache_lock.release()
-        # TODO: change following comparison - size() depends if user downloaded some data
         if datetime.now() > expire_date:
             self.logger.debug('Task expired')
             self._stop_task()
-        elif self.content_db.size() > max_links:
+        elif self.content_db.added_records_num() > max_links:
             self.logger.debug('Task max links limit exceeded')
             self._stop_task()
         elif self.link_db.size() == 0 and packages_cached == 0:
@@ -431,7 +428,9 @@ class TaskServer(threading.Thread):
             has_timed_out = self.package_cache[package_id][3]
             if not has_timed_out:
                 self.logger.debug('Putting content from package %d' % package_id)
-                self._add_stats(len(data))
+                start_time = self.package_cache[package_id][0]
+                end_time = time.time()
+                self._add_stats(start_time, end_time, len(data))
                 for entry in data:
                     self.logger.debug('Adding content from url %s' % entry['url'])
                     self.content_db.add_content(entry['url'], entry['links'], entry['content'])
@@ -456,12 +455,12 @@ class TaskServer(threading.Thread):
         self.logger.debug('Downloading content - %d size' % size)
         return self.content_db.get_file_with_data_package(size)
 
-    def _add_stats(self, links):
+    def _add_stats(self, start_time, end_time, links):
         """
         Adds new statistics entry - links number with current time
         """
         self.statistics_lock.acquire()
-        self.crawled_links.append((time.time(), links))
+        self.crawled_links.append((start_time, end_time, links))
         self.statistics_lock.release()
 
     def _reset_stats(self):
@@ -492,14 +491,16 @@ class TaskServer(threading.Thread):
         links = 0
         for entry in self.crawled_links:
             if entry[0] > from_time:
-                links += entry[1]
+                links += entry[2]
+            elif entry[1] > from_time:
+                links += int(entry[2] * (entry[1] - from_time) / (entry[1] - entry[0]))
         self.statistics_lock.release()
 
         ret = dict()
         ret['seconds'] = int(now - from_time)
         ret['links'] = links
         self.data_lock.acquire()
-        ret['speed'] = self.speed
+        ret['urls_per_min'] = self.urls_per_min
         self.data_lock.release()
         return ret
 
@@ -524,5 +525,5 @@ class TaskServer(threading.Thread):
         """
         stats = self._get_stats(CRAWLING_PERIOD)
         if stats['seconds'] > 0:
-            return 60. * stats['links'] / stats['seconds'] >= stats['speed']
+            return 60. * stats['links'] / stats['seconds'] >= stats['urls_per_min']
         return False

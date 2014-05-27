@@ -94,7 +94,6 @@ class TaskManager(models.Manager):
         return task
 
 
-# TODO: validate addresses for crawler and server
 class Crawler(models.Model):
     """
     Represents crawler unit

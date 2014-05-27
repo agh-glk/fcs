@@ -17,14 +17,15 @@ PATH_TO_CRAWLER = CURRENT_PATH + '/../../../../../crawler/web_interface.py'
 
 SERVER_SPAWN_TIMEOUT = 10
 
-MAX_CRAWLERS = 10
-DEFAULT_CRAWLER_SPEED = 1000
-MAX_CRAWLER_LINK_QUEUE = 20
+MAX_CRAWLERS_NUM = 10
+DEFAULT_LINK_QUEUE_SIZE = 20
 MIN_LINK_PACKAGE_SIZE = 3
+
 STATS_PERIOD = 120
-MIN_CRAWLER_STATS_PERIOD = 30
+MIN_CRAWLER_STATS_PERIOD = 60
 MIN_SERVER_STATS_PERIOD = 10
 AUTOSCALING_PERIOD = 30
+LOOP_PERIOD = 10
 
 EFFICIENCY_THRESHOLD = 0.9
 LOWER_LOAD_THRESHOLD = 0.4
@@ -38,6 +39,8 @@ class Command(BaseCommand):
     def __init__(self):
         BaseCommand.__init__(self)
         self.address = '127.0.0.1'
+        #TODO: add some function for server/crawler address creation;
+        # now it can be bugged with large numbers of servers/crawlers
         self.server_port = max([int(server.address.split(':')[2]) for server in TaskServer.objects.all()] + [INIT_SERVER_PORT]) + 1
         self.crawler_port = max([int(crawler.address.split(':')[2]) for crawler in Crawler.objects.all()] + [INIT_CRAWLER_PORT]) + 1
 
@@ -55,7 +58,7 @@ class Command(BaseCommand):
             self.handle_priority_changes()
             self.autoscale()
             self.assign_crawlers_to_servers()
-            time.sleep(10)
+            time.sleep(LOOP_PERIOD)
 
     def print_tasks(self):
         self.stdout.write('Task list:')
@@ -92,11 +95,11 @@ class Command(BaseCommand):
                 for task in user.task_set.filter(server__isnull=False):
                     if task.active:
                         speed = urls_per_min * task.priority / priority_sum
-                        task.server.send('/speed', 'post', json.dumps({'speed': speed}))
+                        task.server.send('/speed', 'post', json.dumps({'urls_per_min': speed}))
                         task.server.urls_per_min = speed
                         task.server.save()
                     else:
-                        task.server.send('/speed', 'post', json.dumps({'speed': 0}))
+                        task.server.send('/speed', 'post', json.dumps({'urls_per_min': 0}))
                         task.server.urls_per_min = 0
                         task.server.save()
 
@@ -110,7 +113,7 @@ class Command(BaseCommand):
         self.server_port += 1
 
     def spawn_crawler(self):
-        if len(Crawler.objects.all()) >= MAX_CRAWLERS:
+        if len(Crawler.objects.all()) >= MAX_CRAWLERS_NUM:
             return
         print 'Spawn crawler'
         subprocess.Popen(['python', PATH_TO_CRAWLER, str(self.crawler_port), 'http://' + self.address + ':8000'])
@@ -118,8 +121,6 @@ class Command(BaseCommand):
         self.crawler_port += 1
 
     def assign_crawlers_to_servers(self):
-        # TODO: in future - get and check crawler load time and adjust assignment
-        # TODO: remove prints
         actual_crawlers = [crawler.address for crawler in Crawler.objects.all()]
 
         if self.changed or self.old_crawlers != actual_crawlers:
@@ -129,7 +130,7 @@ class Command(BaseCommand):
             self.old_crawlers = actual_crawlers
             servers = TaskServer.objects.all()
             total_speed = sum([server.urls_per_min for server in servers])
-            total_power = len(actual_crawlers) * MAX_CRAWLER_LINK_QUEUE
+            total_power = len(actual_crawlers) * DEFAULT_LINK_QUEUE_SIZE
             if total_power == 0:
                 for server in servers:
                     server.send('/crawlers', 'post', json.dumps({'crawlers': {}}))
@@ -153,7 +154,7 @@ class Command(BaseCommand):
                     crawlers_load.sort(key=lambda x: x[1], reverse=True)
                     for i in range(crawlers_num, 0, -1):
                         entry = crawlers_load[length - i]
-                        links = min(link_pool / i, max(MAX_CRAWLER_LINK_QUEUE - entry[1], MIN_LINK_PACKAGE_SIZE))
+                        links = min(link_pool / i, max(DEFAULT_LINK_QUEUE_SIZE - entry[1], MIN_LINK_PACKAGE_SIZE))
                         if i == 1:
                             links = link_pool
                         link_pool -= links
@@ -177,6 +178,9 @@ class Command(BaseCommand):
 
         print ''
         print 'Autoscaling'
+        task_servers = TaskServer.objects.all()
+        crawlers = Crawler.objects.all()
+
         expected_efficiency = 0
         actual_efficiency = 0
         for server in task_servers:
@@ -184,7 +188,7 @@ class Command(BaseCommand):
             if r:
                 data = r.json()
                 if data['seconds'] > MIN_SERVER_STATS_PERIOD:
-                    expected_efficiency += data['speed']
+                    expected_efficiency += data['urls_per_min']
                     actual_efficiency += (60. * data['links'] / data['seconds'])
 
         expected_load = 0
@@ -206,14 +210,10 @@ class Command(BaseCommand):
         print ''
 
         if actual_efficiency < EFFICIENCY_THRESHOLD * expected_efficiency:
-            if expected_load == 0 or (1. * actual_load / expected_load) > UPPER_LOAD_THRESHOLD:
+            if len(crawlers) == 0 or actual_load > UPPER_LOAD_THRESHOLD * expected_load:
                 self.spawn_crawler()
-            elif (1. * actual_load / expected_load) < LOWER_LOAD_THRESHOLD:
-                crawlers[0].stop()
-        else:
-            if expected_load != 0 and (1. * actual_load / expected_load) < LOWER_LOAD_THRESHOLD:
-                crawlers[0].stop()
-
-        self.last_scaling = time.time()
-
+                self.last_scaling = time.time()
+        if actual_load < LOWER_LOAD_THRESHOLD * expected_load:
+            crawlers[0].stop()
+            self.last_scaling = time.time()
 
