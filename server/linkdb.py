@@ -2,7 +2,7 @@ import heapq
 import re
 import sre_constants
 import threading
-import bsddb
+import bsddb3 as bsddb
 from key_policy_module import SimpleKeyPolicyModule
 import datetime
 import os
@@ -38,7 +38,9 @@ class BaseLinkDB(object):
 
 
 class SimpleLinkDB(BaseLinkDB):
-
+    """
+    Deprecated. In-memory database.
+    """
     BEST_PRIORITY = 0
     WORST_PRIORITY = 10
     START_PRIORITY = 5
@@ -81,10 +83,6 @@ class SimpleLinkDB(BaseLinkDB):
         self.lock.release()
         return links
 
-    #TODO: remove
-    def content(self):
-        return self.db
-
     def update_blacklist(self, regex):
         self.lock.acquire()
         if regex == '':
@@ -102,7 +100,6 @@ class SimpleLinkDB(BaseLinkDB):
             return False
 
     def change_link_priority(self, regex, rate):
-        # TODO: change this to accept dict as argument, handle feedback updates (delete entries?)
         self.lock.acquire()
         self.rating[regex] = rate
         for i in range(len(self.db)):

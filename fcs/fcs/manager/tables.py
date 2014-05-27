@@ -1,3 +1,4 @@
+import django_filters
 import django_tables2 as tables
 from models import Task
 from django_tables2.utils import A
@@ -58,4 +59,4 @@ class TaskTable(ColoredRowsTable):
         order_by = "created"
         fields = ('id', 'name', 'priority', 'start_links', 'whitelist', 'blacklist', 'max_links', 'mime_type', 'created',
                   'expire_date', 'active', 'finished')
-
+        template = "colored_table.html"

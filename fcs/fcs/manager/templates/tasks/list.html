@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load django_tables2 %}
+{% load widget_tweaks %}
 
 {% block title %}Task list{% endblock title %}
 
@@ -10,8 +11,25 @@
 
 {% block content %}
 <h3>Your tasks</h3>
+<div class="col-sm-offset-6">
+<form class="form-inline" action="" method="get">
+    {% for field in filter_form %}
+    <div class="col-sm-4">
+    <div class="form-group">
+    <label for="{{ field.id_for_label }}" class="control-label">{{ field.label }}</label>
+    </div>
+    <div class="form-group">
+    {% render_field field class+="form-control"  %}
+    </div>
+    </div>
+    {% endfor %}
+    <div class="form-group col-sm-4">
+    <input class="form-control btn btn-primary" type="submit" value="Filter">
+    </div>
+</form>
+</div>
 <div class="list-group">
-    {% render_table table "colored_table.html" %}
+    {% render_table table %}
 </div>
 <a href="{% url 'add_task' %}"><button class="btn btn-lg btn-primary">Add new</button></a>
 {% endblock content %}
