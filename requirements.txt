@@ -24,4 +24,3 @@ mechanize
 lxml
 
 neo4j-embedded
-jpype
