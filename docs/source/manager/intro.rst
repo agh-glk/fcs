@@ -7,3 +7,5 @@ Management module is a web application implemented in Django framework. It is re
 * user's tasks management
 * email notification system
 * client REST API
+
+:doc:`modules/api_views`
