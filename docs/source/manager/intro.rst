@@ -9,3 +9,4 @@ Management module is a web application implemented in Django framework. It is re
 * client REST API
 
 :doc:`modules/api_views`
+:doc:`modules/admin`

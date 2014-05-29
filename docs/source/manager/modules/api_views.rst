@@ -7,14 +7,56 @@ api_views module contains methods that handle REST requests for tasks management
 
    Creates new task.
 
-   :param request: Request object. It must be authenticated with OAuth2 Token. Required request data parameters are:
+   :param request: Request object.
 
-   * name
-   * priority
+   .. note:: Request must be authenticated with OAuth2 Token.
 
-.. autofunction:: delete_task
-.. autofunction:: pause_task
-.. autofunction:: resume_task
-.. autofunction:: get_data_from_crawler
+   Required request data parameters are:
 
-TEST
+   * name - task's name
+   * priority - task's priority
+   * expire - datetime of task expiration
+   * mime_type - list of MIME types separated by whitespace
+   * start_links - list of urls separated by whitespace - starting point of crawling
+   * whitelist - urls which should be crawled
+   * blacklist - urls which should not be crawled
+   * max_links - maximal amount of links that may be visited while crawling
+
+
+.. py:function:: delete_task(request, task_id)
+
+   Deletes a task.
+
+   :param request: Request object.
+   :param int task_id: ID of task to be deleted.
+
+   .. note:: Request must be authenticated with OAuth2 Token.
+
+
+.. py:function:: pause_task(request, task_id)
+
+   Pauses a task.
+
+   :param request: Request object.
+   :param int task_id: ID of task to be paused.
+
+   .. note:: Request must be authenticated with OAuth2 Token.
+
+
+.. py:function:: resume_task(request, task_id)
+
+   Resumes a task.
+
+   :param request: Request object.
+   :param int task_id: ID of task to be resumed.
+
+   .. note:: Request must be authenticated with OAuth2 Token.
+
+
+.. py:function:: get_data_from_crawler(request, task_id, size)
+
+   Download data retrieved by crawler.
+
+   :param request: Request object.
+   :param int task_id: ID of task which data is to be downloaded.
+   :param int size: Size of requested data
