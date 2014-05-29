@@ -1,7 +1,7 @@
 Module fcs.manager.api_views
 =======================================
 
-api_views module contains methods that handle REST requests for tasks management. All methods are decorated with Django @api_view decorator.
+This module contains methods that handle REST requests for tasks management. All methods are decorated with Django @api_view decorator. These methods are mapped on URLs in :doc:`modules/api_views` module.
 
 .. py:function:: add_task(request)
 
@@ -17,9 +17,9 @@ api_views module contains methods that handle REST requests for tasks management
    * priority - task's priority
    * expire - datetime of task expiration
    * mime_type - list of MIME types separated by whitespace
-   * start_links - list of urls separated by whitespace - starting point of crawling
-   * whitelist - urls which should be crawled
-   * blacklist - urls which should not be crawled
+   * start_links - list of URLs separated by whitespace - starting point of crawling
+   * whitelist - URLs which should be crawled
+   * blacklist - URLs which should not be crawled
    * max_links - maximal amount of links that may be visited while crawling
 
 
