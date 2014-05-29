@@ -20,3 +20,8 @@ Management module is a web application implemented in Django framework. It is re
 
 :doc:`modules/middleware`
 
+:doc:`modules/models`
+
+:doc:`modules/urls`
+
+:doc:`modules/views`
