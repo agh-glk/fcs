@@ -13,7 +13,7 @@ Contents:
 
    quickstart
    manager/intro
-   manager/api_views
+   manager/modules/api_views
 
 
 Indices and tables
