@@ -9,10 +9,10 @@ Welcome to fcs's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    quickstart
-   manager/models
+   manager/intro
    manager/api_views
 
 
