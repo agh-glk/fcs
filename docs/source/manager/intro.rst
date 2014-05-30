@@ -8,20 +8,22 @@ Management module is a web application implemented in Django framework. It is re
 * email notification system
 * client REST API
 
-:doc:`modules/admin`
+:doc:`admin`
 
-:doc:`modules/api_views`
+:doc:`api_views`
 
-:doc:`modules/apiurls`
+:doc:`apiurls`
 
-:doc:`modules/autoscale_views`
+:doc:`autoscale_views`
 
-:doc:`modules/forms`
+:doc:`forms`
 
-:doc:`modules/middleware`
+:doc:`middleware`
 
-:doc:`modules/models`
+:doc:`models`
 
-:doc:`modules/urls`
+:doc:`urls`
 
-:doc:`modules/views`
+:doc:`views`
+
+:doc:`management/commands/autoscaling`
