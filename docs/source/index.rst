@@ -13,6 +13,7 @@ Contents:
 
    quickstart
    manager/intro
+   crawler/intro
 
 
 Indices and tables
