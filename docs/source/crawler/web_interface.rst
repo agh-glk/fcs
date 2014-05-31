@@ -25,7 +25,7 @@ contain proper POST methods. Request are encapsulated in JSON messages.
 
    Kills a Crawling Unit.
 
-   :return: Confirmation of stopping the Crawling Unit
+   :return: Confirmation of killing the Crawling Unit
    :rtype: string
 
 
@@ -33,7 +33,7 @@ contain proper POST methods. Request are encapsulated in JSON messages.
 
    Pings if Crawling Unit is alive.
 
-   :return: Confirmation if Crawling Unit is alive
+   :return: Information if Crawling Unit is alive
    :rtype: string
 
 

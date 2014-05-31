@@ -10,6 +10,7 @@ This module contains Crawler Unit implementation.
    .. py:attribute:: UNDEFINED
 
    Crawler Unit's state is undefined
+
    .. py:attribute:: WORKING
 
    Crawler Unit is working

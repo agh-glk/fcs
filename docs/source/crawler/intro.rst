@@ -8,3 +8,5 @@ several crawling tasks. Crawling results and other information (like errors), ar
 :doc:`content_parser`
 
 :doc:`crawler`
+
+:doc:`web_interface`

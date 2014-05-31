@@ -14,6 +14,7 @@ Contents:
    quickstart
    manager/intro
    crawler/intro
+   server/intro
 
 
 Indices and tables
