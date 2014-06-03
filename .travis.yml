@@ -6,6 +6,7 @@ install:
   - bash setup.sh
   - pip install -r requirements.txt --use-mirrors
   - pip install -e .
+  - sudo apt-get install default-jre-headless neo4j
 
 before_script: python fcs/manage.py syncdb --noinput
 script: coverage run --source fcs/fcs -m py.test
