@@ -49,6 +49,7 @@ INSTALLED_APPS = (
     'widget_tweaks',
     'oauth2_provider',
     'django_tables2',
+    'crispy_forms',
     'huey.djhuey',
 )
 
@@ -169,6 +170,9 @@ HUEY = {
     # Options to pass into the consumer when running ``manage.py run_huey``
     'consumer_options': {'workers': 4},
 }
+
+#Crispy forms
+CRISPY_TEMPLATE_PACK = 'bootstrap'
 
 MAIL_BOT_EMAIL = 'mailbot@fcs.com'
 

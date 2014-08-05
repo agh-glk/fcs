@@ -3,6 +3,8 @@ from django.forms.widgets import PasswordInput, DateTimeInput
 from fcs.manager.models import QuotaException
 from models import Task
 from django.core.exceptions import ValidationError
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Submit, HTML, Field
 
 
 class ChangePasswordForm(forms.Form):
@@ -67,3 +69,18 @@ class TaskFilterForm(forms.Form):
     tasks = forms.ChoiceField(choices=[(ALL, 'All'), (RUNNING, 'Running'), (PAUSED, 'Paused'), (FINISHED, 'Finished')],
                                 required=False)
     page_size = forms.ChoiceField(choices=[(1, 1), (5, 5), (10, 10), (15, 15), (25, 25), (50, 50)], required=False)
+
+    def __init__(self, *args, **kwargs):
+        super(TaskFilterForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-inline'
+        self.helper.field_template = 'bootstrap3/layout/inline_field.html'
+        self.helper.form_method = 'get'
+        self.helper.form_action = ''
+        self.helper.layout = Layout(
+            HTML("<label class='control-label'>Tasks</label>"),
+            'tasks',
+            HTML("<label class='control-label'>Page size</label>"),
+            'page_size',
+            Submit('submit', 'Filter', css_class='btn-default'),
+        )

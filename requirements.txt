@@ -12,6 +12,7 @@ django-filter
 django-oauth-toolkit
 django-widget-tweaks
 django-tables2
+django-crispy-forms
 django-userena
 redis
 huey

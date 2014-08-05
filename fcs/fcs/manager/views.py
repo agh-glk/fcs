@@ -30,7 +30,7 @@ def list_tasks(request):
     choice = int(request.GET.get('tasks', TaskFilterForm.ALL))
     page_size = int(request.GET.get('page_size', 25))
     tasks = Task.objects.filter(user=request.user)
-    f = TaskFilterForm(initial={'tasks': choice, 'page_size': page_size})
+    filter_form = TaskFilterForm(initial={'tasks': choice, 'page_size': page_size})
     if choice == TaskFilterForm.FINISHED:
         tasks = tasks.filter(finished=True)
     elif choice == TaskFilterForm.RUNNING:
@@ -39,7 +39,7 @@ def list_tasks(request):
         tasks = tasks.filter(finished=False).filter(active=False)
     table = TaskTable(tasks)
     RequestConfig(request, paginate={'per_page': page_size}).configure(table)
-    return render(request, 'tasks/list.html', {'table': table, 'filter_form': f})
+    return render(request, 'tasks/list.html', {'table': table, 'filter_form': filter_form})
 
 
 @login_required()
