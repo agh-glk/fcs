@@ -221,6 +221,8 @@ class Task(models.Model):
             self.mime_type = 'text/html'
         if not self.whitelist:
             self.whitelist = '*'
+        if not self.start_links:
+            raise ValidationError('Start links are required')
         self.start_links = ' '.join(self.start_links.split())
         self.whitelist = ' '.join(self.whitelist.split())
         self.blacklist = ' '.join(self.blacklist.split())
