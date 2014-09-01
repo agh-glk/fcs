@@ -70,7 +70,6 @@ def show_task(request, task_id):
     """
     task = get_object_or_404(Task, id=task_id, user=request.user.id)
     form = forms.EditTaskForm(request.POST or None, instance=task)
-    # TODO: display proper feedback ratings
     fieldset_value = task.finished and 'disabled' or ''
     if form.is_valid():
         form.save()
@@ -148,6 +147,12 @@ def get_data(request, task_id, size):
     else:
         return StreamingHttpResponse("No task server to download data from")
 
+@login_required()
+def send_feedback(request, task_id):
+    task = get_object_or_404(Task, id=task_id, user=request.user.id)
+    task.feedback('http://onet.pl', '4')
+    messages.success(request, 'Feedback sent.')
+    return redirect('show_task', task_id)
 
 @login_required()
 def show_quota(request):

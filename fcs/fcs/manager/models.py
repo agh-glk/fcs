@@ -332,13 +332,15 @@ class Task(models.Model):
         """
         return (not self.finished) and (self.server is None)
 
-    def feedback(self, score_dict):
+    def feedback(self, link, rating):
         """
         Process feedback from client.
 
         Update crawling process in order to satisfy client expectations
         """
-        #TODO: implement (should it be here? maybe send request directly to task server?)
+        if self.server:
+            data = {'link': link, 'rating': rating}
+            self.server.send('/feedback', 'post', json.dumps(data))
         pass
 
     def __unicode__(self):

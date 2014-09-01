@@ -122,16 +122,18 @@
       action: service name=redis-server state=started
       sudo: yes
 
-    - name: get berkeley db & JPype
-      command: /bin/sh /vagrant/setup.sh
-      sudo: yes
-
     - name: ensure neo4j-service is running
       action: service name=neo4j-service state=started
       sudo: yes
 
     - name: creating virtualenv
       action: command virtualenv /home/vagrant/{{ project_name }} creates=/home/vagrant/{{ project_name }}/bin/activate
+
+    - name: get berkeley db & JPype
+      command: /bin/sh /vagrant/setup.sh virtualenv=/home/vagrant/{{ project_name }}
+      environment:
+        JAVA_HOME: /usr/lib/jvm/java-7-oracle/
+      sudo: yes
 
     - action: lineinfile dest=/home/vagrant/.bashrc regexp="^alias e=" line="alias e='. /home/vagrant/{{ project_name }}/bin/activate && cd /vagrant && export DJANGO_SETTINGS_MODULE={{ project_name }}.settings_dev'" state=present insertafter=EOF
 

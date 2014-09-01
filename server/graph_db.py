@@ -1,5 +1,4 @@
 import datetime
-import sys
 import shutil
 
 
@@ -91,6 +90,14 @@ class GraphDB(object):
             _edge = page_a_vertex.links(page_b_vertex)
         self._update_depth(page_a_vertex, page_b_vertex)
         return _edge
+
+    @check_if_attached_to_jvm
+    def get_connected(self, links):
+        _res = []
+        for _link in links:
+            page_vertex = self._find_pages(_link)
+            _res = _res + [x['url'] for x in page_vertex.links.outgoing]
+        return _res
 
     @check_if_attached_to_jvm
     def clear(self):

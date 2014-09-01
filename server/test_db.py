@@ -1,5 +1,5 @@
 from linkdb import BerkeleyBTreeLinkDB
-from key_policy_module import SimpleKeyPolicyModule
+from data_base_policy_module import SimplePolicyModule
 import datetime
 from graph_db import GraphDB
 
@@ -7,7 +7,7 @@ from graph_db import GraphDB
 class TestLinkDataBase(object):
 
     def setup(self):
-        self.links_db = BerkeleyBTreeLinkDB("test_db", SimpleKeyPolicyModule)
+        self.links_db = BerkeleyBTreeLinkDB("test_db", SimplePolicyModule)
 
     def test_one_in_base(self):
         _link = "www.test.com"

@@ -3,7 +3,7 @@ import re
 import sre_constants
 import threading
 import bsddb3 as bsddb
-from key_policy_module import SimpleKeyPolicyModule
+from data_base_policy_module import SimplePolicyModule
 import datetime
 import os
 import uuid
@@ -219,9 +219,9 @@ class GraphAndBTreeDB(BaseLinkDB):
         self.policy_module = policy_module
         self.base_name = base_name
 
-        self.found_links = GraphDB("neo4j_graph_db")
+        self.found_links = GraphDB(base_name)
 
-        self.priority_queue_db_name = base_name + self.__class__.PRIORITY_QUEUE_DB + str(uuid.uuid4())
+        self.priority_queue_db_name = base_name + self.__class__.PRIORITY_QUEUE_DB  #+ str(uuid.uuid4())
         self.priority_queue = bsddb.btopen(self.priority_queue_db_name)
 
     def is_in_base(self, link):
@@ -245,12 +245,12 @@ class GraphAndBTreeDB(BaseLinkDB):
     def set_as_fetched(self, link):
         self.found_links.set_as_fetched(link)
 
-    def change_link_priority(self, link, rate):
-        _old_priority = self.found_links.change_link_priority(link, rate)
+    def change_link_priority(self, link, rating):
+        _old_priority = self.found_links.change_link_priority(link, rating)
         _key = self.policy_module.generate_key(link, int(_old_priority))
         if _key in self.priority_queue:
             del self.priority_queue[_key]
-        _key = self.policy_module.generate_key(link, rate)
+        _key = self.policy_module.generate_key(link, rating)
         self.priority_queue[_key] = link
 
     def get_details(self, link):
@@ -258,6 +258,20 @@ class GraphAndBTreeDB(BaseLinkDB):
 
     def points(self, url_a, url_b):
         self.found_links.points(url_a, url_b)
+
+    def feedback(self, link, feedback_rating):
+        _old_priority = self.get_details(link)[1]
+        _new_priority = self.policy_module.calculate_priority(_old_priority, feedback_rating, 0)
+        self.change_link_priority(link, _new_priority)
+        _visited = [link]
+        _children = [link]
+        for _depth in range(self.policy_module.get_feedback_propagation_depth()):
+            _children = self.found_links.get_connected(_children)
+            _children = _children - _visited
+            for _child in _children:
+                _old_priority = self.get_details(_child)[1]
+                self.policy_module.calculate_priority(_old_priority, feedback_rating, _depth)
+                _visited.append(_child)
 
     def size(self):
         #TODO: check why was Value Error "__len__() should return >=0"
@@ -274,7 +288,7 @@ class GraphAndBTreeDB(BaseLinkDB):
 
 if __name__ == '__main__':
 
-    links_db = BerkeleyBTreeLinkDB("db_name", SimpleKeyPolicyModule)
+    links_db = BerkeleyBTreeLinkDB("db_name", SimplePolicyModule)
     links = ["www.zzz.com", 'aaaa.pl', 'azadsafsdgsdgsdgdsg.com', '124edeasf23rdgfsdg.org']
     for i in range(10*100*100*100):
         links_db.add_link(links[i % 4], i % 100, 1)

@@ -2,20 +2,17 @@ import json
 import os
 import subprocess
 from django.core.management.base import BaseCommand
-from django.db.models.aggregates import Count, Sum
-from django.forms.models import model_to_dict
+from django.db.models.aggregates import Sum
 from django.utils.timezone import datetime
 import time
-from requests.exceptions import ConnectionError
 from fcs.manager.models import Task, Crawler, TaskServer, User
-import requests
 
 
 CURRENT_PATH = os.path.dirname(__file__)
 PATH_TO_SERVER = CURRENT_PATH + '/../../../../../server/web_interface.py'
 PATH_TO_CRAWLER = CURRENT_PATH + '/../../../../../crawler/web_interface.py'
 
-SERVER_SPAWN_TIMEOUT = 10
+SERVER_SPAWN_TIMEOUT = 30
 
 MAX_CRAWLERS_NUM = 10
 DEFAULT_LINK_QUEUE_SIZE = 20
@@ -23,7 +20,7 @@ MIN_LINK_PACKAGE_SIZE = 3
 
 STATS_PERIOD = 120
 MIN_CRAWLER_STATS_PERIOD = 60
-MIN_SERVER_STATS_PERIOD = 10
+MIN_SERVER_STATS_PERIOD = 30
 AUTOSCALING_PERIOD = 30
 LOOP_PERIOD = 10
 
