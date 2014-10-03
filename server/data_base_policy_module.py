@@ -25,15 +25,16 @@ class SimplePolicyModule(AbstractPolicyModule):
 
     @staticmethod
     def get_feedback_propagation_depth():
-        return 3.0
+        return 3
 
     @staticmethod
     def calculate_priority(priority, feedback_rating, depth):
         if depth == 0:
-            return min(SimplePolicyModule.MAX_PRIORITY, priority *
-                                                    SimplePolicyModule.FEEDBACK_PRIORITY_MAPPING[feedback_rating])
+            return min(SimplePolicyModule.MAX_PRIORITY, int(int(priority) *
+                                                    SimplePolicyModule.FEEDBACK_PRIORITY_MAPPING[feedback_rating]))
         else:
             _delta = (SimplePolicyModule.FEEDBACK_PRIORITY_MAPPING[feedback_rating] - 1) \
-                     * (float(depth) / SimplePolicyModule.get_feedback_propagation_depth())
-            return max(SimplePolicyModule.MIN_PRIORITY, min(SimplePolicyModule.MAX_PRIORITY, priority + _delta))
+                     * (1.0 - (float(depth + 1) / (SimplePolicyModule.get_feedback_propagation_depth() + 1)))
+            return max(SimplePolicyModule.MIN_PRIORITY,
+                       min(SimplePolicyModule.MAX_PRIORITY, int(int(priority) * _delta)))
 

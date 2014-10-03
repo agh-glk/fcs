@@ -88,7 +88,7 @@ class GraphDB(object):
         page_b_vertex = self._find_pages(url_b)
         with self.graph.transaction:
             _edge = page_a_vertex.links(page_b_vertex)
-        self._update_depth(page_a_vertex, page_b_vertex)
+            self._update_depth(page_a_vertex, page_b_vertex)
         return _edge
 
     @check_if_attached_to_jvm
@@ -96,8 +96,9 @@ class GraphDB(object):
         _res = []
         for _link in links:
             page_vertex = self._find_pages(_link)
-            _res = _res + [x['url'] for x in page_vertex.links.outgoing]
-        return _res
+            if page_vertex:
+                _res = _res + [x.end['url'] for x in page_vertex.links.outgoing]
+        return set(_res)
 
     @check_if_attached_to_jvm
     def clear(self):
@@ -134,8 +135,13 @@ if __name__ == '__main__':
         link_two = "http://link_two.pl"
         link_one_vertex = gdb.add_page(link_one, 0, 1)
         link_two_vertex = gdb.add_page(link_two, 2, 3)
-        print link_one_vertex['depth']
-        print link_one_vertex['priority']
+        #print link_one_vertex['depth']
+        #print link_one_vertex['priority']
         gdb.points(link_one, link_two)
+        #print gdb._find_pages(link_one)['url']
+        print gdb._find_pages(link_one)['priority']
+        #gdb._find_pages(link_one)['priority'] = 5
+        print gdb._find_pages(link_one)['depth']
+        print gdb.get_connected([link_one])
     finally:
         gdb.clear()

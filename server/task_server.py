@@ -364,6 +364,10 @@ class TaskServer(threading.Thread):
         self.cache_lock.release()
 
     def feedback(self, link, rating):
+        """
+        Increases priority of specified link and his children.
+        """
+        self.logger.debug("Feedback: %s %s" % (link, rating))
         self.link_db.feedback(link, rating)
 
     def _evaluate_link(self, link):
@@ -397,6 +401,8 @@ class TaskServer(threading.Thread):
                     if _depth <= self.max_url_depth:
                         self.logger.debug("Added:%s with priority %d" % (_link, _depth))
                         self.link_db.add_link(_link, priority, _depth)
+                        if source_url:
+                            self.link_db.points(source_url, _link)
                         _counter += 1
             except Exception as e:
                 self.logger.error("Add links error:"+str(_link)+"M:"+str(e.message))

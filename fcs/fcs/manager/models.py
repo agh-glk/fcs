@@ -62,7 +62,7 @@ class Quota(models.Model):
     max_tasks = models.IntegerField(default=5)
     link_pool = models.IntegerField(default=1000000)
     max_links = models.IntegerField(default=100000)
-    urls_per_min = models.IntegerField(default=1000)
+    urls_per_min = models.IntegerField(default=1000)    #TODO : nie jest wyswietlana nigdzie...
     user = models.OneToOneField(User)
 
     def __unicode__(self):
@@ -128,7 +128,7 @@ class Crawler(models.Model):
         if self.send('/kill', 'post') is None:
             self.delete()
 
-    def send(self, path, method='get', data=None):
+    def send(self, path, method='get', data=None): #TODO : method?
         """
         Sends request to crawler represented by this object.
 
@@ -183,7 +183,7 @@ class TaskServer(models.Model):
         except ConnectionError:
             return None
 
-    def delete(self, using=None):
+    def delete(self, using=None): #TODO : remove param
         try:
             self.task.autoscale_change = True
             self.task.save()

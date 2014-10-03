@@ -109,10 +109,11 @@ def resume_task(request, task_id):
 @api_view(['POST'])
 def get_data_from_crawler(request, task_id, size):
     """
-    Downloads data gathered by crawler.
+    Downloads data gathered by crawler. Request must be authenticated with OAuth2 Token.
     """
     task = get_object_or_404(Task, id=task_id, user=request.user)
     if task.server is None:
-        return Response("Cannot download data - task has no running task server!", status=status.HTTP_412_PRECONDITION_FAILED)
+        return Response("Cannot download data - task has no running task server!",
+                        status=status.HTTP_412_PRECONDITION_FAILED)
     r = requests.get(task.server.address + '/get_data?size=' + str(size))
     return Response(r.content)

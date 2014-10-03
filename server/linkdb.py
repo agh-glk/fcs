@@ -36,7 +36,7 @@ class BaseLinkDB(object):
     def clear(self):
         pass
 
-
+#TODO : remove
 class SimpleLinkDB(BaseLinkDB):
     """
     Deprecated. In-memory database.
@@ -228,6 +228,7 @@ class GraphAndBTreeDB(BaseLinkDB):
         return self.found_links.is_in_base(link)
 
     def add_link(self, link, priority, depth):
+        print "Dodano link: %s" % link
         self.found_links.add_page(link, int(priority), int(depth))
         _key = self.policy_module.generate_key(link, priority)
         self.priority_queue[_key] = link
@@ -254,24 +255,30 @@ class GraphAndBTreeDB(BaseLinkDB):
         self.priority_queue[_key] = link
 
     def get_details(self, link):
-        self.found_links.get_details(link)
+        return self.found_links.get_details(link)
 
     def points(self, url_a, url_b):
         self.found_links.points(url_a, url_b)
 
     def feedback(self, link, feedback_rating):
-        _old_priority = self.get_details(link)[1]
+        if not self.is_in_base(link):
+            print "Feedback error: Unknown link: %s" % link
+            return
+        _old_priority = int(self.get_details(link)[0])
         _new_priority = self.policy_module.calculate_priority(_old_priority, feedback_rating, 0)
         self.change_link_priority(link, _new_priority)
-        _visited = [link]
-        _children = [link]
+        print "Priority changed: %s %s" % (link, _new_priority)
+        _visited = set([link])
+        _children = set([link])
         for _depth in range(self.policy_module.get_feedback_propagation_depth()):
             _children = self.found_links.get_connected(_children)
             _children = _children - _visited
             for _child in _children:
-                _old_priority = self.get_details(_child)[1]
-                self.policy_module.calculate_priority(_old_priority, feedback_rating, _depth)
-                _visited.append(_child)
+                _old_priority = self.get_details(_child)[0]
+                _new_priority = self.policy_module.calculate_priority(_old_priority, feedback_rating, _depth)
+                self.change_link_priority(_child, _new_priority)
+                print "Priority changed: %s %s" % (_child, _new_priority)
+                _visited.add(_child)
 
     def size(self):
         #TODO: check why was Value Error "__len__() should return >=0"
