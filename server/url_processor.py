@@ -5,7 +5,11 @@ class URLProcessor(object):
 
     @staticmethod
     def validate(link, domain=None):
-        _link = link.lower()
+        _link = link.lower().strip()
+        if _link.startswith('http://www.'):
+            _link = _link.replace('http://www.', 'http://')
+        if _link.startswith('https://www.'):
+            _link = _link.replace('https://www.', 'https://')
         if not _link.startswith('http://') and not _link.startswith('https://') and domain is not None:
             _link = urlparse.urljoin(domain, link)
         _link = urlparse.urldefrag(_link)[0]
