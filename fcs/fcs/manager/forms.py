@@ -61,6 +61,11 @@ class CreateTaskForm(forms.Form):
         return self.cleaned_data
 
 
+class SendFeedbackForm(forms.Form):
+    url = forms.URLField()
+    rating = forms.ChoiceField(choices=[(x, x) for x in range(1,6)])
+
+
 class TaskFilterForm(forms.Form):
     ALL = 0
     RUNNING = 1
@@ -69,7 +74,7 @@ class TaskFilterForm(forms.Form):
     tasks = forms.ChoiceField(choices=[(ALL, 'All'), (RUNNING, 'Running'), (PAUSED, 'Paused'), (FINISHED, 'Finished')],
                                 required=False)
     page_size = forms.ChoiceField(choices=[(1, 1), (5, 5), (10, 10), (15, 15), (25, 25), (50, 50)], required=False)
-
+    
     def __init__(self, *args, **kwargs):
         super(TaskFilterForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()

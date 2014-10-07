@@ -17,6 +17,7 @@
       sudo: yes
 
   tasks:
+
     - name: ensure apt cache is up to date
       action: apt update_cache=yes
       sudo: yes
@@ -36,13 +37,29 @@
         - python-software-properties
         - libxml2-dev
         - libxslt1-dev
+        - python-jpype
+        - default-jre-headless
         - libdb4.8
         - libdb4.8-dev
         - make
         - g++
+        - wget
+        - unzip
 
-    - name: add apt repositories
+    - name: add apt repositories - redis
       command: apt-add-repository -y ppa:rwky/redis
+      sudo: yes
+
+    - name: add apt repository - oracle java
+      command: add-apt-repository -y ppa:webupd8team/java
+      sudo: yes
+
+    - name: neo4j repo key
+      command: /bin/sh -c 'wget -O - http://debian.neo4j.org/neotechnology.gpg.key | apt-key add -'
+      sudo: yes
+
+    - name: add neo4j repo
+      command: /bin/sh -c "/bin/echo 'deb http://debian.neo4j.org/repo stable/' > /etc/apt/sources.list.d/neo4j.list"
       sudo: yes
 
     - name: update apt-get
@@ -51,6 +68,22 @@
 
     - name: install redis
       command: apt-get install redis-server
+      sudo: yes
+
+    - name: confirm oracle licence
+      command: /bin/sh -c '/bin/echo oracle-java7-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections'
+      sudo: yes
+
+    - name: install oracle java
+      command: apt-get install -y oracle-java7-installer
+      sudo: yes
+
+    - name: conf oracle java
+      command: apt-get install oracle-java7-set-default
+      sudo: yes
+
+    - name: install neo4j
+      command: apt-get install -y neo4j
       sudo: yes
 
     - name: postgres listen *
@@ -89,12 +122,18 @@
       action: service name=redis-server state=started
       sudo: yes
 
-    - name: get berkeley db
-      command: /bin/sh /vagrant/setup.sh
+    - name: ensure neo4j-service is running
+      action: service name=neo4j-service state=started
       sudo: yes
 
     - name: creating virtualenv
       action: command virtualenv /home/vagrant/{{ project_name }} creates=/home/vagrant/{{ project_name }}/bin/activate
+
+    - name: get berkeley db & JPype
+      command: /bin/sh /vagrant/setup.sh virtualenv=/home/vagrant/{{ project_name }}
+      environment:
+        JAVA_HOME: /usr/lib/jvm/java-7-oracle/
+      sudo: yes
 
     - action: lineinfile dest=/home/vagrant/.bashrc regexp="^alias e=" line="alias e='. /home/vagrant/{{ project_name }}/bin/activate && cd /vagrant && export DJANGO_SETTINGS_MODULE={{ project_name }}.settings_dev'" state=present insertafter=EOF
 

@@ -1,5 +1,5 @@
 psycopg2
-django>=1.6
+django==1.6
 south
 coverage
 coveralls
@@ -23,5 +23,5 @@ beautifulsoup4
 requests
 mechanize
 lxml
-
 bsddb3
+neo4j-embedded

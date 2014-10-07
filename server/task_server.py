@@ -7,8 +7,8 @@ from urlparse import urlparse
 import requests
 from requests.exceptions import ConnectionError
 from rest_framework import status
-from linkdb import BerkeleyBTreeLinkDB
-from key_policy_module import SimpleKeyPolicyModule
+from linkdb import BerkeleyBTreeLinkDB, GraphAndBTreeDB
+from data_base_policy_module import SimplePolicyModule
 from contentdb import BerkeleyContentDB
 from django.utils.timezone import datetime
 import sys
@@ -46,7 +46,7 @@ class TaskServer(threading.Thread):
 
         self.web_server = web_server
         self.manager_address = manager_address
-        self.link_db = BerkeleyBTreeLinkDB('link_db', SimpleKeyPolicyModule)
+        self.link_db = GraphAndBTreeDB('link_db_task_'+str(task_id), SimplePolicyModule)
         self.content_db = BerkeleyContentDB('content_db')
 
         self.crawlers = {}
@@ -363,10 +363,12 @@ class TaskServer(threading.Thread):
             pass
         self.cache_lock.release()
 
-    def feedback(self, regex, rate):
-        # TODO: change this method to feedback regex (which will be created soon)
-        #self.link_db.change_link_priority(regex, rate)
-        pass
+    def feedback(self, link, rating):
+        """
+        Increases priority of specified link and his children.
+        """
+        self.logger.debug("Feedback: %s %s" % (link, rating))
+        self.link_db.feedback(link, rating)
 
     def _evaluate_link(self, link):
         """
@@ -391,14 +393,21 @@ class TaskServer(threading.Thread):
         self.logger.debug('Trying to add %d links' % len(links))
         for link in links:
             _link = URLProcessor.validate(link, source_url)
-            if self._evaluate_link(_link) and not self.link_db.is_in_base(_link):
-                #_depth = SimpleCrawlingDepthPolicy.calculate_depth(link, source_url, depth)
-                #_depth = RealDepthCrawlingDepthPolicy.calculate_depth(link, self.link_db)
-                _depth = IgnoreDepthPolicy.calculate_depth()
-                if _depth <= self.max_url_depth:
-                    self.logger.debug("Added:%s with priority %d" % (_link, _depth))
-                    self.link_db.add_link(_link, priority, _depth)
-                    _counter += 1
+            try:
+                if self._evaluate_link(_link) and not self.link_db.is_in_base(_link):
+                    #_depth = SimpleCrawlingDepthPolicy.calculate_depth(link, source_url, depth)
+                    #_depth = RealDepthCrawlingDepthPolicy.calculate_depth(link, self.link_db)
+                    _depth = IgnoreDepthPolicy.calculate_depth()
+                    if _depth <= self.max_url_depth:
+                        self.logger.debug("Added:%s with priority %d" % (_link, _depth))
+                        self.link_db.add_link(_link, priority, _depth)
+                        if source_url:
+                            self.link_db.points(source_url, _link)
+                        _counter += 1
+            except Exception as e:
+                self.logger.error("Add links error:"+str(_link)+"M:"+str(e.message))
+                print "Add links error:" + str(_link) + "M:" + str(e.message)
+                raise
         self.logger.debug("Added %d new links into DB." % _counter)
 
     def readd_links(self, links):

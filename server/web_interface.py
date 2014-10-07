@@ -25,9 +25,9 @@ class index:
 class feedback:
     def POST(self):
         data = json.loads(web.data())
-        regex = data['regex']
-        rate = data['rate']
-        server.feedback(regex, rate)
+        link = data['link']
+        rating = data['rating']
+        server.feedback(link, rating)
         return 'OK'
 
 

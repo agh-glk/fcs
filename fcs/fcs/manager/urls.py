@@ -59,6 +59,8 @@ urlpatterns = patterns('',
                                                            name='get_data'),
                                                        url(r'^get_data/(?P<task_id>\d+)/(?P<size>\d+)/$', 'get_data',
                                                            name='get_data'),
+                                                       url(r'^send_feedback/(?P<task_id>\d+)/$',
+                                                           'send_feedback', name='send_feedback'),
                        ))),
 
                        #REST API
