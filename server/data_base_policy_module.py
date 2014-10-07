@@ -30,14 +30,12 @@ class SimplePolicyModule(AbstractPolicyModule):
 
     @staticmethod
     def calculate_priority(priority, feedback_rating, depth):
-        print priority
         if depth == 0:
             return min(SimplePolicyModule.MAX_PRIORITY, int(int(priority) *
                                                     SimplePolicyModule.FEEDBACK_PRIORITY_MAPPING[feedback_rating]))
         else:
             _delta = (SimplePolicyModule.FEEDBACK_PRIORITY_MAPPING[feedback_rating] - 1) \
                      * (1.0 - (float(depth + 1.0) / (SimplePolicyModule.get_feedback_propagation_depth() + 1)))
-            print _delta
             return max(SimplePolicyModule.MIN_PRIORITY,
                        min(SimplePolicyModule.MAX_PRIORITY, int(int(priority) * (1 + _delta))))
 

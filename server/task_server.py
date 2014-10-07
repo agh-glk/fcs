@@ -1,7 +1,7 @@
 import json
 import logging
 import re
-import threading
+import threading, thread
 import time
 from urlparse import urlparse
 import requests
@@ -368,7 +368,7 @@ class TaskServer(threading.Thread):
         Increases priority of specified link and his children.
         """
         self.logger.debug("Feedback: %s %s" % (link, rating))
-        self.link_db.feedback(link, rating)
+        thread.start_new_thread (self.link_db.feedback, (link, rating))
 
     def _evaluate_link(self, link):
         """
