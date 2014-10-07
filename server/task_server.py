@@ -140,7 +140,7 @@ class TaskServer(threading.Thread):
         try:
             data = r.json()
             self.update(data)
-            self.add_links(data['start_links'], self.link_db.DEFAULT_PRIORITY, 0)
+            self.add_links(data['start_links'], self.link_db.policy_module.DEFAULT_PRIORITY, 0)
             self.data_lock.acquire()
             self.uuid = data['uuid']
             self.data_lock.release()
@@ -341,7 +341,7 @@ class TaskServer(threading.Thread):
             if (cur_time - self.package_cache[package_id][0] > URL_PACKAGE_TIMEOUT) and \
                     not self.package_cache[package_id][3]:
                 self.logger.debug('Package %d has timed out. Readding' % package_id)
-                self.readd_links(self.package_cache[package_id][1])
+                #self.readd_links(self.package_cache[package_id][1]) controversial
                 self.package_cache[package_id][3] = True
             elif (cur_time - self.package_cache[package_id][0]) > 5 * URL_PACKAGE_TIMEOUT:
                 self._clear_cache(package_id)
@@ -441,7 +441,8 @@ class TaskServer(threading.Thread):
                     # TODO: put correct depth and priority value (based on previous url)
                     _details = self.link_db.get_details(entry['url'])
                     _url_depth = _details is not None and _details[2] or 0
-                    self.add_links(entry['links'], BerkeleyBTreeLinkDB.DEFAULT_PRIORITY, _url_depth, entry['url'])
+                    self.add_links(entry['links'], self.link_db.policy_module.DEFAULT_PRIORITY, _url_depth,
+                                   entry['url'])
             self._clear_cache(package_id)
 
     def _clear(self):

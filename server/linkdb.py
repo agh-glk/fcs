@@ -212,9 +212,6 @@ class GraphAndBTreeDB(BaseLinkDB):
     FOUND_LINKS_DB = "_found_links_db"
     PRIORITY_QUEUE_DB = "_priority_queue_db"
 
-    DEFAULT_PRIORITY = 500
-    BEST_PRIORITY = 0
-
     def __init__(self, base_name, policy_module):
         self.policy_module = policy_module
         self.base_name = base_name
@@ -243,6 +240,7 @@ class GraphAndBTreeDB(BaseLinkDB):
             return _link[1]
         return _link
 
+    #TODO: remove
     def set_as_fetched(self, link):
         self.found_links.set_as_fetched(link)
 

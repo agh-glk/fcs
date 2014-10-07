@@ -50,18 +50,21 @@ class GraphDB(object):
     @check_if_attached_to_jvm
     def change_link_priority(self, link, rate):
         _page = self._find_pages(link)
-        _old_value = _page['priority']
-        with self.graph.transaction:
-            _page['priority'] = rate
-        return _old_value
+        if _page:
+            _old_value = _page['priority']
+            with self.graph.transaction:
+                _page['priority'] = rate
+            return _old_value
 
     @check_if_attached_to_jvm
     def get_details(self, link):
         """
         Returns list with 3 strings - priority, fetch date(could be empty string) and depth.
         """
-        page = self._find_pages(link)
-        return map(str, [page['priority'], page['fetch_time'], page['depth']])
+        _page = self._find_pages(link)
+        if _page:
+            return map(str, [_page['priority'], _page['fetch_time'], _page['depth']])
+        raise Exception("Page not found!")
 
     @check_if_attached_to_jvm
     def add_page(self, link, priority, depth):
@@ -80,16 +83,20 @@ class GraphDB(object):
                     self._update_depth(url_vertex_b, url_vertex)
 
     def _find_pages(self, link):
-        return self.pages_idx['url'][link].single
+        try:
+            return self.pages_idx['url'][link].single
+        except ValueError:
+            return None
 
     @check_if_attached_to_jvm
     def points(self, url_a, url_b):
         page_a_vertex = self._find_pages(url_a)
         page_b_vertex = self._find_pages(url_b)
-        with self.graph.transaction:
-            _edge = page_a_vertex.links(page_b_vertex)
-            self._update_depth(page_a_vertex, page_b_vertex)
-        return _edge
+        if page_a_vertex and page_b_vertex:
+            with self.graph.transaction:
+                _edge = page_a_vertex.links(page_b_vertex)
+                self._update_depth(page_a_vertex, page_b_vertex)
+            return _edge
 
     @check_if_attached_to_jvm
     def get_connected(self, links):
