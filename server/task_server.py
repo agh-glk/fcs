@@ -15,6 +15,7 @@ import sys
 from url_processor import URLProcessor
 from crawling_depth_policy import SimpleCrawlingDepthPolicy, RealDepthCrawlingDepthPolicy, IgnoreDepthPolicy
 
+
 sys.path.append('../')
 from common.content_coder import Base64ContentCoder
 
@@ -37,6 +38,7 @@ class Status(object):
 
 
 class TaskServer(threading.Thread):
+
     def __init__(self, web_server, task_id, manager_address, max_url_depth=1):
         threading.Thread.__init__(self)
         self.status_lock = threading.Lock()
@@ -47,7 +49,7 @@ class TaskServer(threading.Thread):
         self.web_server = web_server
         self.manager_address = manager_address
         self.link_db = GraphAndBTreeDB('link_db_task_'+str(task_id), SimplePolicyModule)
-        self.content_db = BerkeleyContentDB('content_db')
+        self.content_db = BerkeleyContentDB('content_db_task_'+str(task_id))
 
         self.crawlers = {}
         self.task_id = task_id
@@ -214,6 +216,7 @@ class TaskServer(threading.Thread):
         Task server in this state will be stopped as soon as possible
         """
         self._set_status(Status.KILLED)
+        self._clear()
 
     def run(self):
         """
@@ -450,8 +453,11 @@ class TaskServer(threading.Thread):
         Clears database files
         """
         self.logger.debug('Clearing db files')
-        self.link_db.clear()
-        self.content_db.clear()
+        try:
+            self.content_db.clear()
+            self.link_db.clear()
+        except Exception as e:
+            self.logger.error(e)
 
     def get_data(self, size):
         """

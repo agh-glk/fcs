@@ -36,10 +36,9 @@ class ContentDB:    #TODO ; remove
 
 
 class BerkeleyContentDB(object):
-    CONTENT_DB = 'content_db'
 
     def __init__(self, base_name):
-        self.content_db_name = base_name + self.__class__.CONTENT_DB + str(uuid.uuid4())
+        self.content_db_name = base_name
         self.content_db = bsddb.rnopen(self.content_db_name)
         self.id_iter = 1
         self.get_data_iter = 1
@@ -83,8 +82,12 @@ class BerkeleyContentDB(object):
         return self.id_iter
 
     def clear(self):
-        self.content_db.close()
-        os.remove(self.content_db_name)
+        try:
+            self.content_db.close()
+        except Exception as e:
+            print "Remove content db exception: %s" % e
+        finally:
+            os.remove(self.content_db_name)
 
     def show(self):
         print self.content_db

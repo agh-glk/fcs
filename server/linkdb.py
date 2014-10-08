@@ -218,7 +218,7 @@ class GraphAndBTreeDB(BaseLinkDB):
 
         self.found_links = GraphDB(base_name)
 
-        self.priority_queue_db_name = base_name + self.__class__.PRIORITY_QUEUE_DB  #+ str(uuid.uuid4())
+        self.priority_queue_db_name = base_name + self.__class__.PRIORITY_QUEUE_DB
         self.priority_queue = bsddb.btopen(self.priority_queue_db_name)
 
     def is_in_base(self, link):
@@ -286,9 +286,13 @@ class GraphAndBTreeDB(BaseLinkDB):
         self.priority_queue.close()
 
     def clear(self):
-        self.close()
-        os.remove(self.priority_queue_db_name)
-        self.found_links.clear()
+        try:
+            self.close()
+        except Exception as e:
+            print "Link database close exception: %s" % e
+        finally:
+            os.remove(self.priority_queue_db_name)
+            self.found_links.clear()
 
 
 if __name__ == '__main__':

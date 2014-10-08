@@ -1,5 +1,6 @@
 import datetime
 import shutil
+import os
 
 
 class GraphDB(object):
@@ -11,7 +12,7 @@ class GraphDB(object):
             jpype.attachThreadToJVM()
         except Exception:
             raise
-        self.location = location
+        self.location = os.path.join(os.getcwd(), location)
         self.graph = GraphDatabase(location)
 
         with self.graph.transaction:
@@ -107,9 +108,7 @@ class GraphDB(object):
                 _res = _res + [x.end['url'] for x in page_vertex.links.outgoing]
         return set(_res)
 
-    @check_if_attached_to_jvm
     def clear(self):
-        self.graph.shutdown()
         shutil.rmtree(self.location, True)
 
 

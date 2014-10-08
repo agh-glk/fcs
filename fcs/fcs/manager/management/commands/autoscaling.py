@@ -6,6 +6,8 @@ from django.db.models.aggregates import Sum
 from django.utils.timezone import datetime
 import time
 from fcs.manager.models import Task, Crawler, TaskServer, User
+import sys
+import signal
 
 
 CURRENT_PATH = os.path.dirname(__file__)
@@ -32,14 +34,26 @@ INIT_SERVER_PORT = 18000
 INIT_CRAWLER_PORT = 19000
 
 
+def sigint_signal_handler(num, stack):
+    for crawler in Crawler.objects.all():
+        crawler.kill()
+    for task_server in TaskServer.objects.all():
+        task_server.kill()
+    time.sleep(10)
+    sys.exit(0)
+
+
 class Command(BaseCommand):
     def __init__(self):
         BaseCommand.__init__(self)
         self.address = '127.0.0.1'
+        signal.signal(signal.SIGINT, sigint_signal_handler)
         #TODO: add some function for server/crawler address creation;
         # now it can be bugged with large numbers of servers/crawlers
-        self.server_port = max([int(server.address.split(':')[2]) for server in TaskServer.objects.all()] + [INIT_SERVER_PORT]) + 1
-        self.crawler_port = max([int(crawler.address.split(':')[2]) for crawler in Crawler.objects.all()] + [INIT_CRAWLER_PORT]) + 1
+        self.server_port = max([int(server.address.split(':')[2]) for server in TaskServer.objects.all()]
+                               + [INIT_SERVER_PORT]) + 1
+        self.crawler_port = max([int(crawler.address.split(':')[2]) for crawler in Crawler.objects.all()]
+                                + [INIT_CRAWLER_PORT]) + 1
 
         self.last_scaling = time.time()
         self.old_crawlers = [crawler.address for crawler in Crawler.objects.all()]

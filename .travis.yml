@@ -6,6 +6,7 @@ install:
   - bash setup.sh
   - pip install -r requirements.txt --use-mirrors
   - pip install -e .
+  - /bin/sh -c "/bin/echo 'deb http://debian.neo4j.org/repo stable/' > /etc/apt/sources.list.d/neo4j.list"
   - sudo apt-get install default-jre-headless neo4j
 
 before_script: python fcs/manage.py syncdb --noinput
