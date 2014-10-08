@@ -12,7 +12,7 @@ services:
   - neo4j
 
 before_script: python fcs/manage.py syncdb --noinput
-script: coverage run --source fcs/fcs -m py.test
+script: coverage run --source fcs/fcs -m py.test fcs/fcs/manager/tests
 
 after_success:
   - coveralls
