@@ -70,6 +70,7 @@ def show_task(request, task_id):
     """
     task = get_object_or_404(Task, id=task_id, user=request.user.id)
     task_form = forms.EditTaskForm(request.POST or None, instance=task)
+    task_form.fields['start_links'].widget.attrs['readonly'] = True
     fieldset_value = task.finished and 'disabled' or ''
     feedback_form = forms.SendFeedbackForm()
     if request.POST and task_form.is_valid():

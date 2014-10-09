@@ -24,7 +24,7 @@ class ChangePasswordForm(forms.Form):
 class EditTaskForm(forms.ModelForm):
     class Meta:
         model = Task
-        exclude = ['name', 'user', 'start_links', 'created', 'active', 'server', 'last_server_spawn', 'finished',
+        exclude = ['name', 'user', 'created', 'active', 'server', 'last_server_spawn', 'finished',
                    'last_data_download', 'autoscale_change']
 
     def is_valid(self):
@@ -63,7 +63,7 @@ class CreateTaskForm(forms.Form):
 
 class SendFeedbackForm(forms.Form):
     url = forms.URLField()
-    rating = forms.ChoiceField(choices=[(x, x) for x in range(1,6)])
+    rating = forms.ChoiceField(choices=[(x, x) for x in range(1, 6)])
 
 
 class TaskFilterForm(forms.Form):
