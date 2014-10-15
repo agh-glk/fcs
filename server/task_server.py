@@ -7,7 +7,7 @@ from urlparse import urlparse
 import requests
 from requests.exceptions import ConnectionError
 from rest_framework import status
-from linkdb import BerkeleyBTreeLinkDB, GraphAndBTreeDB
+from linkdb import GraphAndBTreeDB
 from data_base_policy_module import SimplePolicyModule
 from contentdb import BerkeleyContentDB
 from django.utils.timezone import datetime
@@ -104,7 +104,6 @@ class TaskServer(threading.Thread):
         self.logger.debug('Changed speed to %d', self.urls_per_min)
 
     def get_address(self):
-        # TODO: change this address to external ip address (and in crawler too)
         return 'http://' + self.web_server.get_host()
 
     def _set_status(self, status):
@@ -155,7 +154,6 @@ class TaskServer(threading.Thread):
         """
         Sends unregister request to FCS main application.
         """
-        #TODO: check why precondition failed (task not stopped)
         r = requests.post(self.manager_address + '/autoscale/server/unregister/',
                           data={'task_id': self.task_id, 'uuid': self.uuid})
         self.logger.debug('Unregistering from management. Return code: %d, message: %s' % (r.status_code, r.content))
@@ -247,7 +245,7 @@ class TaskServer(threading.Thread):
                 time.sleep(30)
         finally:
             self._unregister_from_management()
-            #check what happens here sometimes that server doesn't shutdown
+            #TODO - HARD TO REPRODUCE : check what happens here sometimes that server doesn't shutdown
             self._clear()
             self.logger.debug('Stopping web interface')
             self.web_server.stop()
@@ -321,10 +319,8 @@ class TaskServer(threading.Thread):
         self.logger.debug('Retrieved %d links from linkdb' % len(_links))
         if _links:
             address = self.get_address()
-            crawling_type = self.mime_type
             package_id = self.package_id
-            #TODO: change 'crawling_type' to 'mime_type'
-            package = {'server_address': address, 'crawling_type': crawling_type, 'id': package_id, 'links': _links}
+            package = {'server_address': address, 'mime_type': self.mime_type, 'id': package_id, 'links': _links}
             self._cache(package_id, crawler, _links)
             self.package_id += 1
             return package
@@ -344,7 +340,6 @@ class TaskServer(threading.Thread):
             if (cur_time - self.package_cache[package_id][0] > URL_PACKAGE_TIMEOUT) and \
                     not self.package_cache[package_id][3]:
                 self.logger.debug('Package %d has timed out. Readding' % package_id)
-                #self.readd_links(self.package_cache[package_id][1]) controversial
                 self.package_cache[package_id][3] = True
             elif (cur_time - self.package_cache[package_id][0]) > 5 * URL_PACKAGE_TIMEOUT:
                 self._clear_cache(package_id)
@@ -398,8 +393,8 @@ class TaskServer(threading.Thread):
             _link = URLProcessor.validate(link, source_url)
             try:
                 if self._evaluate_link(_link) and not self.link_db.is_in_base(_link):
-                    #_depth = SimpleCrawlingDepthPolicy.calculate_depth(link, source_url, depth)
-                    #_depth = RealDepthCrawlingDepthPolicy.calculate_depth(link, self.link_db)
+                    #_depth = SimpleCrawlingDepthPolicy.calculate_depth(link, source_url, depth) usage example
+                    #_depth = RealDepthCrawlingDepthPolicy.calculate_depth(link, self.link_db) usage example
                     _depth = IgnoreDepthPolicy.calculate_depth()
                     if _depth <= self.max_url_depth:
                         self.logger.debug("Added:%s with priority %d" % (_link, _depth))
@@ -412,12 +407,6 @@ class TaskServer(threading.Thread):
                 print "Add links error:" + str(_link) + "M:" + str(e.message)
                 raise
         self.logger.debug("Added %d new links into DB." % _counter)
-
-    def readd_links(self, links):
-        for link in links:
-            # adds link only when it was earlier in linkdb
-            # TODO : ???
-            self.link_db.change_link_priority(link, BerkeleyBTreeLinkDB.BEST_PRIORITY)
 
     def _decode_content(self, content):
         return Base64ContentCoder.decode(content)
@@ -441,9 +430,9 @@ class TaskServer(threading.Thread):
                 for entry in data:
                     self.logger.debug('Adding content from url %s' % entry['url'])
                     self.content_db.add_content(entry['url'], entry['links'], entry['content'])
-                    # TODO: put correct depth and priority value (based on previous url)
                     _details = self.link_db.get_details(entry['url'])
                     _url_depth = _details is not None and _details[2] or 0
+                    #TODO - FUTURE WORKS: inherited priority?
                     self.add_links(entry['links'], self.link_db.policy_module.DEFAULT_PRIORITY, _url_depth,
                                    entry['url'])
             self._clear_cache(package_id)

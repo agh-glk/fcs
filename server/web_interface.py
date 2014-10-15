@@ -141,10 +141,9 @@ class WebServer(threading.Thread):
 
     def stop(self):
         self.app.stop()
-        #sys.exit()
 
 
-# TODO: sys.argv[2] - task id!
+#TODO - ENVIRONMENT DEPENDANT : task server spawning script, launched on remote host
 if __name__ == '__main__':
     port = int(sys.argv[1])
     task_id = sys.argv[2]

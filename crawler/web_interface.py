@@ -1,4 +1,3 @@
-import sys
 import web
 from crawler import Crawler
 from threading import Event
@@ -25,7 +24,7 @@ class put_links:
             _id = _data['id']
             _links = _data['links']
             _server_address = _data['server_address']
-            _mime_type = _data['crawling_type']
+            _mime_type = _data['mime_type']
         except KeyError:
             raise Exception("Invalid request body!")
         crawler.put_into_link_queue([_id, _server_address, _mime_type, _links])
@@ -40,7 +39,7 @@ class stop:
             event.set()
         except:
             server.kill()
-        return "Stop successful"
+        return "Crawler: stop successful"
 
 
 class kill:
@@ -50,7 +49,7 @@ class kill:
             event.set()
         except:
             server.kill()
-        return "Kill successful"
+        return "Crawler: kill successful"
 
 
 class alive:
@@ -84,7 +83,6 @@ class Server(ThreadWithExc):
 
     def run(self):
         try:
-            #TODO: check why sometimes something strange happens ('NoneType no attribute stop')
             self.app.run(port=self.port, address=self.address)
         finally:
             crawler.stop()
@@ -96,8 +94,8 @@ class Server(ThreadWithExc):
         exit(0)
 
 
+#TODO - ENVIRONMENT DEPENDANT : crawler spawning script, launched on remote host
 if __name__ == "__main__":
-    #TODO : przerobic pobieranie parametrow
     _port = 8080
     _address = '0.0.0.0'
     if len(sys.argv) > 3:
@@ -111,5 +109,5 @@ if __name__ == "__main__":
     crawler = Crawler(server, event, _port, manager_address)
     crawler.start()
     server.join()
-    print "Main thread stop"
+    print "Crawler: main thread stop"
 

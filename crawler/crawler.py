@@ -222,8 +222,3 @@ class Crawler(ThreadWithExc):
             time.sleep(2)
             self.web_server.kill()
         print "Crawler stop"
-
-if __name__ == '__main__':
-    cr = Crawler(None)
-    #cr._process_one_link('https://github.com/repo/afasf', 0)
-    cr._process_one_link('http://127.0.0.1:8080', 0)

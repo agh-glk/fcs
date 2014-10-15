@@ -18,12 +18,12 @@ class URLProcessor(object):
         return _link
 
     @staticmethod
-    def _get_domain(link):  #TODO : zmienic nazwe na get_host_name
+    def _get_host_name(link):
         return urlparse.urlparse(link)[1]
 
     @staticmethod
-    def identical_domains(link_a, link_b):  #TODO : jw
-        return URLProcessor._get_domain(link_a) == URLProcessor._get_domain(link_b)
+    def identical_hosts(link_a, link_b):
+        return URLProcessor._get_host_name(link_a) == URLProcessor._get_host_name(link_b)
 
     @staticmethod
     def generate_url_hierarchy(link):
@@ -35,11 +35,3 @@ class URLProcessor(object):
             hierarchy.append(hierarchy[index]+"/"+item)
         hierarchy = map(lambda x: "%s://%s" % (_scheme, x), hierarchy)
         return hierarchy
-
-if __name__ == '__main__':
-    print URLProcessor._get_domain('http://allegro.pl/country_pages/1/0/z9.php')
-    print URLProcessor._get_domain('http://sport.allegro.pl/country_pages/1/0/z9.php')
-    u = urlparse.urlparse('http://www.allegro.pl/country_pages/1/0/z9.php')
-    #u[1] = u[1].startswith('www.') and u[1][4:] or u[1]
-    print u.geturl()
-    print URLProcessor.generate_url_hierarchy('http://allegro.pl/country_pages/1/0/z9.php')

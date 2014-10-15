@@ -46,9 +46,9 @@ def sigint_signal_handler(num, stack):
 class Command(BaseCommand):
     def __init__(self):
         BaseCommand.__init__(self)
-        self.address = '127.0.0.1'
+        self.address = '127.0.0.1'  # TODO - ENVIRONMENT DEPENDANT: change management address
         signal.signal(signal.SIGINT, sigint_signal_handler)
-        #TODO: add some function for server/crawler address creation;
+        #TODO - FUTURE WORKS: add some function for server/crawler address creation;
         # now it can be bugged with large numbers of servers/crawlers
         self.server_port = max([int(server.address.split(':')[2]) for server in TaskServer.objects.all()]
                                + [INIT_SERVER_PORT]) + 1
@@ -82,12 +82,11 @@ class Command(BaseCommand):
         for task in Task.objects.all():
             self.check_server_assignment(task)
 
-    # TODO: change management address, crawler spawn timeout?
+    # TODO - FUTURE WORKS: change crawler spawn timeout (auto-adjusting)
     def check_server_assignment(self, task):
         if task.is_waiting_for_server():
-            if task.last_server_spawn is None:
-                self.spawn_task_server(task)
-            elif (datetime.now() - task.last_server_spawn).seconds > SERVER_SPAWN_TIMEOUT:
+            if task.last_server_spawn is None or \
+                            (datetime.now() - task.last_server_spawn).seconds > SERVER_SPAWN_TIMEOUT:
                 self.spawn_task_server(task)
 
     def handle_priority_changes(self):
@@ -116,9 +115,9 @@ class Command(BaseCommand):
 
     def spawn_task_server(self, task):
         print 'Spawn server for task: ', task
+        #TODO - ENVIRONMENT DEPENDANT: change task server spawning
         subprocess.Popen(['python', PATH_TO_SERVER, str(self.server_port), str(task.id), 'http://'+self.address+':8000',
                           self.address])
-        # TODO: change management address
         task.last_server_spawn = datetime.now()
         task.save()
         self.server_port += 1
@@ -128,15 +127,14 @@ class Command(BaseCommand):
             return
         print 'Spawn crawler'
         subprocess.Popen(['python', PATH_TO_CRAWLER, str(self.crawler_port), 'http://' + self.address + ':8000'])
-        # TODO: change management address
+        # TODO - ENVIRONMENT DEPENDANT: change crawler spawning
         self.crawler_port += 1
 
     def assign_crawlers_to_servers(self):
         actual_crawlers = [crawler.address for crawler in Crawler.objects.all()]
 
         if self.changed or self.old_crawlers != actual_crawlers:
-            print ''
-            print 'Assigning crawlers'
+            print '\nAssigning crawlers'
             self.changed = False
             self.old_crawlers = actual_crawlers
             servers = TaskServer.objects.all()
@@ -187,17 +185,16 @@ class Command(BaseCommand):
         if time.time() - self.last_scaling < AUTOSCALING_PERIOD:
             return
 
-        print ''
-        print 'Autoscaling'
+        print '\nAutoscaling'
         task_servers = TaskServer.objects.all()
         crawlers = Crawler.objects.all()
 
         expected_efficiency = 0
         actual_efficiency = 0
         for server in task_servers:
-            r = server.send('/stats', 'post', data=json.dumps({'seconds': STATS_PERIOD}))
-            if r:
-                data = r.json()
+            response = server.send('/stats', 'post', data=json.dumps({'seconds': STATS_PERIOD}))
+            if response:
+                data = response.json()
                 if data['seconds'] > MIN_SERVER_STATS_PERIOD:
                     expected_efficiency += data['urls_per_min']
                     actual_efficiency += (60. * data['links'] / data['seconds'])
@@ -205,9 +202,9 @@ class Command(BaseCommand):
         expected_load = 0
         actual_load = 0
         for crawler in crawlers:
-            r = crawler.send('/stats', 'post', data=json.dumps({'seconds': STATS_PERIOD}))
-            if r:
-                data = r.json()
+            response = crawler.send('/stats', 'post', data=json.dumps({'seconds': STATS_PERIOD}))
+            if response:
+                data = response.json()
                 if data['seconds'] > MIN_CRAWLER_STATS_PERIOD:
                     expected_load += data['seconds']
                     actual_load += data['load']
@@ -217,8 +214,7 @@ class Command(BaseCommand):
         print 'Efficiency percentage:', (1. * actual_efficiency / expected_efficiency) if expected_efficiency else 0.0
         print 'Crawlers up time:', expected_load
         print 'Crawlers load time:', actual_load
-        print 'Load percentage:', (1. * actual_load / expected_load) if expected_load else 0.0
-        print ''
+        print 'Load percentage: %s \n' % ((1. * actual_load / expected_load) if expected_load else 0.0)
 
         if actual_efficiency < EFFICIENCY_THRESHOLD * expected_efficiency:
             if len(crawlers) == 0 or actual_load > UPPER_LOAD_THRESHOLD * expected_load:
@@ -227,4 +223,3 @@ class Command(BaseCommand):
         if actual_load < LOWER_LOAD_THRESHOLD * expected_load:
             crawlers[0].stop()
             self.last_scaling = time.time()
-

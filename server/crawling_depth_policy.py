@@ -29,7 +29,7 @@ class SimpleCrawlingDepthPolicy(BaseCrawlingDepthPolicy):
     @staticmethod
     def calculate_depth(link=None, source_url=None, depth=None):
         try:
-            return URLProcessor.identical_domains(link, source_url) and int(depth) + 1 or 0
+            return URLProcessor.identical_hosts(link, source_url) and int(depth) + 1 or 0
         except:
             raise ValueError('Invalid parameters.')
 

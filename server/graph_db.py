@@ -75,6 +75,7 @@ class GraphDB(object):
                 page.INSTANCE_OF(self.pages)
                 self.pages_idx['url'][link] = page
                 return page
+        return None
 
     def _update_depth(self, url_vertex_a, url_vertex_b):
         if url_vertex_b['depth'] > url_vertex_a['depth'] + 1:
@@ -110,44 +111,3 @@ class GraphDB(object):
 
     def clear(self):
         shutil.rmtree(self.location, True)
-
-
-if __name__ == '__main__':
-
-    # db = GraphDatabase("~/tmp")
-    # with db.transaction:
-    #     firstNode = db.node(name='Hello')
-    #     secondNode = db.node(name='world!')
-    #
-    #     # Create a relationship with type 'knows'
-    #     relationship = firstNode.knows(secondNode, name='graphy')
-    #
-    # # Read operations can happen anywhere
-    # message = ' '.join([firstNode['name'], relationship['name'], secondNode['name']])
-    #
-    # print message
-    #
-    # # Delete the data
-    # with db.transaction:
-    #     firstNode.knows.single.delete()
-    #     firstNode.delete()
-    #     secondNode.delete()
-    #
-    # # Always shut down your database when your application exits
-    # db.shutdown()
-    gdb = GraphDB("neo4j_db")
-    try:
-        link_one = "http://link_one.pl"
-        link_two = "http://link_two.pl"
-        link_one_vertex = gdb.add_page(link_one, 0, 1)
-        link_two_vertex = gdb.add_page(link_two, 2, 3)
-        #print link_one_vertex['depth']
-        #print link_one_vertex['priority']
-        gdb.points(link_one, link_two)
-        #print gdb._find_pages(link_one)['url']
-        print gdb._find_pages(link_one)['priority']
-        #gdb._find_pages(link_one)['priority'] = 5
-        print gdb._find_pages(link_one)['depth']
-        print gdb.get_connected([link_one])
-    finally:
-        gdb.clear()

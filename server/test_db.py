@@ -1,13 +1,12 @@
-from linkdb import BerkeleyBTreeLinkDB
+from linkdb import GraphAndBTreeDB
 from data_base_policy_module import SimplePolicyModule
-import datetime
 from graph_db import GraphDB
 
 
 class TestLinkDataBase(object):
 
     def setup(self):
-        self.links_db = BerkeleyBTreeLinkDB("test_db", SimplePolicyModule)
+        self.links_db = GraphAndBTreeDB("test_db", SimplePolicyModule)
 
     def test_one_in_base(self):
         _link = "www.test.com"
@@ -101,14 +100,6 @@ class TestLinkDataBase(object):
         self.links_db.add_link("www.aaa.com/asasf/34", 4, 3)
         assert self.links_db.get_link() == _link
 
-    def test_set_as_fetched(self):
-        _link = "www.zzz.com"
-        self.links_db.add_link(_link, 12, 1)
-        _t0 = datetime.datetime.now()
-        self.links_db.set_as_fetched(_link)
-        _details = self.links_db.get_details(_link)
-        assert _t0 < datetime.datetime.strptime(_details[1], "%Y-%m-%d %H:%M:%S.%f")
-
     def test_feedback(self):
         _link = "www.zzz.com"
         self.links_db.add_link(_link, 12, 1)
@@ -124,10 +115,6 @@ class TestLinkDataBase(object):
 
     def teardown(self):
         self.links_db.clear()
-
-
-class TestContentDataBase(object):
-    pass
 
 
 class TestGraphDB(object):

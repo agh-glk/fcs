@@ -1,38 +1,6 @@
-import threading
 import bsddb
-import uuid
 import os
 import json
-
-
-class ContentDB:    #TODO ; remove
-    """
-    Deprecated. In-memory database.
-    """
-    def __init__(self):
-        self.lock = threading.RLock()
-        self.db = {}
-
-    def add_content(self, url, links, content):
-        self.lock.acquire()
-        self.db[url] = (links, content)
-        self.lock.release()
-
-    def content(self):
-        return self.db
-
-    def size(self):
-        return len(self.db)
-
-    def get_data_package(self, size):
-        self.lock.acquire()
-        keys = self.db.keys()[:size]
-        data = []
-        for key in keys:
-            data.append([key, self.db[key][0], self.db[key][1]])
-            del self.db[key]
-        self.lock.release()
-        return data
 
 
 class BerkeleyContentDB(object):
@@ -48,8 +16,8 @@ class BerkeleyContentDB(object):
         _json_dict = json.dumps({'url': url, 'links': links, 'content': None})
         try:
             _json_dict = json.dumps({'url': url, 'links': links, 'content': content})
-        except:
-            raise
+        except Exception as e:
+            print "Add content into db exception: %s" % e
         self.content_db[self.id_iter] = _json_dict
         self.id_iter += 1
 
@@ -91,13 +59,3 @@ class BerkeleyContentDB(object):
 
     def show(self):
         print self.content_db
-
-if __name__ == '__main__':
-    db = BerkeleyContentDB("aa")
-    for i in range(100000):
-        db.add_content('http://ala.pl', ['http://onet.pl', 'http://wp.pl'], "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-    print 'F'
-    db.get_file_with_data_package(1)
-    #db.show()
-    #print db.content_db[1]
-    db.clear()
