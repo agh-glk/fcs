@@ -16,7 +16,7 @@ This module contains methods that handle REST requests for tasks management. All
    * name - task's name
    * priority - task's priority
    * expire - datetime of task expiration
-   * mime_type - list of MIME types separated by whitespace
+   * mime_type - list of MIME types separated by whitespace. This parameter specifies types to be crawled
    * start_links - list of URLs separated by whitespace - starting point of crawling
    * whitelist - URLs which should be crawled
    * blacklist - URLs which should not be crawled
