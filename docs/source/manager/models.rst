@@ -89,9 +89,9 @@ This module contains model layer - implementation of system units and consists o
 
       Sends request to crawler.
 
-      :param string path:
-      :param string method:
-      :param string data:
+      :param string path: request name, may be one of the following: '/put_links', '/kill', '/stop', '/alive', '/stats'
+      :param string method: method of request, acceptable values are 'get' or 'post'
+      :param dict data: dict with parameters (in JSON). Details of particular request's parameters are described in CrawlerWebInterface_ documentation
 
 
 .. py:class:: TaskServer
