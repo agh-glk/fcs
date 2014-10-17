@@ -36,7 +36,7 @@ class BerkeleyContentDB(object):
                     del self.content_db[self.get_data_iter]
                     self.get_data_iter += 1
                     _current_size += len(_entry)
-                    _file.write(_entry)
+                    _file.write(_entry+'\n')
                 except KeyError:
                     return os.path.abspath(_file.name)
             return os.path.abspath(_file.name)
