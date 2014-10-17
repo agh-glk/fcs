@@ -1,7 +1,7 @@
 Module fcs.manager.models
 =======================================
 
-This module contains model layer - implementation of system units. It contains of:
+This module contains model layer - implementation of system units and consists of object-relational mapping classes:
 
 .. py:class:: UserManager
 
