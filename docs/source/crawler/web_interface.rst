@@ -1,3 +1,5 @@
+.. _CrawlerWebInterface:
+
 Module fcs.crawler.web_interface
 =======================================
 
