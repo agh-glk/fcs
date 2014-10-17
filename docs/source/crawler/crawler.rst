@@ -37,13 +37,13 @@ This module contains Crawler Unit implementation.
 
    .. py:attribute:: link_package_queue
 
-   Queue of links to crawl
+   Queue of packages of links to crawl
 
    .. py:method:: put_into_link_queue(link_package)
 
-   Puts links into queue
+   Puts links package into queue
 
-   :param string link_package: Links to put into queue
+   :param string link_package: Package of links to put into queue
 
    .. py:method:: add_stats(start_time, end_time, links_num)
 
