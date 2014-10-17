@@ -21,11 +21,6 @@ are to visit or have been already visited by Crawling Units.
 
 
 
-   .. py:method:: set_as_fetched(link)
-
-
-
-
    .. py:method:: change_link_priority(link, rate)
 
 
@@ -83,8 +78,6 @@ are to visit or have been already visited by Crawling Units.
    .. py:method:: get_link()
 
    :raises bsddb.db.DBNotFoundError:
-
-   .. py:method:: set_as_fetched(link)
 
    .. py:method:: change_link_priority(link, rate)
 

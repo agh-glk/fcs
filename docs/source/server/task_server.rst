@@ -121,8 +121,6 @@ This module contains implementation of Task Server.
 
     .. py:method:: add_links(links, priority, depth=0, source_url="")
 
-    .. py:method:: readd_links(links)
-
     .. py:method:: put_data(package_id, data)
 
      Handles data package received from crawler and puts it into a content database. If received package
