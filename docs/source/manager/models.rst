@@ -218,7 +218,7 @@ This module contains model layer - implementation of system units and consists o
 
    Creates Application object, required for working with REST API.
 
-   :param string sender:
+   :param string sender: signal sender. In our case this parameter is irrelevant, however more details about this mechanism can be found in `Django documentation <https://docs.djangoproject.com/en/dev/topics/signals/>`_
 
 
 .. py:class:: MailSent
