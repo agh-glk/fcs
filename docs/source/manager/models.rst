@@ -215,7 +215,7 @@ This module contains model layer - implementation of system units and consists o
 
 
 
-.. py:method:: create_api_keys(sender, **kwargs)
+.. py:function:: create_api_keys(sender, **kwargs)
 
    Creates Application object, required for working with REST API.
 
