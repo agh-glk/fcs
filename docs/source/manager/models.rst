@@ -214,11 +214,12 @@ This module contains model layer - implementation of system units and consists o
    .. py:method:: send_update_to_task_server()
 
 
+
 .. py:method:: create_api_keys(sender, **kwargs)
 
    Creates Application object, required for working with REST API.
 
-   :param string sender: signal sender. In our case this parameter is irrelevant, however more details about this mechanism can be found in `Django documentation <https://docs.djangoproject.com/en/dev/topics/signals/>`_
+   :param string sender: signal sender. In our case this parameter is irrelevant, however more details about this mechanism can be found in `Django documentation <https://docs.djangoproject.com/en/dev/topics/signals/>`_.
 
 
 .. py:class:: MailSent
