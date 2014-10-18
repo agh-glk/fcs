@@ -14,6 +14,8 @@ This module contains fcs.manager application views rendered in web browser.
 .. py:function:: list_tasks(request)
 
    List of all current user's tasks.
+   
+   .. note:: View accessible for logged in users only.
 
    :param request request: the request object used to generate the response
    :return: HTML code of the page
@@ -22,6 +24,8 @@ This module contains fcs.manager application views rendered in web browser.
 .. py:function:: add_task(request)
 
    View for creating new task.
+   
+   .. note:: View accessible for logged in users only.
 
    :param request request: the request object used to generate the response
    :return: HTML code of the page
@@ -31,6 +35,8 @@ This module contains fcs.manager application views rendered in web browser.
 
    Allows pausing, stopping and resuming task. Shows its details. Additionally, parameters of running or paused task can be changed.
 
+   .. note:: View accessible for logged in users only.
+   
    :param request request: the request object used to generate the response
    :param int task_id: ID of the given task 
    :return: HTML code of the page
@@ -39,6 +45,8 @@ This module contains fcs.manager application views rendered in web browser.
 .. py:function:: send_feedback(request, task_id)
 
    View for sending user's feedback on crawling results.
+   
+   .. note:: View accessible for logged in users only.
 
    :param request request: the request object used to generate the response
    :param int task_id: ID of the given task 
@@ -48,6 +56,8 @@ This module contains fcs.manager application views rendered in web browser.
 .. py:function:: api_keys(request)
 
    Shows Application Key and Secret Key for REST API.
+   
+   .. note:: View accessible for logged in users only.
 
    :param request request: the request object used to generate the response
    :return: HTML code of the page
@@ -56,6 +66,8 @@ This module contains fcs.manager application views rendered in web browser.
 .. py:function:: pause_task(request, task_id)
 
    View for pausing task.
+   
+   .. note:: View accessible for logged in users only.
 
    :param request request: the request object used to generate the response
    :param int task_id: ID of the given task 
@@ -65,6 +77,8 @@ This module contains fcs.manager application views rendered in web browser.
 .. py:function:: resume_task(request, task_id)
 
    View for resuming task.
+   
+   .. note:: View accessible for logged in users only.
 
    :param request request: the request object used to generate the response
    :param int task_id: ID of the given task 
@@ -74,6 +88,8 @@ This module contains fcs.manager application views rendered in web browser.
 .. py:function:: stop_task(request, task_id)
 
    View for stopping task.
+   
+   .. note:: View accessible for logged in users only.
 
    :param request request: the request object used to generate the response
    :param int task_id: ID of the given task 
@@ -83,6 +99,8 @@ This module contains fcs.manager application views rendered in web browser.
 .. py:function:: get_data(request, task_id, size)
 
    View for downloading data gathered by crawler.
+   
+   .. note:: View accessible for logged in users only.
 
    :param request request: the request object used to generate the response
    :param int task_id: ID of the given task related to data to be downloaded
@@ -93,6 +111,8 @@ This module contains fcs.manager application views rendered in web browser.
 .. py:function:: show_quota(request)
 
    Shows limitations for tasks, described by Quota object.
+   
+   .. note:: View accessible for logged in users only.
 
    :param request request: the request object used to generate the response
    :return: HTML code of the page
