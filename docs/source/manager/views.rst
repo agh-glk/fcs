@@ -5,7 +5,7 @@ This module contains fcs.manager application views rendered in web browser.
 
 .. py:function:: index(request)
 
-   Main page
+   Main page.
 
    :param request request: the request object used to generate the response
    :return: HTML code of the page
@@ -42,7 +42,7 @@ This module contains fcs.manager application views rendered in web browser.
 
    :param request request: the request object used to generate the response
    :param int task_id: ID of the given task 
-   :return: Redirect to :py:func:`show_task`
+   :return: redirect to :py:func:`show_task`
    
    
 .. py:function:: api_keys(request)
@@ -55,8 +55,61 @@ This module contains fcs.manager application views rendered in web browser.
    
 .. py:function:: pause_task(request, task_id)
 
-   View for pausing task
+   View for pausing task.
 
    :param request request: the request object used to generate the response
    :param int task_id: ID of the given task 
-   :return: Redirect to :py:func:`list_tasks`
+   :return: redirect to :py:func:`list_tasks`
+
+
+.. py:function:: resume_task(request, task_id)
+
+   View for resuming task.
+
+   :param request request: the request object used to generate the response
+   :param int task_id: ID of the given task 
+   :return: redirect to :py:func:`list_tasks`
+   
+   
+.. py:function:: stop_task(request, task_id)
+
+   View for stopping task.
+
+   :param request request: the request object used to generate the response
+   :param int task_id: ID of the given task 
+   :return: redirect to :py:func:`list_tasks`
+   
+
+.. py:function:: get_data(request, task_id, size)
+
+   View for downloading data gathered by crawler.
+
+   :param request request: the request object used to generate the response
+   :param int task_id: ID of the given task related to data to be downloaded
+   :param int size: size of data to be downloaded
+   :return: response with data or information about absence of an appropriate task server
+   
+
+.. py:function:: show_quota(request)
+
+   Shows limitations for tasks, described by Quota object.
+
+   :param request request: the request object used to generate the response
+   :return: HTML code of the page
+   
+   
+.. py:function:: api_docs_resources(request)
+
+   Swagger view generating REST API documentation.
+
+   :param request request: the request object used to generate the response
+   :return: HTML code of the page and an HttpResponse object with rendered text
+   
+   
+.. py:function:: api_docs_declaration(request, path)
+
+   Swagger view generating REST API documentation located at the given path.
+
+   :param request request: the request object used to generate the response
+   :param string path: path of documentation
+   :return: HTML code of the page and an HttpResponse object with rendered text
