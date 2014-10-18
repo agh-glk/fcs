@@ -150,9 +150,17 @@ This module contains model layer - implementation of system units and consists o
    .. py:attribute:: finished
    .. py:attribute:: created
    .. py:attribute:: last_data_download
+   
+      Time of last crawled data collection.
+   
    .. py:attribute:: server
    .. py:attribute:: last_server_spawn
+   
+      Time of last spawn of server which was run for handling this task.
+
    .. py:attribute:: autoscale_change
+   
+      Boolean value, informs if some task's parameter has been modified. It value is true, task server has to be informed of this change. 
 
    .. py:method:: clean()
 
