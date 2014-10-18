@@ -217,8 +217,12 @@ This module contains model layer - implementation of system units and consists o
 
 .. py:class:: MailSent
 
-   Information about sent mails, reminding user of crawling data waiting for him.
+   Representation of mail sent to user, reminding him to collect crawling data waiting for him.
 
    .. py:attribute:: tasks
+   
+      List of tasks related to uncollected data
 
    .. py:attribute:: date
+   
+      Date of mail sending
