@@ -1,7 +1,7 @@
 Module fcs.manager.management.commands.autoscaling
 =======================================
 
-fcs.manager.management.commands.autoscaling
+The autoscaling module. It is run as a Django application command.
 
 
 .. py:data:: CURRENT_PATH
@@ -23,6 +23,8 @@ fcs.manager.management.commands.autoscaling
 .. py:data:: INIT_CRAWLER_PORT
 
 .. py:class:: Command
+
+   Definition of the command.
 
    .. py:attribute:: address
    .. py:attribute:: server_port
