@@ -11,8 +11,8 @@ This module contains classes responsible for parsing content acquired by Crawlin
 
    Returns parser instance depending on passed content type.
 
-   :param string content_type: Type of content to parse
-   :return: Instance of parser that is able to parse a content of given type
+   :param string content_type: type of content to parse (MIME type)
+   :return: instance of parser that is able to parse a content of given type
 
 
 .. py:class:: Parser
@@ -23,8 +23,8 @@ This module contains classes responsible for parsing content acquired by Crawlin
 
    This method should contain parsing logic
 
-   :param string content: Content to parse
-   :param string url: Base site's URL
+   :param string content: content to parse
+   :param string url: URL of base site which content is parsed
 
    .. note:: Parser class's parse method is not implemented
 
@@ -37,6 +37,7 @@ This module contains classes responsible for parsing content acquired by Crawlin
 
    This method should contain parsing logic
 
-   :param string content: Content to parse
-   :param string url: Base site's URL
-   :return: List with passed content and retrieved links
+   :param string content: content to parse
+   :param string url: URL of base site which content is parsed
+   :return: list with 2 elements: the first one is the site's HTML encoded in Base64 format, the second one contains links retrieved from that site
+   :rtype: list
