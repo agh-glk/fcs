@@ -49,7 +49,7 @@ are to visit or have been already visited by Crawling Units.
 
 .. py:class:: GraphAndBTreeDB(base_name, policy_module)
 
-   Implementation of link database API. It is based on the Berkeley DB Btree (`bsddb3 module <https://pypi.python.org/pypi/bsddb3>`_ is used) and on `Neo4j <http://neo4j.com/>`.
+   Implementation of link database API. It is based on the Berkeley DB Btree (`bsddb3 module <https://pypi.python.org/pypi/bsddb3>`_ is used) and on `Neo4j <http://neo4j.com/>`_.
 
    :param string base_name: Name of the database
    :param AbstractPolicyModule policy_module: describes established policy (how links should be created, how and when priorities should be modified, etc.)
@@ -101,7 +101,7 @@ are to visit or have been already visited by Crawling Units.
 
       Returns additional information about the given link.
    
-      :return: List with 3 strings - priority, fetch date (could be an empty string) and depth of crawling tree (method of crawling tree depth calculating depends on the policy - for details see :ref:`CrawlingDepthPolicy`_)
+      :return: List with 3 strings - priority, fetch date (could be an empty string) and depth of crawling tree (method of crawling tree depth calculating depends on the policy - for details see :ref:CrawlingDepthPolicy_)
       :rtype: list of strings
 
    .. py:method:: close()
