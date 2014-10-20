@@ -53,3 +53,27 @@ contain proper POST methods. Request are encapsulated in JSON messages.
 
    :return: Crawling statistics from a given time period
    :rtype: JSON
+   
+   
+.. py:class:: Server(port=8080, address='0.0.0.0')
+
+   Wrapper for Crawler Unit's REST API.
+   
+   :param int port: server's port
+   :param string address: server's address
+   
+   .. py:attribute:: urls
+   
+   Mapping between URLs and web methods.
+   
+   .. py:attribute:: app
+   
+   WebApplication object 
+   
+   .. py:method:: run()
+   
+   Runs this server.
+   
+   .. py:method:: kill()
+   
+   Kills this server.
