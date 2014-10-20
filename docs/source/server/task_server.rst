@@ -123,12 +123,12 @@ This module contains implementation of Task Server.
 
     .. py:method:: put_data(package_id, data)
 
-     Handles data package received from crawler and puts it into a content database. If received package
+     Handles crawled data package received from crawler and puts it into a content database. If received package
      is not in a package cache or crawling request has timed out, no data will be stored in database. It also
      marks crawler which was assigned to this crawling request as 'idle', so next request can be sent to this crawler.
 
     :param int package_id:
-    :param string data:
+    :param string data: crawled data
 
     .. py:method:: get_data(size)
 
