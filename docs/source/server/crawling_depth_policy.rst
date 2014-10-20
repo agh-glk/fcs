@@ -1,4 +1,4 @@
-_`CrawlingDepthPolicy`
+.. _CrawlingDepthPolicy:
 
 Module fcs.server.crawling_depth_policy
 =======================================
