@@ -6,6 +6,14 @@ Module fcs.crawler.web_interface
 In this module web methods for managing Crawling Units are defined. These methods are implemented as classes that
 contain proper POST methods. Request are encapsulated in JSON messages.
 
+.. py:class:: index
+
+   Shows information about state of the Crawling Unit and its efficiency.
+   
+   :return: Diagnostic information (crawler's state and efficiency)
+   :rtype: string
+   
+
 .. py:class:: put_links
 
    Passes links to crawl to Crawling Unit.
