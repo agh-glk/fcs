@@ -1,3 +1,5 @@
+.. _ServerWebInterface:
+
 Module fcs.server.web_interface
 =======================================
 

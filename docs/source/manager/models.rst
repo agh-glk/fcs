@@ -1,7 +1,7 @@
 Module fcs.manager.models
 =======================================
 
-This module contains model layer - implementation of system units. It contains of:
+This module contains model layer - implementation of system units and consists of object-relational mapping classes:
 
 .. py:class:: UserManager
 
@@ -106,9 +106,9 @@ This module contains model layer - implementation of system units. It contains o
 
       Sends request to crawler.
 
-      :param string path:
-      :param string method:
-      :param string data:
+      :param string path: request name, may be one of the following: '/put_links', '/kill', '/stop', '/alive', '/stats'
+      :param string method: method of request, acceptable values are 'get' or 'post'
+      :param dict data: dict with parameters (in JSON). Details of particular request's parameters are described in :ref:`CrawlerWebInterface` documentation
 
 
 .. py:class:: TaskServer
@@ -141,15 +141,13 @@ This module contains model layer - implementation of system units. It contains o
 
       Sends request to task server.
 
-      :param string path:
-      :param string method:
-      :param string data:
+      :param string path: request name, may be one of the following: '/put_links', '/kill', '/stop', '/alive', '/stats'
+      :param string method: method of request, acceptable values are 'get' or 'post'
+      :param dict data: dict with parameters (in JSON). Details of particular request's parameters are described in :ref:`ServerWebInterface` documentation
 
-   .. py:method:: delete(using=None)
+   .. py:method:: delete()
 
       Deletes this task server.
-
-      :param string using:
 
 
 .. py:class:: Task
@@ -169,9 +167,17 @@ This module contains model layer - implementation of system units. It contains o
    .. py:attribute:: finished
    .. py:attribute:: created
    .. py:attribute:: last_data_download
+   
+      Time of last crawled data collection.
+   
    .. py:attribute:: server
    .. py:attribute:: last_server_spawn
+   
+      Time of last spawn of server which was run for handling this task.
+
    .. py:attribute:: autoscale_change
+   
+      Boolean value, informs if some task's parameter has been modified. It value is true, task server has to be informed of this change. 
 
    .. py:method:: clean()
 
@@ -225,17 +231,22 @@ This module contains model layer - implementation of system units. It contains o
    .. py:method:: send_update_to_task_server()
 
 
-.. py:method:: create_api_keys(sender, **kwargs)
+
+.. py:function:: create_api_keys(sender, **kwargs)
 
    Creates Application object, required for working with REST API.
 
-   :param string sender:
+   :param string sender: signal sender. In our case this parameter is irrelevant, however more details about this mechanism can be found in `Django documentation <https://docs.djangoproject.com/en/dev/topics/signals/>`_.
 
 
 .. py:class:: MailSent
 
-   Information about sent mails, reminding user of crawling data waiting for him.
+   Representation of mail sent to user, reminding him to collect crawling data waiting for him.
 
    .. py:attribute:: tasks
+   
+      List of tasks related to uncollected data
 
    .. py:attribute:: date
+   
+      Date of mail sending
