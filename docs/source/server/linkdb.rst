@@ -56,7 +56,7 @@ are to visit or have been already visited by Crawling Units.
 
    .. py:attribute:: found_links_db_name
    
-      Name of database storing the :py:attribute:`found_links` structure.
+      Name of database storing the :py:attr:`found_links` structure.
       
    .. py:attribute:: found_links
    
@@ -64,7 +64,7 @@ are to visit or have been already visited by Crawling Units.
    
    .. py:attribute:: priority_queue_db_name
    
-      Name of database storing the :py:attribute:`priority_queue` structure.
+      Name of database storing the :py:attr:`priority_queue` structure.
    
    .. py:attribute:: priority_queue
    
@@ -101,7 +101,7 @@ are to visit or have been already visited by Crawling Units.
 
       Returns additional information about the given link.
    
-      :return: List with 3 strings - priority, fetch date (could be an empty string) and depth of crawling tree (method of crawling tree depth calculating depends on the policy - for details see :ref:CrawlingDepthPolicy_)
+      :return: List with 3 strings - priority, fetch date (could be an empty string) and depth of crawling tree (method of crawling tree depth calculating depends on the policy - for details see CrawlingDepthPolicy_)
       :rtype: list of strings
 
    .. py:method:: close()
