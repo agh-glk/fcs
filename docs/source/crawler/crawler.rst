@@ -29,11 +29,11 @@ This module contains Crawler Unit implementation.
    Crawler Unit implementation.
 
    :param string web_server: Web Server
-   :param string event: Event
-   :param int port: Port of this Crawler Unit
-   :param string manager_address: Address of Manager module
-   :param int max_content_length: Maximal size of content
-   :param boolean handle_robots: Flag that informs if Crawler Unit should handle robots.txt
+   :param string event: object used for synchronization at the end of Crawler Unit's work
+   :param int port: port of this Crawler Unit
+   :param string manager_address: address of Manager module
+   :param int max_content_length: maximal size of content
+   :param boolean handle_robots: flag that informs if Crawler Unit should handle robots.txt
 
    .. py:attribute:: link_package_queue
 
