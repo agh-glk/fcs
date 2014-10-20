@@ -101,7 +101,7 @@ are to visit or have been already visited by Crawling Units.
 
       Returns additional information about the given link.
    
-      :return: List with 3 strings - priority, fetch date (could be an empty string) and depth of crawling tree (method of crawling tree depth calculating depends on the policy - for details see CrawlingDepthPolicy_)
+      :return: List with 3 strings - priority, fetch date (could be an empty string) and depth of crawling tree (method of crawling tree depth calculating depends on the policy - for details see :ref:`CrawlingDepthPolicy`)
       :rtype: list of strings
 
    .. py:method:: close()
