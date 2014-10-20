@@ -28,9 +28,10 @@ def add_task(request):
     data = request.DATA
     user = request.user
     try:
-        task = Task.objects.create_task(user=user, name=data['name'], priority=int(data['priority']), expire=data['expire'],
-                            start_links = data['start_links'], mime_type=data['mime_type'], whitelist=data['whitelist'],
-                            blacklist=data['blacklist'], max_links=int(data['max_links']))
+        task = Task.objects.create_task(user=user, name=data['name'], priority=int(data['priority']),
+                                        expire=data['expire'], start_links=data['start_links'],
+                                        mime_type=data['mime_type'], whitelist=data['whitelist'],
+                                        blacklist=data['blacklist'], max_links=int(data['max_links']))
     except KeyError as e:
         return Response(e.message, status=status.HTTP_400_BAD_REQUEST)
     except (QuotaException, ValidationError) as e:

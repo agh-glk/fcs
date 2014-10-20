@@ -35,11 +35,28 @@ This module contains model layer - implementation of system units. It contains o
    Represents limitations in creating tasks. Each :py:class:`User` object is connected with his personal quota.
 
    .. py:attribute:: max_priority
+
+      Maximal allowed sum of tasks' priorities.
+
    .. py:attribute:: max_tasks
+
+      Maximal allowed number of running tasks.
+
    .. py:attribute:: link_pool
+
+      Maximal allowed sum of tasks' processed links number.
+
    .. py:attribute:: max_links
+
+      Maximal allowed number of processed links per task.
+
    .. py:attribute:: urls_per_min
+
+      Expected crawling speed.
+
    .. py:attribute:: user
+
+      Quota's owner.
 
 
 .. py:class:: TaskManager
@@ -48,15 +65,15 @@ This module contains model layer - implementation of system units. It contains o
 
    .. py:staticmethod:: create_task(user, name, priority, expire, start_links, whitelist='*', blacklist='', max_links=1000, mime_type='text/html')
 
-   :param string user:
-   :param string name:
-   :param int priority:
-   :param datetime expire:
-   :param string start_links:
-   :param string whitelist:
-   :param string blacklist:
-   :param string max_links:
-   :param string mime_type:
+   :param string user: User's name.
+   :param string name: New task's name.
+   :param int priority: Task priority.
+   :param datetime expire: Task expiration date.
+   :param string start_links: List of pages where crawler starts his work.
+   :param string whitelist: Allowed urls as regexp list.
+   :param string blacklist: Disallowed url as regexp list.
+   :param string max_links: Maximal allowed number of processed pages.
+   :param string mime_type: List of allowed MIME types.
 
 
 .. py:class:: Crawler
