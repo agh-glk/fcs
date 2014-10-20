@@ -68,7 +68,7 @@ contain proper POST methods. Request are encapsulated in JSON messages.
    
    .. py:attribute:: app
    
-   WebApplication object 
+   Server is run as a web application. This attribute is an object representing that web application.
    
    .. py:method:: run()
    
