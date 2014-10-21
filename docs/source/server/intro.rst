@@ -9,7 +9,7 @@ is logical. Each Task Server contains its own database for storing links or craw
 
 :doc:`crawling_depth_policy`
 
-:doc:`key_policy_module`
+:doc:`data_base_policy_module`
 
 :doc:`linkdb`
 
