@@ -24,7 +24,7 @@ In this module policies of crawling depth computing are contained.
 
    Depth is computed in accordance with the following rules:
    
-   * - new domain
+   \* - new domain
    1) A.com -> *B.com => depth_2 = 0
    2) A.com -> A.com/aaa/ => depth_2 = depth_1 + 1
    3) A.com -> *B.com -> A.com/aaa/ => depth_1 = x, depth_2 = 0, depth_3 = 0
