@@ -1,6 +1,8 @@
 Module fcs.server.url_processor
 =======================================
 
+This module contains class for processing and unifying URLs.
+
 .. py:class:: URLProcessor
 
    Processes and corrects URLs retrieved from a web site and delivers other methods operating on web addresses (these methods are used e.g. by crawl depth policy classes).
