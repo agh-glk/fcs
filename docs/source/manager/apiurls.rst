@@ -1,3 +1,5 @@
+.. _ManagerApiUrls::
+
 Module fcs.manager.apiurls
 =======================================
 
