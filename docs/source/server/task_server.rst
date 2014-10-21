@@ -102,7 +102,7 @@ This module contains implementation of Task Server.
 
       Updates crawling parameters and status. It is usually called when some changes in task data are made using GUI or API.
 
-      :param string data:
+      :param dict data: Task description (parameters of the task)
 
    .. py:method:: pause()
 
@@ -123,9 +123,7 @@ This module contains implementation of Task Server.
 
    .. py:method:: run()
 
-      Runs the Task Server.
-
-      :raises ConnectionError:
+      Main Task Server loop.
 
    .. py:method:: get_idle_crawlers()
 
@@ -134,9 +132,21 @@ This module contains implementation of Task Server.
       :return: List of idle Crawler Units.
       :rtype: list of crawlers
 
-   .. py:method:: feedback(regex, rate)
+   .. py:method:: feedback(link, rating)
+   
+      Increases priority of specified link and its children.
+      
+      :param string link: Link
+      :param string rating: Link's new rating, can be a number 1-5 casted to string
 
    .. py:method:: add_links(links, priority, depth=0, source_url="")
+   
+      Adds links to process.
+      
+      :param list links: List of links (links are of string type)
+      :param string priority: Links' rating, can be a number 1-5 casted to string
+      :param int depth: Depth of crawling for a page from which links have been retrieved
+      :param string source_url: URL of page from which links have been retrieved
 
    .. py:method:: put_data(package_id, data)
 
@@ -145,13 +155,13 @@ This module contains implementation of Task Server.
       marks crawler which was assigned to this crawling request as 'idle', so next request can be sent to this crawler.
 
       :param int package_id:
-      :param string data: crawled data
+      :param string data: Crawled data
 
    .. py:method:: get_data(size)
 
-      Returns crawling result data of given size.
+      Returns path to file with crawling results.
 
-      :param int size: Size of demanded crawling result
+      :param int size: Size of package with demanded crawling results
 
-      :return: Path to file with crawling results.
+      :return: Path to file with crawling results
       :rtype: string
