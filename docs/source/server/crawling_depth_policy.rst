@@ -3,7 +3,7 @@
 Module fcs.server.crawling_depth_policy
 =======================================
 
-In this module policies for crawling depth are contained.
+In this module policies of crawling depth computing are contained.
 
 .. py:class:: BaseCrawlingDepthPolicy
 
