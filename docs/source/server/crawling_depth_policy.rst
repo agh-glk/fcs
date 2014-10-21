@@ -23,6 +23,7 @@ In this module policies of crawling depth computing are contained.
 .. py:class:: SimpleCrawlingDepthPolicy
 
    Depth is computed in accordance with the following rules:
+   
    * - new domain
    1) A.com -> *B.com => depth_2 = 0
    2) A.com -> A.com/aaa/ => depth_2 = depth_1 + 1
