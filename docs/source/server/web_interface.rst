@@ -18,9 +18,19 @@ contain proper POST and GET methods. Request are encapsulated in JSON messages.
 
 .. py:class:: crawlers
 
+   Assigns crawlers to the Task Server.
+   
+   :return: Confirmation of the assignment
+   :rtype: string
+
 .. py:class:: speed
 
 .. py:class:: update
+
+   Informs about changes of task's settings (i.a. about its stopping, pausing, change of its priority, etc.).
+   
+   :return: Confirmation of sending an update
+   :rtype: string
 
 .. py:class:: stop
 
