@@ -52,3 +52,33 @@ contain proper POST and GET methods. Request are encapsulated in JSON messages.
 
    :return: Confirmation of killing the Task Server
    :rtype: string
+   
+.. py:class:: WebServer(address='0.0.0.0', port=8800)
+
+   Wrapper for Task Server’s REST API.
+
+   :param int port: server's port
+   :param string address: server's address
+   
+   .. py:attribute:: urls
+   
+      Mapping between URLs and web methods.
+      
+   .. py:attribute:: app
+   
+      Server is run as a web application. This attribute is an object representing that web application.
+      
+   .. py:method:: run()
+   
+      Runs this server.
+      
+   .. py:method:: get_host()
+   
+      Returns server's address with its port.
+      
+      :return: Server's address with its port in the following format: address:port
+      :rtype: string
+   
+   .. py:method:: stop()
+   
+      Stops this server.
