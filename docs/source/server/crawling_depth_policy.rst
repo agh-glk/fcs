@@ -25,9 +25,12 @@ In this module policies of crawling depth computing are contained.
    Depth is computed in accordance with the following rules:
    
    \* - new domain
-   1) A.com -> *B.com => depth_2 = 0
+   
+   1) A.com -> \*B.com => depth_2 = 0
+   
    2) A.com -> A.com/aaa/ => depth_2 = depth_1 + 1
-   3) A.com -> *B.com -> A.com/aaa/ => depth_1 = x, depth_2 = 0, depth_3 = 0
+   
+   3) A.com -> \*B.com -> A.com/aaa/ => depth_1 = x, depth_2 = 0, depth_3 = 0
 
    .. py:staticmethod:: calculate_depth(link=None, source_url=None, depth=None)
 
@@ -42,10 +45,14 @@ In this module policies of crawling depth computing are contained.
 .. py:class:: RealDepthCrawlingDepthPolicy
 
    Depth is computed in accordance with the following rules:
-   * - new domain
-   1) A.com -> *B.com => depth_2 = 0
+   
+   \* - new domain
+   
+   1) A.com -> \*B.com => depth_2 = 0
+   
    2) A.com -> A.com/aaa/ => depth_2 = depth_1 + 1
-   3) A.com -> *B.com -> A.com/aaa/ => depth_1 = x, depth_2 = 0, depth_3 = x + 1
+   
+   3) A.com -> \*B.com -> A.com/aaa/ => depth_1 = x, depth_2 = 0, depth_3 = x + 1
 
    .. py:staticmethod:: calculate_depth(link=None, link_db=None)
 
