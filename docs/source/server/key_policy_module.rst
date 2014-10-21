@@ -1,4 +1,4 @@
- Module fcs.server.key_policy_module
+Module fcs.server.key_policy_module
 =======================================
 
 .. py:class:: BaseKeyPolicyModule
