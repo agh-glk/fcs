@@ -207,11 +207,13 @@ This module contains model layer - implementation of system units and consists o
 
    .. py:method:: feedback(score_dict)
 
-       Process feedback from client in order to update crawling process to satisfy client expectations.
+      Process feedback from client in order to update crawling process to satisfy client expectations.
 
-       :param dict score_dict: Dictionary with URLs' scores
+      :param dict score_dict: Dictionary with URLs' scores
 
    .. py:method:: send_update_to_task_server()
+   
+      Sends to Task Server information about modifications in task's parameters.
 
 
 
