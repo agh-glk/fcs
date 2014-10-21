@@ -8,7 +8,6 @@ This module contains methods that handle REST requests for tasks management. All
 .. py:function:: add_task(request)
 
    Creates new task. Handles REST request for task creation. Required POST parameters:
-   
    * name - name of task
    * priority - task priority
    * expire - datetime of task expiration
@@ -26,7 +25,6 @@ This module contains methods that handle REST requests for tasks management. All
 .. py:function:: delete_task(request, task_id)
 
    Finishes a task. Handles REST request for task finish. Required POST parameters:
-   
    * id - task id
 
    :param request: Request object.
@@ -38,8 +36,7 @@ This module contains methods that handle REST requests for tasks management. All
 .. py:function:: pause_task(request, task_id)
 
    Pauses a task. Handles REST request for task deactivation. Required POST parameters:
-   
-   id - task id
+   * id - task id
 
    :param request: Request object.
    :param int task_id: ID of task to be paused.
@@ -50,8 +47,7 @@ This module contains methods that handle REST requests for tasks management. All
 .. py:function:: resume_task(request, task_id)
 
    Resumes a task. Handles REST request for task activation. Required POST parameters:
-   
-   id - task id
+   * id - task id
 
    :param request: Request object.
    :param int task_id: ID of task to be resumed.
