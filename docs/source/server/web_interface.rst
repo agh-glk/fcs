@@ -4,7 +4,7 @@ Module fcs.server.web_interface
 =======================================
 
 In this module web methods for managing Task Server are defined. These methods are implemented as classes that
-contain proper POST and GET methods. Request are encapsulated in JSON messages.
+contain proper POST and GET methods. Requests are encapsulated in JSON messages.
 
 .. py:class:: index
 
