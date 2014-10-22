@@ -207,7 +207,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'fcs.tex', u'fcs Documentation',
+  ('index', 'fcs.tex', u'FCS Documentation',
    u'AGH-GLK', 'manual'),
 ]
 
