@@ -1,4 +1,4 @@
-Module fcs.server.url_processor
+fcs.server.url_processor
 =======================================
 
 This module contains class for processing and unifying URLs.
