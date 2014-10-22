@@ -1,4 +1,4 @@
-Module fcs.server.task_server
+fcs.server.task_server
 =======================================
 
 This module contains implementation of Task Server.
