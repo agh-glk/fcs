@@ -1,4 +1,4 @@
-Module fcs.manager.middleware
+fcs.manager.middleware
 =======================================
 
 This module contains the following classes:
