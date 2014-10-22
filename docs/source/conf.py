@@ -251,8 +251,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'FCS', u'FCS Documentation',
-   u'AGH-GLK', 'FCS', 'Focused Crawling Service',
+  ('index', 'fcs', u'FCS Documentation',
+   u'AGH-GLK', 'fcs', 'Focused Crawling Service',
    'Miscellaneous'),
 ]
 
