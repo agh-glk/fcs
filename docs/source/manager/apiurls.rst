@@ -1,6 +1,6 @@
 .. _ManagerApiUrls:
 
-Module fcs.manager.apiurls
+fcs.manager.apiurls
 =======================================
 
-In this module methods defined in :ref:`ManagerApiViews` are mapped on URLs.
+In this module methods defined in :ref:`ManagerApiViews` module are mapped on URLs.
