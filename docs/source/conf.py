@@ -237,7 +237,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'FCS', u'FCS Documentation',
+    ('index', 'fcs', u'FCS Documentation',
      [u'AGH-GLK'], 1)
 ]
 
@@ -252,7 +252,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'fcs', u'FCS Documentation',
-   u'AGH-GLK', 'FCS', 'Focused Crawling Service',
+   u'AGH-GLK', 'fcs', 'Focused Crawling Service',
    'Miscellaneous'),
 ]
 
