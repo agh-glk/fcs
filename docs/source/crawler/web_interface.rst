@@ -1,6 +1,6 @@
 .. _CrawlerWebInterface:
 
-Module fcs.crawler.web_interface
+fcs.crawler.web_interface
 =======================================
 
 In this module web methods for managing Crawling Units are defined. These methods are implemented as classes that
