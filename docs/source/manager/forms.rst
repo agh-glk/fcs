@@ -1,4 +1,4 @@
-Module fcs.manager.forms
+fcs.manager.forms
 =======================================
 
 In this module the following Django forms are defined:
