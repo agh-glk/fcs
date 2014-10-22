@@ -1,6 +1,6 @@
 .. _ServerWebInterface:
 
-Module fcs.server.web_interface
+fcs.server.web_interface
 =======================================
 
 In this module web methods for managing Task Server are defined. These methods are implemented as classes that
