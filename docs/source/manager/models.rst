@@ -1,4 +1,4 @@
-Module fcs.manager.models
+fcs.manager.models
 =======================================
 
 This module contains model layer - implementation of system units and consists of object-relational mapping classes:
