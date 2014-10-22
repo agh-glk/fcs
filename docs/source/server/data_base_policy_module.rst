@@ -1,4 +1,4 @@
-Module fcs.server.data_base_policy_module
+fcs.server.data_base_policy_module
 =======================================
 
 This module contains implementations of key policies - classes that generate a key with information about the priorities of given links.
