@@ -1,4 +1,4 @@
-Module fcs.manager.admin
+fcs.manager.admin
 =======================================
 
 In this module two types of fields are set:
