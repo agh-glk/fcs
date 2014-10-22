@@ -1,4 +1,4 @@
-Module fcs.manager
+Management module (fcs.manager)
 =======================================
 
 Management module is a web application implemented in Django framework. It is responsible for managing user accounts
