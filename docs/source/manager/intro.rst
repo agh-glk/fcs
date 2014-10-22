@@ -23,6 +23,8 @@ and handling crawling requests from clients. Management module provides:
 
 :doc:`models`
 
+:doc:`tasks`
+
 :doc:`urls`
 
 :doc:`views`
