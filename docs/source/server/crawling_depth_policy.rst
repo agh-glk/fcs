@@ -1,6 +1,6 @@
 .. _CrawlingDepthPolicy:
 
-Module fcs.server.crawling_depth_policy
+fcs.server.crawling_depth_policy
 =======================================
 
 In this module policies of crawling depth computing are contained.
