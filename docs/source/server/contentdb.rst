@@ -1,4 +1,4 @@
-Module fcs.server.contentdb
+fcs.server.contentdb
 =======================================
 
 This module contains API for connection with database for crawled content.
