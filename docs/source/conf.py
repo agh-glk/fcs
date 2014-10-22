@@ -252,7 +252,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'fcs', u'FCS Documentation',
-   u'AGH-GLK', 'fcs', 'Focused Crawling Service',
+   u'AGH-GLK', 'FCS', 'Focused Crawling Service',
    'Miscellaneous'),
 ]
 
