@@ -47,16 +47,18 @@ This module contains model layer - implementation of system units and consists o
    Manages creation of Task.
 
    .. py:staticmethod:: create_task(user, name, priority, expire, start_links, whitelist='*', blacklist='', max_links=1000, mime_type='text/html')
+   
+      Returns new task.
 
-   :param string user:
-   :param string name:
-   :param int priority:
-   :param datetime expire:
-   :param string start_links:
-   :param string whitelist:
-   :param string blacklist:
-   :param string max_links:
-   :param string mime_type:
+      :param string user:
+      :param string name:
+      :param int priority:
+      :param datetime expire:
+      :param string start_links:
+      :param string whitelist:
+      :param string blacklist:
+      :param string max_links:
+      :param string mime_type:
 
 
 .. py:class:: Crawler
