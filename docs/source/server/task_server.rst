@@ -144,7 +144,7 @@ This module contains implementation of Task Server.
       Adds links to process.
       
       :param list links: List of links (links are of string type)
-      :param string priority: Links' rating, can be a number 1-5 casted to string
+      :param int priority: Links' priority, can be a number 0-999 (0 is the lowest priority)
       :param int depth: Depth of crawling for a page from which links have been retrieved
       :param string source_url: URL of page from which links have been retrieved
 
