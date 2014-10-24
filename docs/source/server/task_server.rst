@@ -154,8 +154,8 @@ This module contains implementation of Task Server.
       is not in a package cache or crawling request has timed out, no data will be stored in database. It also
       marks crawler which was assigned to this crawling request as 'idle', so next request can be sent to this crawler.
 
-      :param int package_id:
-      :param string data: Crawled data
+      :param int package_id: ID of crawled data package
+      :param string data: Crawled data package
 
    .. py:method:: get_data(size)
 
