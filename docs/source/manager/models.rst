@@ -59,6 +59,8 @@ This module contains model layer - implementation of system units and consists o
       :param string blacklist:
       :param string max_links:
       :param string mime_type:
+      
+      :raises QuotaException: if user quota is exceeded
 
 
 .. py:class:: Crawler
@@ -236,7 +238,9 @@ This module contains model layer - implementation of system units and consists o
 
    .. py:method:: resume()
 
-      Resumes task.
+      Resumes task - task becomes active so it can crawl links.
+      
+      :raises QuotaException: if user has not enough free priority resources to run this task. Then, user should decrease priority of this or other active task.
 
    .. py:method:: stop()
 
