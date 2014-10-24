@@ -30,7 +30,7 @@ The autoscaling module. It is run as a Django application command.
 
 .. py:data:: MIN_LINK_PACKAGE_SIZE
 
-   Minimal size of package with links.
+   Minimal size of package with links that have to be processed by crawler.
 
 .. py:data:: STATS_PERIOD
 
