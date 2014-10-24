@@ -47,7 +47,7 @@ In this module the following Django forms are defined:
 
    .. py:attribute:: mime_type
 
-      MIME types which will be crawled
+      MIME types which are to be crawled
 
 
 .. py:class:: TaskFilterForm
