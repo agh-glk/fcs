@@ -14,13 +14,18 @@ contain proper POST and GET methods. Requests are encapsulated in JSON messages.
 
 .. py:class:: put_data
 
+   Handles crawled data package.
+   
+   :return: Confirmation
+   :rtype: string
+
 .. py:class:: stats
 
 .. py:class:: crawlers
 
    Assigns crawlers to the Task Server.
    
-   :return: Confirmation of the assignment
+   :return: Confirmation
    :rtype: string
 
 .. py:class:: speed
@@ -29,12 +34,12 @@ contain proper POST and GET methods. Requests are encapsulated in JSON messages.
 
    Informs about changes of task's settings (i.a. about its stopping, pausing, change of its priority, etc.).
    
-   :return: Confirmation of sending an update
+   :return: Confirmation
    :rtype: string
 
 .. py:class:: stop
 
-   :return: Confirmation of stopping the Task Server
+   :return: Confirmation
    :rtype: string
 
 .. py:class:: get_data
@@ -50,7 +55,7 @@ contain proper POST and GET methods. Requests are encapsulated in JSON messages.
 
    Kills a Task Server
 
-   :return: Confirmation of killing the Task Server
+   :return: Confirmation
    :rtype: string
    
 .. py:class:: WebServer(address='0.0.0.0', port=8800)
