@@ -28,7 +28,7 @@ This module contains Crawler Unit implementation.
 
    Crawler Unit implementation.
 
-   :param string web_server: Web Server
+   :param string web_server: object that represents Crawler Unit, used for communication with Task Server
    :param string event: object used for synchronization at the end of Crawler Unit's work
    :param int port: port of this Crawler Unit
    :param string manager_address: address of Manager module
