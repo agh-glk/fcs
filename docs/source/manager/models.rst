@@ -52,7 +52,7 @@ This module contains model layer - implementation of system units and consists o
 
    .. py:attribute:: urls_per_min
 
-      Expected crawling speed.
+      Expected crawling speed. Used by efficiency estimation module.
 
    .. py:attribute:: user
 
@@ -70,8 +70,8 @@ This module contains model layer - implementation of system units and consists o
    :param int priority: Task priority.
    :param datetime expire: Task expiration date.
    :param string start_links: List of pages where crawler starts his work.
-   :param string whitelist: Allowed urls as regexp list.
-   :param string blacklist: Disallowed url as regexp list.
+   :param string whitelist: Allowed URLs as regexp list.
+   :param string blacklist: Disallowed URLs as regexp list.
    :param string max_links: Maximal allowed number of processed pages.
    :param string mime_type: List of allowed MIME types.
 
@@ -164,8 +164,17 @@ This module contains model layer - implementation of system units and consists o
    .. py:attribute:: expire_date
    .. py:attribute:: mime_type
    .. py:attribute:: active
+
+      If true task is running, else task is paused.
+
    .. py:attribute:: finished
+
+      If true task is finished, else running or paused.
+
    .. py:attribute:: created
+
+      Creation date.
+
    .. py:attribute:: last_data_download
    
       Time of last crawled data collection.
@@ -181,9 +190,11 @@ This module contains model layer - implementation of system units and consists o
 
    .. py:method:: clean()
 
-      Cleans task's data
+      Cleans task's data. Validates new task's fields before save operation.
 
    .. py:method:: save(*args, **kwargs)
+
+      Saves task in data base and sends information about modifications to its task server.
 
    .. py:method:: get_parsed_whitelist()
 
@@ -220,15 +231,18 @@ This module contains model layer - implementation of system units and consists o
 
    .. py:method:: is_waiting_for_server()
 
-      Checks if running task has no task server assigned
+      Checks if running task has no task server assigned. This case includes waiting until new task server starts.
 
-   .. py:method:: feedback(score_dict)
+   .. py:method:: feedback(link, rating)
 
        Process feedback from client in order to update crawling process to satisfy client expectations.
 
-       :param dict score_dict: Dictionary with URLs' scores
+       :param string link: URL
+       :param string rating: Rating as number in range 1 - 5.
 
    .. py:method:: send_update_to_task_server()
+
+      Sends information about task update to its task server.
 
 
 
@@ -245,8 +259,8 @@ This module contains model layer - implementation of system units and consists o
 
    .. py:attribute:: tasks
    
-      List of tasks related to uncollected data
+      List of tasks related to uncollected data.
 
    .. py:attribute:: date
    
-      Date of mail sending
+      Date of mail sending.

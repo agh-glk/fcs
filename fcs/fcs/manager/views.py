@@ -65,8 +65,8 @@ def add_task(request):
 @login_required()
 def show_task(request, task_id):
     """
-    Allows pausing, stopping and resuming task. Shows its details. Additionally, parameters of running or paused task
-     can be changed.
+    Allows pausing, stopping and resuming task. Shows its details. Additionally, some parameters of running or paused
+     task can be changed.
     """
     task = get_object_or_404(Task, id=task_id, user=request.user.id)
     task_form = forms.EditTaskForm(request.POST or None, instance=task)
@@ -83,6 +83,9 @@ def show_task(request, task_id):
 
 @login_required()
 def send_feedback(request, task_id):
+    """
+    Sends feedback to task server and redirect to 'show_task' view.
+    """
     task = get_object_or_404(Task, id=task_id, user=request.user.id)
     task.feedback(request.POST['url'], request.POST['rating'])
     messages.success(request, 'Feedback sent.')

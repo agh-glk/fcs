@@ -1,12 +1,5 @@
-import heapq
-import re
-import sre_constants
-import threading
 import bsddb3 as bsddb
-from data_base_policy_module import SimplePolicyModule
-import datetime
 import os
-import uuid
 from graph_db import GraphDB
 
 
@@ -19,9 +12,6 @@ class BaseLinkDB(object):
         pass
 
     def get_link(self):
-        pass
-
-    def set_as_fetched(self, link):
         pass
 
     def change_link_priority(self, link, rate):

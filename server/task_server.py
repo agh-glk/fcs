@@ -7,7 +7,7 @@ from urlparse import urlparse
 import requests
 from requests.exceptions import ConnectionError
 from rest_framework import status
-from linkdb import GraphAndBTreeDB
+from link_db import GraphAndBTreeDB
 from data_base_policy_module import SimplePolicyModule
 from contentdb import BerkeleyContentDB
 from django.utils.timezone import datetime
@@ -245,7 +245,6 @@ class TaskServer(threading.Thread):
                 time.sleep(30)
         finally:
             self._unregister_from_management()
-            #TODO - HARD TO REPRODUCE : check what happens here sometimes that server doesn't shutdown
             self._clear()
             self.logger.debug('Stopping web interface')
             self.web_server.stop()
@@ -391,21 +390,21 @@ class TaskServer(threading.Thread):
         self.logger.debug('Trying to add %d links' % len(links))
         for link in links:
             _link = URLProcessor.validate(link, source_url)
-            try:
-                if self._evaluate_link(_link) and not self.link_db.is_in_base(_link):
-                    #_depth = SimpleCrawlingDepthPolicy.calculate_depth(link, source_url, depth) usage example
-                    #_depth = RealDepthCrawlingDepthPolicy.calculate_depth(link, self.link_db) usage example
-                    _depth = IgnoreDepthPolicy.calculate_depth()
-                    if _depth <= self.max_url_depth:
-                        self.logger.debug("Added:%s with priority %d" % (_link, _depth))
+            if self._evaluate_link(_link) and not self.link_db.is_in_base(_link):
+                #_depth = SimpleCrawlingDepthPolicy.calculate_depth(link, source_url, depth) usage example
+                #_depth = RealDepthCrawlingDepthPolicy.calculate_depth(link, self.link_db) usage example
+                _depth = IgnoreDepthPolicy.calculate_depth()
+                if _depth <= self.max_url_depth:
+                    try:
                         self.link_db.add_link(_link, priority, _depth)
                         if source_url:
                             self.link_db.points(source_url, _link)
+                    except Exception as e:
+                        self.logger.error("Add links error:"+str(_link)+"Message:"+str(e.message))
+                        print "Add links error:" + str(_link) + "Message:" + str(e.message)
+                    else:
+                        self.logger.debug("Added:%s with priority %d" % (_link, priority))
                         _counter += 1
-            except Exception as e:
-                self.logger.error("Add links error:"+str(_link)+"M:"+str(e.message))
-                print "Add links error:" + str(_link) + "M:" + str(e.message)
-                raise
         self.logger.debug("Added %d new links into DB." % _counter)
 
     def _decode_content(self, content):

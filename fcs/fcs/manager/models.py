@@ -215,6 +215,9 @@ class Task(models.Model):
     objects = TaskManager()
 
     def clean(self):
+        """
+        Validates new task's fields before save operation.
+        """
         if self.finished:
             self.active = False
         if not self.mime_type:
@@ -248,6 +251,9 @@ class Task(models.Model):
             raise ValidationError('Invalid protocol in start links! Only http and https are valid.')
 
     def save(self, *args, **kwargs):
+        """
+        Saves task in data base and sends information about modifications to its task server.
+        """
         changed = changed_fields(self)
         if ('server' in changed and 'active' in changed) \
                 or (self.server and 'active' in changed) \
@@ -261,7 +267,7 @@ class Task(models.Model):
 
     def get_parsed_whitelist(self):
         """
-        Returns whitelist converted from user-friendly regex to python regex
+        Returns whitelist converted from user-friendly regex to python regex.
         """
         user_regexes = self.whitelist.split()
         python_regexes = ['^' + regex.replace('.', '\.').replace('*', '.*') + '$' for regex in user_regexes]
@@ -269,7 +275,7 @@ class Task(models.Model):
 
     def get_parsed_blacklist(self):
         """
-        Returns blacklist converted from user-friendly regex to python regex
+        Returns blacklist converted from user-friendly regex to python regex.
         """
         user_regexes = self.blacklist.split()
         python_regexes = ['^' + regex.replace('.', '\.').replace('*', '.*') + '$' for regex in user_regexes]
@@ -330,7 +336,7 @@ class Task(models.Model):
 
     def is_waiting_for_server(self):
         """
-        Checks if running task has no task server assigned
+        Checks if running task has no task server assigned. This case includes waiting until new task server starts.
         """
         return (not self.finished) and (self.server is None)
 
@@ -338,17 +344,19 @@ class Task(models.Model):
         """
         Process feedback from client.
 
-        Update crawling process in order to satisfy client expectations
+        Update crawling process in order to satisfy client expectations.
         """
         if self.server:
             data = {'link': link, 'rating': rating}
             self.server.send('/feedback', 'post', json.dumps(data))
-        pass
 
     def __unicode__(self):
         return "Task %s of user %s" % (self.name, self.user)
 
     def send_update_to_task_server(self):
+        """
+        Sends information about task update to its task server.
+        """
         if self.server:
             data = {'finished': self.finished, 'active': self.active,
                     'max_links': self.max_links, 'whitelist': self.get_parsed_whitelist(),

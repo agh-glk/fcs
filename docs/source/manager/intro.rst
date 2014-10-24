@@ -13,7 +13,7 @@ and handling crawling requests from clients. Management module provides:
 
 :doc:`api_views`
 
-:doc:`apiurls`
+:doc:`api_urls`
 
 :doc:`autoscale_views`
 

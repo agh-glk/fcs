@@ -33,7 +33,7 @@ This module contains fcs.manager application views rendered in web browser.
    
 .. py:function:: show_task(request, task_id)
 
-   Allows pausing, stopping and resuming task. Shows its details. Additionally, parameters of running or paused task can be changed.
+   Allows pausing, stopping and resuming task. Shows its details. Additionally, some parameters of running or paused task can be changed.
 
    .. note:: View accessible for logged in users only.
    
@@ -65,7 +65,7 @@ This module contains fcs.manager application views rendered in web browser.
    
 .. py:function:: pause_task(request, task_id)
 
-   View for pausing task.
+   Pauses task and redirect to tasks list.
    
    .. note:: View accessible for logged in users only.
 
@@ -76,7 +76,7 @@ This module contains fcs.manager application views rendered in web browser.
 
 .. py:function:: resume_task(request, task_id)
 
-   View for resuming task.
+   Resumes task and redirect to tasks list.
    
    .. note:: View accessible for logged in users only.
 
@@ -87,7 +87,7 @@ This module contains fcs.manager application views rendered in web browser.
    
 .. py:function:: stop_task(request, task_id)
 
-   View for stopping task.
+   Stops task and redirect to tasks list.
    
    .. note:: View accessible for logged in users only.
 
@@ -98,7 +98,7 @@ This module contains fcs.manager application views rendered in web browser.
 
 .. py:function:: get_data(request, task_id, size)
 
-   View for downloading data gathered by crawler.
+   Downloads data gathered by crawler.
    
    .. note:: View accessible for logged in users only.
 

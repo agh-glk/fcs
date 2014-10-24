@@ -1,4 +1,4 @@
-Module fcs.server.linkdb
+Module fcs.server.link_db
 =======================================
 
 This module contains implementations of API for link database. Link database stores information about links that

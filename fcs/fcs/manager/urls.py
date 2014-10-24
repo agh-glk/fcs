@@ -64,7 +64,7 @@ urlpatterns = patterns('',
                        ))),
 
                        #REST API
-                       url(r'^api/', include('fcs.manager.apiurls', namespace='api')),
+                       url(r'^api/', include('fcs.manager.api_urls', namespace='api')),
                        url(r'^auth/', include('oauth2_provider.urls', namespace='oauth2_provider')),
 
                        #Swagger REST API documentation

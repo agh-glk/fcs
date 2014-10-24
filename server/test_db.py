@@ -1,4 +1,4 @@
-from linkdb import GraphAndBTreeDB
+from link_db import GraphAndBTreeDB
 from data_base_policy_module import SimplePolicyModule
 from graph_db import GraphDB
 

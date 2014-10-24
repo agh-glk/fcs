@@ -1,18 +1,23 @@
 from bs4 import BeautifulSoup
 import logging
 import urlparse
-from mechanize import Browser
 import sys
 sys.path.append('../')
 from common.content_coder import Base64ContentCoder
 
 
 class ParserProvider(object):
+    """
+    Provides concrete parser instance
+    """
 
     parsers = {}
 
     @staticmethod
     def get_parser(content_type):
+        """
+        Returns parser instance depending on passed content type.
+        """
         _content_type = content_type.split(';')[0]
         if ParserProvider.parsers.__contains__(_content_type):
             return ParserProvider.parsers[_content_type]
@@ -28,6 +33,9 @@ class ParserProvider(object):
 
 
 class Parser():
+    """
+    Superclass for concrete parser implementations.
+    """
     def __init__(self):
         self.logger = logging.getLogger('parser')
         _file_handler = logging.FileHandler('crawler.log')
@@ -37,6 +45,9 @@ class Parser():
         self.logger.setLevel(logging.DEBUG)
 
     def parse(self, content, url=""):
+        """
+        This method should contain parsing logic.
+        """
         pass
 
 
@@ -80,18 +91,6 @@ class TextHtmlParser(Parser):
 
     def _encode_for_transport(self, content):
         return Base64ContentCoder.encode(content)
-
-if __name__ == '__main__':
-    link = 'http://dziecko.pl/'
-
-    browser = Browser()
-    browser.set_handle_robots(True)
-    browser.addheaders = [('User-agent', 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.11 (KHTML, like Gecko) \
-     Chrome/23.0.1271.64 Safari/537.11')]
-    _response = browser.open_novisit(link)
-    _parser = TextHtmlParser()
-    _data = _parser.parse(_response.read(), url=link)
-    print _data[1]
 
 
 

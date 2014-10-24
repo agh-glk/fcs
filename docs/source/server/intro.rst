@@ -11,7 +11,7 @@ is logical. Each Task Server contains its own database for storing links or craw
 
 :doc:`key_policy_module`
 
-:doc:`linkdb`
+:doc:`link_db`
 
 :doc:`task_server`
 

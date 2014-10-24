@@ -102,7 +102,7 @@ class Crawler(ThreadWithExc):
                 try:
                     _results = self._process_one_link(_link, _mime_types)
                 except Exception as e:
-                    self.logger.error("Exception in %s : %s" % (_link, e.message))
+                    self.logger.error("Exception in %s : %s" % (_link, e))
                     _results = {"url": _link, "links": [], "content": ""}
                 else:
                     self.logger.info("Processing url %s ended successfully. %s urls extracted" %

@@ -1,7 +1,7 @@
 Module fcs.manager.api_views
 =======================================
 
-This module contains methods that handle REST requests for tasks management. All methods are decorated with Django @api_view decorator. These methods are mapped on URLs in :doc:`modules/api_views` module.
+This module contains methods that handle REST requests for tasks management. All methods are decorated with Django @api_view decorator. These methods are mapped on URLs in :doc:`api_urls` module.
 
 .. py:function:: add_task(request)
 

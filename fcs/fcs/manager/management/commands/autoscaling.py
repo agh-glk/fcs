@@ -82,7 +82,7 @@ class Command(BaseCommand):
         for task in Task.objects.all():
             self.check_server_assignment(task)
 
-    # TODO - FUTURE WORKS: change crawler spawn timeout (auto-adjusting)
+    # TODO - FUTURE WORKS: change server spawn timeout (auto-adjusting)
     def check_server_assignment(self, task):
         if task.is_waiting_for_server():
             if task.last_server_spawn is None or \
