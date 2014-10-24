@@ -140,22 +140,61 @@ This module contains model layer - implementation of system units and consists o
    Represents crawling tasks defined by users.
 
    .. py:attribute:: user
+   
+      User that owns this task.
+   
    .. py:attribute:: name
+   
+      Task's name.
+   
    .. py:attribute:: priority
+   
+      Task's priority.
+   
    .. py:attribute:: start_links
+   
+      Starting point of crawling.
+   
    .. py:attribute:: whitelist
+   
+      URLs which should be crawled (in regex format).
+   
    .. py:attribute:: blacklist
+   
+      URLs which should not be crawled (in regex format).
+   
    .. py:attribute:: max_links
+   
+      Maximal amount of links that may be visited while crawling.
+   
    .. py:attribute:: expire_date
+   
+      Datetime of task expiration.
+   
    .. py:attribute:: mime_type
+   
+      MIME types which are to be crawled.
+   
    .. py:attribute:: active
+   
+      Boolean value that informs if task is active.
+   
    .. py:attribute:: finished
+   
+      Boolean value that informs if task is finished.
+   
    .. py:attribute:: created
+   
+      Datetime of task creation.
+   
    .. py:attribute:: last_data_download
    
       Time of last crawled data collection.
    
    .. py:attribute:: server
+   
+      Task Server that handles this task.
+   
    .. py:attribute:: last_server_spawn
    
       Time of last spawn of server which was run for handling this task.
@@ -169,6 +208,8 @@ This module contains model layer - implementation of system units and consists o
       Cleans task's data
 
    .. py:method:: save(*args, **kwargs)
+   
+      Updates task's data and propagates them to Task Server.
 
    .. py:method:: get_parsed_whitelist()
 
