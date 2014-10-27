@@ -403,7 +403,7 @@ class TaskServer(threading.Thread):
                         self.logger.error("Add links error:"+str(_link)+"Message:"+str(e.message))
                         print "Add links error:" + str(_link) + "Message:" + str(e.message)
                     else:
-                        self.logger.debug("Added:%s with priority %d" % (_link, priority))
+                        self.logger.debug("Added:%s with priority %s" % (_link, priority))
                         _counter += 1
         self.logger.debug("Added %d new links into DB." % _counter)
 

@@ -38,6 +38,8 @@ class GraphAndBTreeDB(BaseLinkDB):
         self.found_links = GraphDB(base_name)
 
         self.priority_queue_db_name = base_name + self.__class__.PRIORITY_QUEUE_DB
+        if os.path.exists(self.priority_queue_db_name):
+            os.remove(self.priority_queue_db_name)
         self.priority_queue = bsddb.btopen(self.priority_queue_db_name)
 
     def is_in_base(self, link):

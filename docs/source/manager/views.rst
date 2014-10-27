@@ -7,8 +7,8 @@ This module contains fcs.manager application views rendered in web browser.
 
    Main page.
 
-   :param HttpRequest request: the request object used to generate the response
-   :return: HTML code of the page
+   :param request request: The request object used to generate the response.
+   :return: HTML code of the page.
    
 
 .. py:function:: list_tasks(request)
@@ -17,8 +17,8 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param HttpRequest request: the request object used to generate the response
-   :return: HTML code of the page
+   :param request request: The request object used to generate the response.
+   :return: HTML code of the page.
    
    
 .. py:function:: add_task(request)
@@ -27,19 +27,19 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param HttpRequest request: the request object used to generate the response
-   :return: HTML code of the page
+   :param request request: The request object used to generate the response.
+   :return: HTML code of the page.
    
    
 .. py:function:: show_task(request, task_id)
 
-   Allows pausing, stopping and resuming task. Shows its details. Additionally, some parameters of running or paused task can be changed.
+   Allows pausing, stopping, resuming task and sending feedback. Shows its details. Additionally, some parameters of running or paused task can be changed.
 
    .. note:: View accessible for logged in users only.
    
-   :param HttpRequest request: the request object used to generate the response
-   :param int task_id: ID of the given task 
-   :return: HTML code of the page
+   :param request request: The request object used to generate the response.
+   :param int task_id: ID of the given task.
+   :return: HTML code of the page.
    
 
 .. py:function:: send_feedback(request, task_id)
@@ -48,9 +48,9 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param HttpRequest request: the request object used to generate the response
-   :param int task_id: ID of the given task 
-   :return: redirect to :py:func:`show_task`
+   :param request request: The request object used to generate the response.
+   :param int task_id: ID of the given task.
+   :return: redirect to :py:func:`show_task`.
    
    
 .. py:function:: api_keys(request)
@@ -59,8 +59,8 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param HttpRequest request: the request object used to generate the response
-   :return: HTML code of the page
+   :param request request: The request object used to generate the response.
+   :return: HTML code of the page.
    
    
 .. py:function:: pause_task(request, task_id)
@@ -69,9 +69,9 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param HttpRequest request: the request object used to generate the response
-   :param int task_id: ID of the given task 
-   :return: redirect to :py:func:`list_tasks`
+   :param request request: The request object used to generate the response.
+   :param int task_id: ID of the given task.
+   :return: Redirect to :py:func:`list_tasks`.
 
 
 .. py:function:: resume_task(request, task_id)
@@ -80,9 +80,9 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param HttpRequest request: the request object used to generate the response
-   :param int task_id: ID of the given task 
-   :return: redirect to :py:func:`list_tasks`
+   :param request request: The request object used to generate the response.
+   :param int task_id: ID of the given task.
+   :return: Redirect to :py:func:`list_tasks`.
    
    
 .. py:function:: stop_task(request, task_id)
@@ -91,9 +91,9 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param HttpRequest request: the request object used to generate the response
-   :param int task_id: ID of the given task 
-   :return: redirect to :py:func:`list_tasks`
+   :param request request: The request object used to generate the response.
+   :param int task_id: ID of the given task.
+   :return: Redirect to :py:func:`list_tasks`.
    
 
 .. py:function:: get_data(request, task_id, size)
@@ -102,10 +102,10 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param HttpRequest request: the request object used to generate the response
-   :param int task_id: ID of the given task related to data to be downloaded
-   :param int size: size of data to be downloaded
-   :return: response with data or information about absence of an appropriate task server
+   :param request request: The request object used to generate the response.
+   :param int task_id: ID of the given task related to data to be downloaded.
+   :param int size: Size of data to be downloaded in MB.
+   :return: Response with data or information about absence of an appropriate task server.
    
 
 .. py:function:: show_quota(request)
@@ -114,22 +114,22 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param HttpRequest request: the request object used to generate the response
-   :return: HTML code of the page
+   :param request request: The request object used to generate the response.
+   :return: HTML code of the page.
    
    
 .. py:function:: api_docs_resources(request)
 
    Swagger view generating REST API documentation.
 
-   :param HttpRequest request: the request object used to generate the response
-   :return: HTML code of the page and an HttpResponse object with rendered text
+   :param request request: The request object used to generate the response.
+   :return: HTML code of the page and an HttpResponse object with rendered text.
    
    
 .. py:function:: api_docs_declaration(request, path)
 
    Swagger view generating REST API documentation located at the given path.
 
-   :param HttpRequest request: the request object used to generate the response
-   :param string path: path of documentation
-   :return: HTML code of the page and an HttpResponse object with rendered text
+   :param request request: The request object used to generate the response.
+   :param string path: Path to documentation.
+   :return: HTML code of the page and an HttpResponse object with rendered text.

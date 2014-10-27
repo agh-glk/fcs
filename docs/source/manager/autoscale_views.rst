@@ -1,7 +1,7 @@
 fcs.manager.autoscale_views
 =======================================
 
-This module contains methods that handle requests for autoscale module operations. All methods are decorated with Django @api_view decorator.
+This module contains methods that handle requests for autoscale module operations. All methods are decorated with Django REST framework @api_view decorator.
 
 .. py:function:: register_task_server(request)
 

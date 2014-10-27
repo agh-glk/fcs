@@ -7,4 +7,4 @@ fcs.manager.tasks
    
 .. py:function:: remove_old_mail_data()
 
-   Task-function for Huey plugin. Removes old email notifications from DB. Requires running Redis server.
+   Task-function for Huey plugin. Removes old email notifications from data base. Requires running Redis server.

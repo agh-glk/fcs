@@ -5,51 +5,51 @@ In this module the following Django forms are defined:
 
 .. py:class:: ChangePasswordForm
 
-   Form to change user's password
+   Form to change user's password.
 
 
 .. py:class:: EditTaskForm
 
-   Form to change task data
+   Form to change task data.
 
 
 .. py:class:: CreateTaskForm
 
-   Form to create new task
+   Form to create new task.
 
    .. py:attribute:: name
 
-   Task's name
+      Task's name.
 
    .. py:attribute:: priority
 
-      Task's priority
+      Task's priority.
 
    .. py:attribute:: start_links
 
-      Starting point of crawling
+      Starting point of crawling.
 
    .. py:attribute:: whitelist
 
-      URLs which should be crawled (in regex format)
+      URLs which should be crawled (in regex format).
 
    .. py:attribute:: blacklist
 
-      URLs which should not be crawled (in regex format)
+      URLs which should not be crawled (in regex format).
 
    .. py:attribute:: max_links
 
-      Maximal amount of links that may be visited while crawling
+      Maximal amount of links that may be visited while crawling.
 
    .. py:attribute:: expire
 
-      Datetime of task expiration
+      Datetime of task expiration.
 
    .. py:attribute:: mime_type
 
-      MIME types which are to be crawled
+      MIME types which are to be crawled.
 
 
 .. py:class:: TaskFilterForm
 
-   Form to filter information about tasks
+   Form to filter information about tasks.

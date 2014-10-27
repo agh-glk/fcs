@@ -26,7 +26,7 @@ This module contains model layer - implementation of system units and consists o
 
 .. py:class:: User
 
-   FCS user class.
+   FCS user class. Extends :py:class:`django.contrib.auth.models.AbstractUser`.
 
    .. note:: Username, password and email are required. Other fields are optional.
 
@@ -77,19 +77,19 @@ This module contains model layer - implementation of system units and consists o
       :param string max_links: Maximal allowed number of processed pages.
       :param string mime_type: List of allowed MIME types.
 
-      :raises QuotaException: if user quota is exceeded
+      :raises QuotaException: if user quota is exceeded.
 
 .. py:class:: Crawler
 
-   Represents crawler unit
+   Represents crawler unit.
 
    .. py:attribute:: address
 
-      Crawling unit's address
+      Crawling unit's address.
 
    .. py:attribute:: uuid
 
-      Crawling unit's UUID
+      Crawling unit's UUID.
 
    .. py:method:: is_alive()
 
@@ -103,32 +103,34 @@ This module contains model layer - implementation of system units and consists o
 
    .. py:method:: kill()
 
+      Sends kill request to crawler.
+
       .. note:: If crawler doesn't respond this object will be deleted.
 
    .. py:method:: send(self, path, method='get', data=None)
 
       Sends request to crawler.
 
-      :param string path: request name, may be one of the following: '/put_links', '/kill', '/stop', '/alive', '/stats'
-      :param string method: method of request, acceptable values are 'get' or 'post'
-      :param dict data: dict with parameters (in JSON). Details of particular request's parameters are described in :ref:`CrawlerWebInterface` documentation
+      :param string path: Request name, may be one of the following: '/put_links', '/kill', '/stop', '/alive', '/stats'.
+      :param string method: Method of request, acceptable values are 'get' or 'post'.
+      :param dict data: Dict with parameters (in JSON). Details of particular request's parameters are described in :ref:`CrawlerWebInterface` documentation.
 
 
 .. py:class:: TaskServer
 
-   Represents server which executes crawling tasks
+   Represents server which executes crawling tasks.
 
    .. py:attribute:: address
 
-      Task server's address
+      Task server's address.
 
    .. py:attribute:: urls_per_min
 
-      Tasks server's speed
+      Tasks server's speed.
 
    .. py:attribute:: uuid
 
-      Task server's UUID
+      Task server's UUID.
 
    .. py:method:: is_alive()
 
@@ -144,9 +146,9 @@ This module contains model layer - implementation of system units and consists o
 
       Sends request to task server.
 
-      :param string path: request name, may be one of the following: '/put_links', '/kill', '/stop', '/alive', '/stats'
-      :param string method: method of request, acceptable values are 'get' or 'post'
-      :param dict data: dict with parameters (in JSON). Details of particular request's parameters are described in :ref:`ServerWebInterface` documentation
+      :param string path: Request name, may be one of the following: '/put_links', '/kill', '/stop', '/alive', '/stats'.
+      :param string method: Method of request, acceptable values are 'get' or 'post'.
+      :param dict data: Dict with parameters (in JSON). Details of particular request's parameters are described in :ref:`ServerWebInterface` documentation.
 
    .. py:method:: delete()
 
@@ -226,8 +228,6 @@ This module contains model layer - implementation of system units and consists o
       Cleans task's data. Validates new task's fields before save operation.
 
    .. py:method:: save(*args, **kwargs)
-   
-      Updates task's data and propagates them to Task Server.
 
       Saves task in data base and sends information about modifications to its task server.
 
@@ -246,7 +246,7 @@ This module contains model layer - implementation of system units and consists o
       .. note:: Task with higher priority crawls more links at the same time than those with lower priority.
       .. note:: Task priority cannot exceed quota of user which owns this task. In other case QuotaException is raised.
 
-      :param int priority: task's new priority
+      :param int priority: Task's new priority.
 
    .. py:method:: pause()
 
@@ -264,7 +264,7 @@ This module contains model layer - implementation of system units and consists o
 
       Marks task as finished.
 
-      .. note:: Finished tasks cannot be resumed and they do not count to user max_tasks quota.
+      .. note:: Finished tasks cannot be resumed and they do not count to user max_tasks quota. After some time its task server will be closed and crawling results will be lost.
 
    .. py:method:: is_waiting_for_server()
 
@@ -274,8 +274,8 @@ This module contains model layer - implementation of system units and consists o
 
       Process feedback from client in order to update crawling process to satisfy client expectations.
 
-      :param string link: URL
-      :param string rating: rating as number in range 1 - 5.
+      :param string link: URL.
+      :param string rating: Rating as number in range 1 - 5.
 
    .. py:method:: send_update_to_task_server()
    
@@ -287,7 +287,6 @@ This module contains model layer - implementation of system units and consists o
    Creates Application object, required for working with REST API.
 
    :param string sender: signal sender. In our case this parameter is irrelevant, however more details about this mechanism can be found in `Django documentation <https://docs.djangoproject.com/en/dev/topics/signals/>`_.
-
 
 .. py:class:: MailSent
 

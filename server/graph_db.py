@@ -13,6 +13,8 @@ class GraphDB(object):
         except Exception:
             raise
         self.location = os.path.join(os.getcwd(), location)
+        if os.path.isdir(self.location):
+            shutil.rmtree(self.location, True)
         self.graph = GraphDatabase(location)
 
         with self.graph.transaction:
