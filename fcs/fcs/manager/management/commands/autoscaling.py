@@ -75,7 +75,8 @@ class Command(BaseCommand):
         self.stdout.write('Task list:')
         for task in Task.objects.all():
             self.stdout.write('%s %s %s %s %s %s' % (str(task.user), str(task.name), str(task.active),
-                    str(task.finished), str(task.expire_date), 'changed' if task.autoscale_change else ''))
+                                                     str(task.finished), str(task.expire_date),
+                                                     'changed' if task.autoscale_change else ''))
         self.stdout.write('')
 
     def check_tasks_state(self):
@@ -86,7 +87,7 @@ class Command(BaseCommand):
     def check_server_assignment(self, task):
         if task.is_waiting_for_server():
             if task.last_server_spawn is None or \
-                            (datetime.now() - task.last_server_spawn).seconds > SERVER_SPAWN_TIMEOUT:
+                    (datetime.now() - task.last_server_spawn).seconds > SERVER_SPAWN_TIMEOUT:
                 self.spawn_task_server(task)
 
     def handle_priority_changes(self):
@@ -145,7 +146,7 @@ class Command(BaseCommand):
                     server.send('/crawlers', 'post', json.dumps({'crawlers': {}}))
                 return
 
-            speed_factor = 1. * total_speed / total_power
+            speed_factor = float(total_speed) / total_power
             crawlers_load = [[address, 0] for address in actual_crawlers]
             length = len(crawlers_load)
 

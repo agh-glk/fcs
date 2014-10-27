@@ -52,7 +52,7 @@ This module contains model layer - implementation of system units and consists o
 
    .. py:attribute:: urls_per_min
 
-      Expected crawling speed. Used by efficiency estimation module.
+      Expected crawling speed sum. Used by efficiency estimation module and autoscaling.
 
    .. py:attribute:: user
 

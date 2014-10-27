@@ -26,7 +26,7 @@ The autoscaling module. It is run as a Django application command.
    
 .. py:data:: DEFAULT_LINK_QUEUE_SIZE
 
-   Default amount of links to be parsed by crawler.
+   Default size of package with links to be parsed by crawler.
 
 .. py:data:: MIN_LINK_PACKAGE_SIZE
 
@@ -53,14 +53,29 @@ The autoscaling module. It is run as a Django application command.
    A period of idleness between work cycles.
    
 .. py:data:: EFFICIENCY_THRESHOLD
+
+   Border actual-to-expected efficiency ratio. If its value is lower than actual-to-expected efficiency ratio, no more crawlers will be spawned.
+
 .. py:data:: LOWER_LOAD_THRESHOLD
+
+   If crawlers' actual-to-expected load is higher then this value, new crawler is spawned.
+
 .. py:data:: UPPER_LOAD_THRESHOLD
+
+   If crawlers' actual-to-expected load is lower then this value, one crawler is stopped.
+
 .. py:data:: INIT_SERVER_PORT
+
+   Port number of first Task Server. Each next has one higher.
+
 .. py:data:: INIT_CRAWLER_PORT
+
+   Port number of first Crawling Unit. Each next has one higher.
+
 
 .. py:class:: Command
 
-   Definition of the command.
+   Definition of the command 'autoscaling'.
 
    .. py:attribute:: address
    
@@ -90,9 +105,11 @@ The autoscaling module. It is run as a Django application command.
    
       Main command method, called when command is run.
 
-   .. py:method:: print_tasks
+   .. py:method:: print_tasks()
 
-   .. py:method:: check_tasks_state
+      Prints tasks' details on standard output (usually console window).
+
+   .. py:method:: check_tasks_state()
    
       Checks if new task server should not be run for any of the tasks (e.g. because some task is new or a previous task server did not start).
 
@@ -104,6 +121,8 @@ The autoscaling module. It is run as a Django application command.
 
    .. py:method:: handle_priority_changes()
 
+      If some crawling-speed affecting task parameters change, speed of every crawler is updated.
+
    .. py:method:: spawn_task_server(task)
    
       Spawns task server for the given task. This method is called in two cases: the task is new or previously assigned task server did not confirm its proper launch.
@@ -112,6 +131,12 @@ The autoscaling module. It is run as a Django application command.
 
    .. py:method:: spawn_crawler()
 
+      Spawns new crawler.
+
    .. py:method:: assign_crawlers_to_servers()
 
+      Sets group of crawlers for every task.
+
    .. py:method:: autoscale()
+
+      Kills not responding servers and crawlers, calculates efficiency, stops or spawns new crawlers if necessary.
