@@ -7,7 +7,7 @@ This module contains fcs.manager application views rendered in web browser.
 
    Main page.
 
-   :param request request: the request object used to generate the response
+   :param HttpRequest request: the request object used to generate the response
    :return: HTML code of the page
    
 
@@ -17,7 +17,7 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: the request object used to generate the response
+   :param HttpRequest request: the request object used to generate the response
    :return: HTML code of the page
    
    
@@ -27,7 +27,7 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: the request object used to generate the response
+   :param HttpRequest request: the request object used to generate the response
    :return: HTML code of the page
    
    
@@ -37,7 +37,7 @@ This module contains fcs.manager application views rendered in web browser.
 
    .. note:: View accessible for logged in users only.
    
-   :param request request: the request object used to generate the response
+   :param HttpRequest request: the request object used to generate the response
    :param int task_id: ID of the given task 
    :return: HTML code of the page
    
@@ -48,7 +48,7 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: the request object used to generate the response
+   :param HttpRequest request: the request object used to generate the response
    :param int task_id: ID of the given task 
    :return: redirect to :py:func:`show_task`
    
@@ -59,7 +59,7 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: the request object used to generate the response
+   :param HttpRequest request: the request object used to generate the response
    :return: HTML code of the page
    
    
@@ -69,7 +69,7 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: the request object used to generate the response
+   :param HttpRequest request: the request object used to generate the response
    :param int task_id: ID of the given task 
    :return: redirect to :py:func:`list_tasks`
 
@@ -80,7 +80,7 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: the request object used to generate the response
+   :param HttpRequest request: the request object used to generate the response
    :param int task_id: ID of the given task 
    :return: redirect to :py:func:`list_tasks`
    
@@ -91,7 +91,7 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: the request object used to generate the response
+   :param HttpRequest request: the request object used to generate the response
    :param int task_id: ID of the given task 
    :return: redirect to :py:func:`list_tasks`
    
@@ -102,7 +102,7 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: the request object used to generate the response
+   :param HttpRequest request: the request object used to generate the response
    :param int task_id: ID of the given task related to data to be downloaded
    :param int size: size of data to be downloaded
    :return: response with data or information about absence of an appropriate task server
@@ -114,7 +114,7 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: the request object used to generate the response
+   :param HttpRequest request: the request object used to generate the response
    :return: HTML code of the page
    
    
@@ -122,7 +122,7 @@ This module contains fcs.manager application views rendered in web browser.
 
    Swagger view generating REST API documentation.
 
-   :param request request: the request object used to generate the response
+   :param HttpRequest request: the request object used to generate the response
    :return: HTML code of the page and an HttpResponse object with rendered text
    
    
@@ -130,6 +130,6 @@ This module contains fcs.manager application views rendered in web browser.
 
    Swagger view generating REST API documentation located at the given path.
 
-   :param request request: the request object used to generate the response
+   :param HttpRequest request: the request object used to generate the response
    :param string path: path of documentation
    :return: HTML code of the page and an HttpResponse object with rendered text

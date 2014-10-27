@@ -144,9 +144,10 @@ This module contains implementation of Task Server.
       Adds links to process.
       
       :param list links: List of links (links are of string type)
-      :param string priority: Links' rating, can be a number 1-5 casted to string
+      :param int priority: Links' priority, can be a number 0-999 (0 is the lowest priority)
       :param int depth: Depth of crawling for a page from which links have been retrieved
       :param string source_url: URL of page from which links have been retrieved
+      :raises Exception: in case of an error in database
 
    .. py:method:: put_data(package_id, data)
 
@@ -154,7 +155,7 @@ This module contains implementation of Task Server.
       is not in a package cache or crawling request has timed out, no data will be stored in database. It also
       marks crawler which was assigned to this crawling request as 'idle', so next request can be sent to this crawler.
 
-      :param int package_id: ID of crawled data package
+      :param int package_id: ID of crawled data package (identical to the package ID from crawling request)
       :param string data: Crawled data package
 
    .. py:method:: get_data(size)
