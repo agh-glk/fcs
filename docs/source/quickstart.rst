@@ -5,7 +5,7 @@ Quickstart
 
 Short instruction presenting how to launch Focused Crawling Search.
 
-.. note:: Unix-based operation system and Vagrant(preferred 1.35 or higher) are required.
+.. note:: Unix-based operation system and Vagrant (preferred 1.35 or higher) are required.
 
 #. Download project code from Github `repository <https://github.com/agh-glk/fcs>`_.
 #. Change directory into :file:`/fcs`.

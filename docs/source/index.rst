@@ -15,6 +15,7 @@ Contents:
    manager/intro
    crawler/intro
    server/intro
+   content_file_decoder/script
 
 
 Indices and tables

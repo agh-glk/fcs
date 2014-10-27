@@ -1,8 +1,10 @@
 import json
 import logging
 import re
-import threading, thread
+import threading
+import thread
 import time
+import sys
 from urlparse import urlparse
 import requests
 from requests.exceptions import ConnectionError
@@ -11,7 +13,6 @@ from link_db import GraphAndBTreeDB
 from data_base_policy_module import SimplePolicyModule
 from contentdb import BerkeleyContentDB
 from django.utils.timezone import datetime
-import sys
 from url_processor import URLProcessor
 from crawling_depth_policy import SimpleCrawlingDepthPolicy, RealDepthCrawlingDepthPolicy, IgnoreDepthPolicy
 
@@ -131,7 +132,7 @@ class TaskServer(threading.Thread):
         Received data is used to set crawling parameters.
         """
         r = requests.post(self.manager_address + '/autoscale/server/register/',
-                                data={'task_id': self.task_id, 'address': self.get_address()})
+                          data={'task_id': self.task_id, 'address': self.get_address()})
         self.logger.debug('Registering to management. Return code: %d, message: %s' % (r.status_code, r.content))
         if r.status_code in [status.HTTP_412_PRECONDITION_FAILED, status.HTTP_404_NOT_FOUND]:
             self.stop()
@@ -365,7 +366,7 @@ class TaskServer(threading.Thread):
         Increases priority of specified link and his children.
         """
         self.logger.debug("Feedback: %s %s" % (link, rating))
-        thread.start_new_thread (self.link_db.feedback, (link, rating))
+        thread.start_new_thread(self.link_db.feedback, (link, rating))
 
     def _evaluate_link(self, link):
         """
