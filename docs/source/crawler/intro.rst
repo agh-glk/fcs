@@ -1,4 +1,4 @@
-Module fcs.crawler
+Crawling Unit module (fcs.crawler)
 =======================================
 
 The fcs.crawler module contains classes that implement the Crawling Unit. Crawling Units execute clients' tasks.

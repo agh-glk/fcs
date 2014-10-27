@@ -1,4 +1,4 @@
-Module fcs.manager.autoscale_views
+fcs.manager.autoscale_views
 =======================================
 
 This module contains methods that handle requests for autoscale module operations. All methods are decorated with Django @api_view decorator.

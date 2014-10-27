@@ -1,4 +1,4 @@
-Module fcs.crawler.content_parser
+fcs.crawler.content_parser
 =======================================
 
 This module contains classes responsible for parsing content acquired by Crawling Units.

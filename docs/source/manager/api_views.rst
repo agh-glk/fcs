@@ -1,31 +1,33 @@
-Module fcs.manager.api_views
+.. _ManagerApiViews:
+
+fcs.manager.api_views
 =======================================
 
-This module contains methods that handle REST requests for tasks management. All methods are decorated with Django @api_view decorator. These methods are mapped on URLs in :doc:`api_urls` module.
+This module contains methods that handle REST requests for tasks management. All methods are decorated with Django @api_view decorator. These methods are mapped on URLs in :ref:`ManagerApiUrls` module.
 
 .. py:function:: add_task(request)
 
-   Creates new task.
+   Creates new task. Handles REST request for task creation. Required POST parameters:
+   
+   * name - name of task
+   * priority - task priority
+   * expire - datetime of task expiration
+   * mime_type - list of MIME types separated by whitespace
+   * start_links - list of urls separated by whitespace - starting point of crawling
+   * whitelist - urls (regexp) which should be crawled
+   * blacklist - urls (regexp) which should not be crawled
+   * max_links - size of task
 
    :param request: Request object.
 
    .. note:: Request must be authenticated with OAuth2 Token.
 
-   Required request data parameters are:
-
-   * name - task's name
-   * priority - task's priority
-   * expire - datetime of task expiration
-   * mime_type - list of MIME types separated by whitespace. This parameter specifies types to be crawled
-   * start_links - list of URLs separated by whitespace - starting point of crawling
-   * whitelist - URLs which should be crawled
-   * blacklist - URLs which should not be crawled
-   * max_links - maximal amount of links that may be visited while crawling
-
 
 .. py:function:: delete_task(request, task_id)
 
-   Deletes a task.
+   Finishes a task. Handles REST request for task finish. Required POST parameters:
+   
+   * id - task id
 
    :param request: Request object.
    :param int task_id: ID of task to be deleted.
@@ -35,7 +37,9 @@ This module contains methods that handle REST requests for tasks management. All
 
 .. py:function:: pause_task(request, task_id)
 
-   Pauses a task.
+   Pauses a task. Handles REST request for task deactivation. Required POST parameters:
+   
+   * id - task id
 
    :param request: Request object.
    :param int task_id: ID of task to be paused.
@@ -45,7 +49,9 @@ This module contains methods that handle REST requests for tasks management. All
 
 .. py:function:: resume_task(request, task_id)
 
-   Resumes a task.
+   Resumes a task. Handles REST request for task activation. Required POST parameters:
+   
+   * id - task id
 
    :param request: Request object.
    :param int task_id: ID of task to be resumed.
@@ -55,8 +61,10 @@ This module contains methods that handle REST requests for tasks management. All
 
 .. py:function:: get_data_from_crawler(request, task_id, size)
 
-   Download data retrieved by crawler.
+   Downloads data gathered by crawler.
 
    :param request: Request object.
    :param int task_id: ID of task which data is to be downloaded.
    :param int size: Size of requested data
+   
+   .. note:: Request must be authenticated with OAuth2 Token.

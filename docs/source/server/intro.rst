@@ -1,4 +1,4 @@
-Module fcs.server
+Task Server module (fcs.server)
 =======================================
 
 This module contains implementation of Task Server. Each Task Server is responsible for handling just one task at the
@@ -9,7 +9,7 @@ is logical. Each Task Server contains its own database for storing links or craw
 
 :doc:`crawling_depth_policy`
 
-:doc:`key_policy_module`
+:doc:`data_base_policy_module`
 
 :doc:`link_db`
 

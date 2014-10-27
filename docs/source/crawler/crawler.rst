@@ -28,26 +28,26 @@ This module contains Crawler Unit implementation.
 
    Crawler Unit implementation.
 
-   :param string web_server: Web Server.
-   :param string event: Instance of threading.Event class used for synchronization.
-   :param int port: Port of this Crawler Unit
-   :param string manager_address: Address of Manager module
-   :param int max_content_length: Maximal size of content
-   :param boolean handle_robots: Flag that informs if Crawler Unit should handle robots.txt
+   :param string web_server: Web Server
+   :param string event: threading.Event class instance used for synchronization at the end of Crawler Unit's work
+   :param int port: port of this Crawler Unit
+   :param string manager_address: address of Manager module
+   :param int max_content_length: maximal size of content
+   :param boolean handle_robots: flag that informs if Crawler Unit should handle robots.txt
 
    .. py:attribute:: link_package_queue
 
-   Queue of packages of links to crawl
+   Queue of packages of links to crawl.
 
    .. py:method:: put_into_link_queue(link_package)
 
-   Puts links package into queue
+   Puts links package into queue.
 
    :param string link_package: Package of links to put into queue
 
    .. py:method:: add_stats(start_time, end_time, links_num)
 
-   Saves statistics
+   Saves statistics.
 
    :param datetime start_time: Start time of crawling process
    :param datetime ent_time: End time of crawling process
@@ -55,11 +55,11 @@ This module contains Crawler Unit implementation.
 
    .. py:method:: clear_stats()
 
-   Clears statistics
+   Clears statistics.
 
    .. py:method:: get_stats(seconds)
 
-   Returns statistics from given time period
+   Returns statistics from given time period.
 
    :param int seconds: Defines time period for which statistics should be returned (this method returns statistics
    since now-seconds)
@@ -67,24 +67,24 @@ This module contains Crawler Unit implementation.
 
    .. py:method:: get_address()
 
-   Returns address of this Crawling Unit
+   Returns address of this Crawling Unit.
 
    :return: Crawling Unit address
 
    .. py:method:: get_state()
 
-   Returns Crawling Unit state
+   Returns Crawling Unit state.
 
    :return: Crawling Unit state
 
    .. py:method:: stop()
 
-   Stops Crawling Unit
+   Stops Crawling Unit.
 
    .. py:method:: kill()
 
-   Kills Crawling Unit
+   Kills Crawling Unit.
 
    .. py:method:: run()
 
-   Runs Crawling Unit
+   Main Crawling Unit loop.

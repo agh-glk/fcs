@@ -1,4 +1,4 @@
-Module fcs.manager.models
+fcs.manager.models
 =======================================
 
 This module contains model layer - implementation of system units and consists of object-relational mapping classes:
@@ -64,17 +64,20 @@ This module contains model layer - implementation of system units and consists o
    Manages creation of Task.
 
    .. py:staticmethod:: create_task(user, name, priority, expire, start_links, whitelist='*', blacklist='', max_links=1000, mime_type='text/html')
+   
+      Returns new task.
+      
+      :param string user: User's name.
+      :param string name: New task's name.
+      :param int priority: Task priority.
+      :param datetime expire: Task expiration date.
+      :param string start_links: List of pages where crawler starts his work.
+      :param string whitelist: Allowed URLs as regexp list.
+      :param string blacklist: Disallowed URLs as regexp list.
+      :param string max_links: Maximal allowed number of processed pages.
+      :param string mime_type: List of allowed MIME types.
 
-   :param string user: User's name.
-   :param string name: New task's name.
-   :param int priority: Task priority.
-   :param datetime expire: Task expiration date.
-   :param string start_links: List of pages where crawler starts his work.
-   :param string whitelist: Allowed URLs as regexp list.
-   :param string blacklist: Disallowed URLs as regexp list.
-   :param string max_links: Maximal allowed number of processed pages.
-   :param string mime_type: List of allowed MIME types.
-
+      :raises QuotaException: if user quota is exceeded
 
 .. py:class:: Crawler
 
@@ -155,31 +158,61 @@ This module contains model layer - implementation of system units and consists o
    Represents crawling tasks defined by users.
 
    .. py:attribute:: user
+   
+      User that owns this task.
+   
    .. py:attribute:: name
+   
+      Task's name.
+   
    .. py:attribute:: priority
+   
+      Task's priority.
+   
    .. py:attribute:: start_links
+   
+      Starting point of crawling.
+   
    .. py:attribute:: whitelist
+   
+      URLs which should be crawled (in regex format).
+   
    .. py:attribute:: blacklist
+   
+      URLs which should not be crawled (in regex format).
+   
    .. py:attribute:: max_links
+   
+      Maximal amount of links that may be visited while crawling.
+   
    .. py:attribute:: expire_date
+   
+      Datetime of task expiration.
+   
    .. py:attribute:: mime_type
+   
+      MIME types which are to be crawled.
+   
    .. py:attribute:: active
 
-      If true task is running, else task is paused.
+      Boolean value. If true task is running, else task is paused.
 
    .. py:attribute:: finished
 
-      If true task is finished, else running or paused.
+      Boolean value. If true task is finished, else running or paused.
 
    .. py:attribute:: created
-
-      Creation date.
-
+   
+      Datetime of task creation.
+   
    .. py:attribute:: last_data_download
    
       Time of last crawled data collection.
    
    .. py:attribute:: server
+   
+      Task Server that handles this task.
+   
    .. py:attribute:: last_server_spawn
    
       Time of last spawn of server which was run for handling this task.
@@ -193,6 +226,8 @@ This module contains model layer - implementation of system units and consists o
       Cleans task's data. Validates new task's fields before save operation.
 
    .. py:method:: save(*args, **kwargs)
+   
+      Updates task's data and propagates them to Task Server.
 
       Saves task in data base and sends information about modifications to its task server.
 
@@ -221,7 +256,9 @@ This module contains model layer - implementation of system units and consists o
 
    .. py:method:: resume()
 
-      Resumes task.
+      Resumes task - task becomes active so it can crawl links.
+      
+      :raises QuotaException: if user has not enough free priority resources to run this task. Then, user should decrease priority of this or other active task.
 
    .. py:method:: stop()
 
@@ -235,15 +272,14 @@ This module contains model layer - implementation of system units and consists o
 
    .. py:method:: feedback(link, rating)
 
-       Process feedback from client in order to update crawling process to satisfy client expectations.
+      Process feedback from client in order to update crawling process to satisfy client expectations.
 
-       :param string link: URL
-       :param string rating: Rating as number in range 1 - 5.
+      :param string link: URL
+      :param string rating: rating as number in range 1 - 5.
 
    .. py:method:: send_update_to_task_server()
-
-      Sends information about task update to its task server.
-
+   
+      Sends to Task Server information about modifications in task's parameters.
 
 
 .. py:function:: create_api_keys(sender, **kwargs)

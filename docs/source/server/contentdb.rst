@@ -1,4 +1,4 @@
-Module fcs.server.contentdb
+fcs.server.contentdb
 =======================================
 
 This module contains API for connection with database for crawled content.
@@ -24,25 +24,25 @@ This module contains API for connection with database for crawled content.
 
    .. py:method:: get_file_with_data_package(size)
 
-   Returns file with crawled data of given size.
-
-   :param int size: Size of demanded data
-   :return: File with crawled data
-   :rtype: file
+      Returns path to file with crawled data of given size.
+   
+      :param int size: Size of demanded data
+      :return: Path to file with crawled data
+      :rtype: string
 
    .. py:method:: size()
 
-   Returns current size of database
-
-   :return: Size of database
-   :rtype: int
+      Returns the number of elements (i.e. crawled content) in the database (taking into consideration the fact that after getting a record via web application or API, it is no longer available).
+   
+      :return: Number of elements in database
+      :rtype: int
 
    .. py:method:: added_records_num()
 
-   Returns number of added records
+      Returns number of entries containing information about sites that have been crawled since the beginning of crawling (takes also into account already unavailable data).
 
-   :return: Number of added records
-   :rtype: int
+      :return: Number of entries informing about crawled sites
+      :rtype: int
 
    .. py:method:: clear()
 

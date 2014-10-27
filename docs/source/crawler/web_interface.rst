@@ -1,10 +1,18 @@
 .. _CrawlerWebInterface:
 
-Module fcs.crawler.web_interface
+fcs.crawler.web_interface
 =======================================
 
 In this module web methods for managing Crawling Units are defined. These methods are implemented as classes that
 contain proper POST methods. Request are encapsulated in JSON messages.
+
+.. py:class:: index
+
+   Shows information about state of the Crawling Unit and its efficiency.
+   
+   :return: Diagnostic information (crawler's state and efficiency)
+   :rtype: string
+   
 
 .. py:class:: put_links
 
@@ -45,3 +53,27 @@ contain proper POST methods. Request are encapsulated in JSON messages.
 
    :return: Crawling statistics from a given time period
    :rtype: JSON
+   
+   
+.. py:class:: Server(port=8080, address='0.0.0.0')
+
+   Wrapper for Crawler Unit's REST API.
+   
+   :param int port: server's port
+   :param string address: server's address
+   
+   .. py:attribute:: urls
+   
+   Mapping between URLs and web methods.
+   
+   .. py:attribute:: app
+   
+   Server is run as a web application. This attribute is an object representing that web application.
+   
+   .. py:method:: run()
+   
+   Runs this server.
+   
+   .. py:method:: kill()
+   
+   Kills this server.
