@@ -1,12 +1,12 @@
 
 
 class MimeContentType(object):
-    wildcard = '*'
+    WILDCARD = '*'
 
     def __init__(self, mime_str):
         _mime_str = mime_str.split(';')[0].split('/')
         _type = _mime_str[0]
-        if _type is self.__class__.wildcard:
+        if _type is self.__class__.WILDCARD:
             _type = ''
         self.type = _type
         if len(_mime_str) < 2 or _mime_str[1] is '*':

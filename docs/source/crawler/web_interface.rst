@@ -10,7 +10,7 @@ contain proper POST methods. Request are encapsulated in JSON messages.
 
    Shows information about state of the Crawling Unit and its efficiency.
    
-   :return: Diagnostic information (crawler's state and efficiency)
+   :return: Diagnostic information (crawler's state and efficiency).
    :rtype: string
    
 
@@ -18,16 +18,16 @@ contain proper POST methods. Request are encapsulated in JSON messages.
 
    Passes links to crawl to Crawling Unit.
 
-   :return: Confirmation of sending links to Crawling Unit
+   :return: Confirmation of sending links to Crawling Unit.
    :rtype: string
-   :raises KeyError: If request body is incorrect
+   :raises KeyError: If request body is incorrect.
 
 
 .. py:class:: stop
 
    Stops a Crawling Unit.
 
-   :return: Confirmation of stopping the Crawling Unit
+   :return: Confirmation of stopping the Crawling Unit.
    :rtype: string
 
 
@@ -35,7 +35,7 @@ contain proper POST methods. Request are encapsulated in JSON messages.
 
    Kills a Crawling Unit.
 
-   :return: Confirmation of killing the Crawling Unit
+   :return: Confirmation of killing the Crawling Unit.
    :rtype: string
 
 
@@ -43,7 +43,7 @@ contain proper POST methods. Request are encapsulated in JSON messages.
 
    Pings if Crawling Unit is alive.
 
-   :return: Information if Crawling Unit is alive
+   :return: Information if Crawling Unit is alive.
    :rtype: string
 
 
@@ -51,7 +51,7 @@ contain proper POST methods. Request are encapsulated in JSON messages.
 
    Asks Crawling Unit for statistics from a given time period.
 
-   :return: Crawling statistics from a given time period
+   :return: Crawling statistics from a given time period.
    :rtype: JSON
    
    
@@ -59,21 +59,21 @@ contain proper POST methods. Request are encapsulated in JSON messages.
 
    Wrapper for Crawler Unit's REST API.
    
-   :param int port: server's port
-   :param string address: server's address
+   :param int port: Server's port.
+   :param string address: Server's address.
    
    .. py:attribute:: urls
    
-   Mapping between URLs and web methods.
+      Mapping between URLs and web methods.
    
    .. py:attribute:: app
    
-   Server is run as a web application. This attribute is an object representing that web application.
+      Server is run as a web application. This attribute is an object representing that web application.
    
    .. py:method:: run()
    
-   Runs this server.
+      Runs this server.
    
    .. py:method:: kill()
    
-   Kills this server.
+      Kills this server.

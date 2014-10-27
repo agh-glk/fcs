@@ -1,5 +1,5 @@
 fcs.manager.management.commands.autoscaling
-=======================================
+==============================================
 
 The autoscaling module. It is run as a Django application command.
 

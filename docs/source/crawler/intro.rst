@@ -10,3 +10,7 @@ several crawling tasks. Crawling results and other information (like errors), ar
 :doc:`crawler`
 
 :doc:`web_interface`
+
+:doc:`mime_content_type`
+
+:doc:`thread_with_exc`

@@ -17,7 +17,7 @@ from mime_content_type import MimeContentType
 KEEP_STATS_SECONDS = 900
 
 
-class CrawlerState:
+class CrawlerState(object):
     UNDEFINED, WORKING, WAITING, CLOSING = range(4)
 
 
@@ -106,20 +106,20 @@ class Crawler(ThreadWithExc):
                     _results = {"url": _link, "links": [], "content": ""}
                 else:
                     self.logger.info("Processing url %s ended successfully. %s urls extracted" %
-                                 (_link, len(_results['links'])))
+                                     (_link, len(_results['links'])))
                 _final_results.append(_results)
 
             self.logger.info("Crawling package from %s ended." % _server_address)
             self._send_results_to_task_server(_id, _server_address, _final_results)
             end_time = time.time()
-            self.add_stats(start_time, end_time, len(_final_results))
+            self._add_stats(start_time, end_time, len(_final_results))
 
-    def add_stats(self, start_time, end_time, links_num):
+    def _add_stats(self, start_time, end_time, links_num):
         self.stats_lock.acquire()
         self.crawled_links.append((start_time, end_time, links_num))
         self.stats_lock.release()
 
-    def clear_stats(self):
+    def _clear_stats(self):
         self.stats_lock.acquire()
         from_time = max(time.time() - KEEP_STATS_SECONDS, self.stats_reset_time)
         index = 0
@@ -213,7 +213,7 @@ class Crawler(ThreadWithExc):
                 if self.event.isSet():
                     self._crawl()
                     self.event.clear()
-                    self.clear_stats()
+                    self._clear_stats()
                 else:
                     self.event.wait()
         finally:
