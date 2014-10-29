@@ -17,7 +17,7 @@ In this module web methods for managing Crawling Units are defined. These method
 
    Passes links to crawl to Crawling Unit. Required POST parameters are:
    
-   * id - 
+   * id - ID of the package with links
    * links - links to crawl
    * server_address - address of Task Server that sent this package of links
    * mime_type - MIME type of data to crawl
