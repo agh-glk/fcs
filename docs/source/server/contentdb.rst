@@ -5,22 +5,33 @@ This module contains API for connection with database for crawled content.
 
 .. py:class:: BerkeleyContentDB(base_name)
 
-   API for Berkeley DB (http://www.oracle.com/database/berkeley-db/). It uses an interface to the Berkeley DB library
-   provided by the bsddb module.
+   API for Berkeley DB (http://www.oracle.com/database/berkeley-db/). It uses an interface to the Berkeley DB library provided by the bsddb module.
 
    :param string base_name: Name of the database
 
    .. py:attribute:: content_db
 
-   Object to access Berkeley DB.
+      Object to access Berkeley DB.
+   
+   .. py:attribute:: id_iter
+   
+      Number of database records.
+   
+   .. py:attribute:: get_data_iter
+   
+      Number of records retrieved from database.
+   
+   .. py:attribute:: parts_iter
+   
+      Number of content data packages (files with crawled data) requested by user.
 
    .. py:method:: add_content(url, links, content)
 
-   Adds crawled content do database.
+      Adds crawled content do database.
 
-   :param string url: Base URL
-   :param string links: Links visited during crawling process
-   :param string content: Crawled content to put into database
+      :param string url: Base URL
+      :param string links: Links visited during crawling process
+      :param string content: Crawled content to put into database
 
    .. py:method:: get_file_with_data_package(size)
 
@@ -46,8 +57,8 @@ This module contains API for connection with database for crawled content.
 
    .. py:method:: clear()
 
-   Clears content of database and closes it
+      Clears content of database and closes it
 
    .. py:method:: show()
 
-   Prints information about database
+      Prints information about database
