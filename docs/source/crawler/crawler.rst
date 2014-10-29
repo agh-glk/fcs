@@ -37,7 +37,7 @@ This module contains Crawler Unit implementation.
 
    .. py:attribute:: link_package_queue
 
-      Queue of packages of links to crawl.
+      Queue of packages of links to crawl. Each package contains: package ID, links to crawl, Task Server's (i.e. package sender) address, MIME type of data to crawl.
       
    .. py:attribute:: browser
    
@@ -57,7 +57,7 @@ This module contains Crawler Unit implementation.
 
       Puts links package into queue.
 
-      :param string link_package: Package of links to put into queue.
+      :param list link_package: Package of links to put into queue. Each package is a list containing the following information: package ID, links to crawl, Task Server's (i.e. package sender) address, MIME type of data to crawl.
 
    .. py:method:: get_stats(seconds)
 
