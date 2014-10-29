@@ -24,7 +24,7 @@ In this module web methods for managing Crawling Units are defined. These method
 
    :return: Confirmation of sending links to Crawling Unit.
    :rtype: string
-   :raises KeyError: If request body is incorrect.
+   :raises KeyError: if request body is incorrect
 
 
 .. py:class:: stop
