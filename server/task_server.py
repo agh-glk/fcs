@@ -11,7 +11,7 @@ from requests.exceptions import ConnectionError
 from rest_framework import status
 from link_db import GraphAndBTreeDB
 from data_base_policy_module import SimplePolicyModule
-from contentdb import BerkeleyContentDB
+from content_db import BerkeleyContentDB
 from django.utils.timezone import datetime
 from url_processor import URLProcessor
 from crawling_depth_policy import SimpleCrawlingDepthPolicy, RealDepthCrawlingDepthPolicy, IgnoreDepthPolicy
@@ -244,6 +244,8 @@ class TaskServer(threading.Thread):
             while (time.time() - shutdown_time) < WAIT_FOR_DOWNLOAD_TIME and self.content_db.size() > 0 \
                     and self._get_status() != Status.KILLED:
                 time.sleep(30)
+        except:
+            raise
         finally:
             self._unregister_from_management()
             self._clear()

@@ -122,14 +122,14 @@ class TestGraphDB(object):
         self.gdb = GraphDB("test_graph_db")
 
     def test_add(self):
-        self.gdb.add_page("http://link_one.pl", 12, 12)
+        self.gdb.add_link("http://link_one.pl", 12, 12)
         assert self.gdb.get_details("http://link_one.pl")[2] == '12'
 
     def test_points(self):
         link_one = "http://link_one.pl"
         link_two = "http://link_two.pl"
-        link_one_vertex = self.gdb.add_page(link_one, 0, 0)
-        self.gdb.add_page(link_two, 0, 0)
+        link_one_vertex = self.gdb.add_link(link_one, 0, 0)
+        self.gdb.add_link(link_two, 0, 0)
         self.gdb.points(link_one, link_two)
         assert len(link_one_vertex.links.outgoing) == 1
         assert link_one_vertex.links.outgoing.next().end['url'] == link_two

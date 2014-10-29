@@ -13,11 +13,18 @@ In this module policies of crawling depth computing are contained.
 
    Returns crawling depth.
 
-   :return: Crawling depth
+   :return: Crawling depth.
    :rtype: int
 
 
 .. py:class:: IgnoreDepthPolicy
+
+   Calculated depth is always 0.
+
+   .. py:staticmethod:: calculate_depth()
+
+      :return: Crawling depth - 0.
+      :rtype: int
 
 
 .. py:class:: SimpleCrawlingDepthPolicy
@@ -34,12 +41,12 @@ In this module policies of crawling depth computing are contained.
 
    .. py:staticmethod:: calculate_depth(link=None, source_url=None, depth=None)
 
-   :param string link: address of site for which crawling depth is computed
-   :param string source_url: address of site from which link has been retrieved
-   :param int depth:
-   :return: Crawling depth
-   :rtype: int
-   :raises ValueError:
+      :param string link: Address of site for which crawling depth is computed.
+      :param string source_url: Address of site from which link has been retrieved.
+      :param int depth: *source_url* page depth.
+      :return: Crawling depth.
+      :rtype: int
+      :raises ValueError: If some URL is invalid.
 
 
 .. py:class:: RealDepthCrawlingDepthPolicy
@@ -56,9 +63,9 @@ In this module policies of crawling depth computing are contained.
 
    .. py:staticmethod:: calculate_depth(link=None, link_db=None)
 
-   :param string link:
-   :param string link_db:
-   :return: Crawling depth
-   :rtype: int
-   :raises ValueError:
+      :param string link: Address of site for which crawling depth is computed
+      :param string link_db: Database Access Object, extending `BaseLinkDB`.
+      :return: Crawling depth.
+      :rtype: int
+      :raises ValueError: If some URL is invalid.
 

@@ -14,7 +14,7 @@ class BaseLinkDB(object):
     def get_link(self):
         pass
 
-    def change_link_priority(self, link, rate):
+    def change_link_priority(self, link, priority):
         pass
 
     def get_details(self, link):
@@ -46,7 +46,7 @@ class GraphAndBTreeDB(BaseLinkDB):
         return self.found_links.is_in_base(link)
 
     def add_link(self, link, priority, depth):
-        res = self.found_links.add_page(link, int(priority), int(depth))
+        res = self.found_links.add_link(link, int(priority), int(depth))
         if res:
             _key = self.policy_module.generate_key(link, priority)
             self.priority_queue[_key] = link
@@ -62,12 +62,12 @@ class GraphAndBTreeDB(BaseLinkDB):
             return _link[1]
         return _link
 
-    def change_link_priority(self, link, rating):
-        _old_priority = self.found_links.change_link_priority(link, rating)
+    def change_link_priority(self, link, priority):
+        _old_priority = self.found_links.change_link_priority(link, priority)
         _key = self.policy_module.generate_key(link, int(_old_priority))
         if _key in self.priority_queue:
             del self.priority_queue[_key]
-        _key = self.policy_module.generate_key(link, rating)
+        _key = self.policy_module.generate_key(link, priority)
         self.priority_queue[_key] = link
 
     def get_details(self, link):

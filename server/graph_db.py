@@ -1,9 +1,10 @@
-import datetime
 import shutil
 import os
 
 
 class GraphDB(object):
+
+    PAGES_INDEX = "pages"
 
     def __init__(self, location):
         try:
@@ -20,15 +21,13 @@ class GraphDB(object):
         with self.graph.transaction:
             self.pages = self.graph.node()
             self.graph.reference_node.PAGES(self.pages)
-
-            PAGES_INDEX = "pages"
-            if self.graph.node.indexes.exists(PAGES_INDEX) == 0:
-                self.pages_idx = self.graph.node.indexes.create(PAGES_INDEX)
+            if self.graph.node.indexes.exists(GraphDB.__class__.PAGES_INDEX) == 0:
+                self.pages_idx = self.graph.node.indexes.create(GraphDB.__class__.PAGES_INDEX)
             else:
-                self.pages_idx = self.graph.node.indexes.get(PAGES_INDEX)
-        print 'Done'
+                self.pages_idx = self.graph.node.indexes.get(GraphDB.__class__.PAGES_INDEX)
+        print 'Graph db initialisation finished.'
 
-    def check_if_attached_to_jvm(function):
+    def _check_if_attached_to_jvm(function):
         def wrapped(*args):
             import jpype
             if (not jpype.isThreadAttachedToJVM()):
@@ -36,30 +35,20 @@ class GraphDB(object):
             return function(*args)
         return wrapped
 
-    @check_if_attached_to_jvm
+    @_check_if_attached_to_jvm
     def is_in_base(self, link):
         return self._find_pages(link) is not None
 
-    @check_if_attached_to_jvm
-    def add_link(self, link, priority, depth):
-        return self.add_page(link, priority, depth)
-
-    @check_if_attached_to_jvm
-    def set_as_fetched(self, link):
-        page = self._find_pages(link)
-        with self.graph.transaction:
-            page['fetch_time'] = datetime.datetime.now()
-
-    @check_if_attached_to_jvm
-    def change_link_priority(self, link, rate):
+    @_check_if_attached_to_jvm
+    def change_link_priority(self, link, priority):
         _page = self._find_pages(link)
         if _page:
             _old_value = _page['priority']
             with self.graph.transaction:
-                _page['priority'] = rate
+                _page['priority'] = priority
             return _old_value
 
-    @check_if_attached_to_jvm
+    @_check_if_attached_to_jvm
     def get_details(self, link):
         """
         Returns list with 3 strings - priority, fetch date(could be empty string) and depth.
@@ -69,8 +58,8 @@ class GraphDB(object):
             return map(str, [_page['priority'], _page['fetch_time'], _page['depth']])
         raise Exception("Page not found!")
 
-    @check_if_attached_to_jvm
-    def add_page(self, link, priority, depth):
+    @_check_if_attached_to_jvm
+    def add_link(self, link, priority, depth):
         if(not self.is_in_base(link)):
             with self.graph.transaction:
                 page = self.graph.node(url=link, priority=priority, depth=depth, fetch_time="")
@@ -92,7 +81,7 @@ class GraphDB(object):
         except ValueError:
             return None
 
-    @check_if_attached_to_jvm
+    @_check_if_attached_to_jvm
     def points(self, url_a, url_b):
         page_a_vertex = self._find_pages(url_a)
         page_b_vertex = self._find_pages(url_b)
@@ -102,7 +91,7 @@ class GraphDB(object):
                 self._update_depth(page_a_vertex, page_b_vertex)
             return _edge
 
-    @check_if_attached_to_jvm
+    @_check_if_attached_to_jvm
     def get_connected(self, links):
         _res = []
         for _link in links:

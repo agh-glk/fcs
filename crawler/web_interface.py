@@ -90,7 +90,7 @@ class Server(ThreadWithExc):
 
     def kill(self):
         self.app.stop()
-        print "Server stop"
+        print "Crawler web app stop"
         exit(0)
 
 

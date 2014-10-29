@@ -5,11 +5,13 @@ This module contains implementation of Task Server. Each Task Server is responsi
 same time. However, it does not mean that one physical machine corresponds with only one Task Server, since this model
 is logical. Each Task Server contains its own database for storing links or crawled data.
 
-:doc:`contentdb`
+:doc:`content_db`
 
 :doc:`crawling_depth_policy`
 
 :doc:`data_base_policy_module`
+
+:doc:`graph_db`
 
 :doc:`link_db`
 
