@@ -3,21 +3,27 @@
 fcs.server.crawling_depth_policy
 =======================================
 
-In this module policies of crawling depth computing are contained.
+In this module crawling depth computing policies are contained.
 
 .. py:class:: BaseCrawlingDepthPolicy
 
-   This is a base class for concrete crawling depth policy implementations.
+   This is a base class for crawling depth policy implementations.
 
    .. py:staticmethod:: calculate_depth()
 
-   Returns crawling depth.
-
-   :return: Crawling depth
-   :rtype: int
+      Returns crawling depth.
 
 
 .. py:class:: IgnoreDepthPolicy
+
+   Implementation that ignores depth.
+
+   .. py:staticmethod:: calculate_depth()
+
+      Always returns 0.
+   
+      :return: crawling depth (0)
+      :rtype: int
 
 
 .. py:class:: SimpleCrawlingDepthPolicy
@@ -37,9 +43,9 @@ In this module policies of crawling depth computing are contained.
    :param string link: address of site for which crawling depth is computed
    :param string source_url: address of site from which link has been retrieved
    :param int depth:
-   :return: Crawling depth
+   :return: crawling depth
    :rtype: int
-   :raises ValueError:
+   :raises ValueError: if parameters are invalid
 
 
 .. py:class:: RealDepthCrawlingDepthPolicy
@@ -56,9 +62,9 @@ In this module policies of crawling depth computing are contained.
 
    .. py:staticmethod:: calculate_depth(link=None, link_db=None)
 
-   :param string link:
+   :param string link: address of site for which crawling depth is computed
    :param string link_db:
-   :return: Crawling depth
+   :return: crawling depth
    :rtype: int
-   :raises ValueError:
+   :raises ValueError: if parameters are invalid
 
