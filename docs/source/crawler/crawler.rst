@@ -38,6 +38,20 @@ This module contains Crawler Unit implementation.
    .. py:attribute:: link_package_queue
 
       Queue of packages of links to crawl.
+      
+   .. py:attribute:: browser
+   
+   .. py:attribute:: uuid
+   
+      Crawler Unit's UUID.
+      
+   .. py:attribute:: stats_reset_time
+   
+      Time of last statistics clearing.
+      
+   .. py:attribute:: crawled_links
+   
+      Links of processed links.
 
    .. py:method:: put_into_link_queue(link_package)
 
@@ -49,15 +63,23 @@ This module contains Crawler Unit implementation.
 
       Returns statistics from given time period.
 
-      :param int seconds: Defines time period for which statistics should be returned (this method returns statistics
-   since now).
+      :param int seconds: Defines time period for which statistics should be returned (this method returns statistics since now).
       :return: Statistics from given time period.
+      :rtype: dict
+      
+   .. py:method:: get_address()
+   
+      Returns this Crawling Unit's full address (with port number)
+      
+      :return: Crawling Unit's address
+      :rtype: string
 
    .. py:method:: get_state()
 
       Returns Crawling Unit state.
 
       :return: Crawling Unit state
+      :rtype: int
 
    .. py:method:: stop()
 
