@@ -3,7 +3,6 @@ fcs.server.task_server
 
 This module contains implementation of Task Server.
 
-.. py:attribute: AAA
 
 .. py:class:: Status
 
@@ -38,11 +37,17 @@ This module contains implementation of Task Server.
 
    :param string web_server:
    :param int task_id:
-   :param string manager_address:
-   :param int max_url_depth:
+   :param string manager_address: Address of Management module (see :doc:`../manager/intro`)
+   :param int max_url_depth: Maximal depth of crawling for a page from which given links have been retrieved
 
    .. py:attribute:: link_db
+   
+      Database for storing links both to process and already visited.
+      
    .. py:attribute:: content_db
+   
+      Database for storing crawled content.
+   
    .. py:attribute:: crawlers
    
       Dict of the following format: key - Crawling Unit's address, value - links to be processed by this Crawling Unit.
@@ -56,9 +61,12 @@ This module contains implementation of Task Server.
       Expiration date of the given task.
    
    .. py:attribute:: mime_type
+   
+      List of MIME types of data to be crawled.
+   
    .. py:attribute:: uuid
 
-      Task Server's UUID
+      Task Server's UUID.
 
    .. py:attribute:: whitelist
    
