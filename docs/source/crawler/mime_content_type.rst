@@ -1,9 +1,11 @@
 fcs.crawler.mime_content_type
 =======================================
 
-.. py:class:: MimeContentType
+.. py:class:: MimeContentType(mime_str)
 
-   Class represents MIME type (e.g. image/jpeg, text/`*`).
+   Represents MIME type (e.g. image/jpeg, text/`*`).
+   
+   :param string mime_str: String containing MIME type and subtype (separated by semicolon)
 
    .. py:attribute:: type
 
@@ -15,9 +17,17 @@ fcs.crawler.mime_content_type
 
    .. py:method:: contains(other_mime)
 
-      Checks if method parameter is subtype of this MIME type.
+      Checks if method parameter is a subtype of this MIME type.
+      
+      :param string other_mime: MIME type to check as a potential subtype of this MIME type.
+      :return: Information if method parameter is a subtype of this MIME type.
+      :rtype: bool
 
-   .. py:method:: contains(mime_types)
+   .. py:method:: one_of(mime_types)
 
-      Checks if one of MIME types in parameter collection contains this type.
+      Checks if one of the MIME types in parameter collection contains this type.
+      
+      :param list mime_types: Collection of MIME types.
+      :return: Information if one of the MIME types in parameter collection contains this type.
+      :rtype: bool
 

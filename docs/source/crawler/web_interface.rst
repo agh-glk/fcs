@@ -3,8 +3,7 @@
 fcs.crawler.web_interface
 =======================================
 
-In this module web methods for managing Crawling Units are defined. These methods are implemented as classes that
-contain proper POST methods. Request are encapsulated in JSON messages.
+In this module web methods for managing Crawling Units are defined. These methods are implemented as classes that contain proper POST or GET methods. Request are encapsulated in JSON messages.
 
 .. py:class:: index
 
@@ -16,11 +15,16 @@ contain proper POST methods. Request are encapsulated in JSON messages.
 
 .. py:class:: put_links
 
-   Passes links to crawl to Crawling Unit.
+   Passes links to crawl to Crawling Unit. Required POST parameters are:
+   
+   * id - ID of the package with links
+   * links - links to crawl
+   * server_address - address of Task Server that sent this package of links
+   * mime_type - MIME type of data to crawl
 
    :return: Confirmation of sending links to Crawling Unit.
    :rtype: string
-   :raises KeyError: If request body is incorrect.
+   :raises KeyError: if request body is incorrect
 
 
 .. py:class:: stop
@@ -43,13 +47,15 @@ contain proper POST methods. Request are encapsulated in JSON messages.
 
    Pings if Crawling Unit is alive.
 
-   :return: Information if Crawling Unit is alive.
+   :return: Information that Crawling Unit is alive.
    :rtype: string
 
 
 .. py:class:: stats
 
-   Asks Crawling Unit for statistics from a given time period.
+   Asks Crawling Unit for statistics from a given time period. Reqired POST parameter is:
+   
+   * seconds - time period for which statistics should be returned (counting since now)
 
    :return: Crawling statistics from a given time period.
    :rtype: JSON

@@ -3,27 +3,28 @@
 fcs.server.crawling_depth_policy
 =======================================
 
-In this module policies of crawling depth computing are contained.
+In this module crawling depth computing policies are contained.
 
 .. py:class:: BaseCrawlingDepthPolicy
 
-   This is a base class for concrete crawling depth policy implementations.
+   This is a base class for crawling depth policy implementations.
 
    .. py:staticmethod:: calculate_depth()
 
-   Returns crawling depth.
+      Returns crawling depth.
 
-   :return: Crawling depth.
-   :rtype: int
-
+      :return: Crawling depth.
+      :rtype: int
 
 .. py:class:: IgnoreDepthPolicy
 
-   Calculated depth is always 0.
+   Implementation that ignores depth. Calculated depth is always 0.
 
    .. py:staticmethod:: calculate_depth()
 
-      :return: Crawling depth - 0.
+      Always returns 0.
+   
+      :return: Crawling depth (0).
       :rtype: int
 
 
@@ -46,7 +47,7 @@ In this module policies of crawling depth computing are contained.
       :param int depth: *source_url* page depth.
       :return: Crawling depth.
       :rtype: int
-      :raises ValueError: If some URL is invalid.
+      :raises ValueError: if some URL is invalid.
 
 
 .. py:class:: RealDepthCrawlingDepthPolicy
@@ -67,5 +68,5 @@ In this module policies of crawling depth computing are contained.
       :param string link_db: Database Access Object, extending `BaseLinkDB`.
       :return: Crawling depth.
       :rtype: int
-      :raises ValueError: If some URL is invalid.
+      :raises ValueError: if some URL is invalid.
 

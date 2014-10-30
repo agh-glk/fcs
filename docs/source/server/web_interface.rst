@@ -8,28 +8,37 @@ contain proper POST and GET methods. Requests are encapsulated in JSON messages.
 
 .. py:class:: index
 
-   Returns diagnostic information about Task Server's efficiency and crawlers.
+   Returns diagnostic information about Task Server's efficiency, assigned crawlers 
+   and links packages sent to them.
 
    :return: Diagnostic information.
-   :rtype: string
+   :rtype: JSON
 
 .. py:class:: feedback
 
-   Handles an user's feedback with ratings of crawled data.
-
-   :return: Confirmation.
+   Sends user's feedback with rating of crawled data. Required POST parameters are:
+   
+   * link - rated link
+   * rating - rating of the given link
+   
+   :return: Feedback sending confirmation.
    :rtype: string
 
 .. py:class:: put_data
 
-   Handles crawled data package.
+   Handles crawled data package received from crawler. Required POST parameters are:
+   
+   * id - crawled data package ID
+   * data - crawled data
    
    :return: Confirmation.
    :rtype: string
 
 .. py:class:: stats
 
-   Handles statistics request for specified time period.
+   Returns statistics summarise from given time period. Required POST parameters are:
+   
+   * seconds - number of seconds for which measurement was done (this method returns statistics since (now - seconds)).
 
    :return: Statistics.
    :rtype: string

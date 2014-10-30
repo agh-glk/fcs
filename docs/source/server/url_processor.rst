@@ -25,7 +25,7 @@ This module contains class for processing and unifying URLs.
       :param string link_a: First link.
       :param string link_b: Second link.
       :return: Information if links' hosts are identical.
-      :rtype: boolean
+      :rtype: bool
 
    .. py:staticmethod:: generate_url_hierarchy(link)
    

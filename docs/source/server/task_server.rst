@@ -58,9 +58,9 @@ This module contains implementation of Task Server.
 
    Main class of Task Server, containing its logic.
 
-   :param fcs.server.web_interface.WebServer web_server: Web application class responsible for communication.
-   :param int task_id: Id of task for which Task Server is dedicated.
-   :param string manager_address: FCS manager module address.
+   :param fcs.server.web_interface.WebServer web_server: Wrapper of TaskServer's REST API (see :py:class:`WebServer`).
+   :param int task_id: ID of task for which Task Server was created.
+   :param string manager_address: FCS manager module address (see :doc:`../manager/intro`).
    :param int max_url_depth: Maximal allowed crawling tree depth.
 
    .. py:attribute:: link_db
@@ -86,9 +86,9 @@ This module contains implementation of Task Server.
       Expiration date of the given task.
    
    .. py:attribute:: mime_type
-
-      List of page allowed MIME types.
-
+   
+      List of MIME types of data to be crawled.
+   
    .. py:attribute:: uuid
 
       Task Server's UUID.
@@ -103,7 +103,7 @@ This module contains implementation of Task Server.
 
    .. py:attribute:: urls_per_min
 
-      Expected efficiency in URLs per minute.
+      Expected efficiency in URLs per minute. For more details about this speed, see :py:meth:`assign_crawlers`.
 
    .. py:attribute:: package_cache
    
@@ -116,9 +116,9 @@ This module contains implementation of Task Server.
       ID of package with links.
    
    .. py:attribute:: processing_crawlers
-
-      List of working crawlers.
-
+   
+      List of working Crawling Units assigned to this Task Server.
+   
    .. py:attribute:: status
 
       Crawler state, described by :class:`Status`.
@@ -182,7 +182,7 @@ This module contains implementation of Task Server.
       Returns list of crawlers which are not processing any requests.
 
       :return: List of idle Crawler Units.
-      :rtype: list of crawlers
+      :rtype: list
 
    .. py:method:: feedback(link, rating)
    

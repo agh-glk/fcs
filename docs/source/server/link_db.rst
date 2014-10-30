@@ -16,7 +16,7 @@ are to visit or have been already visited by Crawling Units.
 
    .. py:method:: add_link(link, priority, depth)
 
-      Adds given link to database.
+      Adds a link to database.
       
       :param string link: Link to add.
       :param int priority: Link's priority.
@@ -35,12 +35,11 @@ are to visit or have been already visited by Crawling Units.
       :param string link: Page address.
       :param int priority: New priority.
 
-
    .. py:method:: get_details(link)
 
-      Returns additional information about the given link.
-
-      :param string link: Page address.
+      Returns details about the given link.
+      
+      :param string link: Link which details have to be given.
 
    .. py:method:: close()
 
@@ -60,7 +59,7 @@ are to visit or have been already visited by Crawling Units.
    :param AbstractPolicyModule policy_module: Describes established policy (how links should be created,
    how and when priorities should be modified, etc.).
 
-   .. py:attribute:: found_links_db_name
+   .. py:attribute:: FOUND_LINKS_DB
    
       Name of database storing the :py:attr:`found_links` structure.
       
@@ -133,5 +132,3 @@ are to visit or have been already visited by Crawling Units.
    .. py:method:: clear()
 
       Closes and removes database.
-
-

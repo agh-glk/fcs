@@ -33,31 +33,53 @@ This module contains Crawler Unit implementation.
    :param int port: Port of this Crawler Unit.
    :param string manager_address: Address of Manager module.
    :param int max_content_length: Maximal size of content.
-   :param boolean handle_robots: Flag that informs if Crawler Unit should handle robots.txt.
+   :param bool handle_robots: Flag that informs if Crawler Unit should handle robots.txt.
 
    .. py:attribute:: link_package_queue
 
-      Queue of packages of links to crawl.
+      Queue of packages of links to crawl. Each package contains: package ID, links to crawl, Task Server's (i.e. package sender) address, MIME type of data to crawl.
+      
+   .. py:attribute:: browser
+   
+   .. py:attribute:: uuid
+   
+      Crawler Unit's UUID.
+      
+   .. py:attribute:: stats_reset_time
+   
+      Object used for computing time period from which the crawler efficiency statistics are collected.
+      
+   .. py:attribute:: crawled_links
+   
+      Links of processed links.
 
    .. py:method:: put_into_link_queue(link_package)
 
       Puts links package into queue.
 
-      :param string link_package: Package of links to put into queue.
+      :param list link_package: Package of links to put into queue. Each package is a list containing the following information: package ID, links to crawl, Task Server's (i.e. package sender) address, MIME type of data to crawl.
 
    .. py:method:: get_stats(seconds)
 
       Returns statistics from given time period.
 
-      :param int seconds: Defines time period for which statistics should be returned (this method returns statistics
-   since now).
+      :param int seconds: Defines time period for which statistics should be returned (this method returns statistics since now).
       :return: Statistics from given time period.
+      :rtype: dict
+      
+   .. py:method:: get_address()
+   
+      Returns this Crawling Unit's full address (with port number)
+      
+      :return: Crawling Unit's address
+      :rtype: string
 
    .. py:method:: get_state()
 
       Returns Crawling Unit state.
 
       :return: Crawling Unit state
+      :rtype: CrawlerState
 
    .. py:method:: stop()
 

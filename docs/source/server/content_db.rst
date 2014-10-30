@@ -13,6 +13,18 @@ This module contains API for connection with database for crawled content.
    .. py:attribute:: content_db
 
       Object to access Berkeley DB.
+   
+   .. py:attribute:: id_iter
+   
+      Number of database records.
+   
+   .. py:attribute:: get_data_iter
+   
+      Number of records retrieved from database.
+   
+   .. py:attribute:: parts_iter
+   
+      Number of content data packages (files with crawled data) requested by user.
 
    .. py:method:: add_content(url, links, content)
 

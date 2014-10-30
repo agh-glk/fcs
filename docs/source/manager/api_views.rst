@@ -15,8 +15,8 @@ with Django REST framework @api_view decorator. These methods are mapped on URLs
    * expire - datetime of task expiration
    * mime_type - list of MIME types separated by whitespace
    * start_links - list of urls separated by whitespace - starting point of crawling
-   * whitelist - urls (regexp) which should be crawled
-   * blacklist - urls (regexp) which should not be crawled
+   * whitelist - URLs (regexp) which should be crawled
+   * blacklist - URLs (regexp) which should not be crawled
    * max_links - size of task
 
    :param request: Request object.
