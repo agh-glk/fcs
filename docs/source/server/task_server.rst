@@ -71,8 +71,17 @@ This module contains implementation of Task Server.
       ID of package with links.
    
    .. py:attribute:: processing_crawlers
+   
+      List of working Crawling Units assigned to this Task Server.
+   
    .. py:attribute:: status
+   
+      Task Server's status (see :py:class:`Status`)
+   
    .. py:attribute:: crawled_links
+   
+      List of crawled links.
+   
    .. py:attribute:: stats_reset_time
    
       Object used for computing time period from which the server efficiency statistics are collected.
@@ -130,7 +139,7 @@ This module contains implementation of Task Server.
       Returns list of crawlers which are not processing any requests.
 
       :return: List of idle Crawler Units.
-      :rtype: list of crawlers
+      :rtype: list
 
    .. py:method:: feedback(link, rating)
    
@@ -147,7 +156,6 @@ This module contains implementation of Task Server.
       :param int priority: Links' priority, can be a number 0-999 (0 is the lowest priority)
       :param int depth: Depth of crawling for a page from which links have been retrieved
       :param string source_url: URL of page from which links have been retrieved
-      :raises Exception: in case of an error in database
 
    .. py:method:: put_data(package_id, data)
 
