@@ -47,7 +47,7 @@ This module contains Crawler Unit implementation.
       
    .. py:attribute:: stats_reset_time
    
-      Time of last statistics clearing.
+      Object used for computing time period from which the crawler efficiency statistics are collected.
       
    .. py:attribute:: crawled_links
    
