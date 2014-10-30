@@ -1,4 +1,4 @@
-Module fcs.server.link_db
+fcs.server.link_db
 =======================================
 
 This module contains implementations of API for link database. Link database stores information about links that are to be visited or have been already visited by Crawling Units.
