@@ -7,7 +7,6 @@ This module describes API for graph database, used by :class:`GraphAndBTreeDB` i
 
    Class provides easy access to Neo4j database.
 
-
    .. py:method:: is_in_base(link)
 
       Checks if the given link is already in database.
