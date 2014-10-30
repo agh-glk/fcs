@@ -1,4 +1,3 @@
-import django_filters
 import django_tables2 as tables
 from models import Task
 from django_tables2.utils import A

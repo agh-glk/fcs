@@ -24,9 +24,8 @@ from common.content_coder import Base64ContentCoder
 URL_PACKAGE_TIMEOUT = 60
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 WAIT_FOR_DOWNLOAD_TIME = 25    # in seconds
-DATA_PACKAGE_SIZE = 5
 KEEP_STATS_SECONDS = 900
-CRAWLING_PERIOD = 60
+CHECK_EFFICIENCY_PERIOD = 60
 
 
 class Status(object):
@@ -104,7 +103,7 @@ class TaskServer(threading.Thread):
         self.data_lock.release()
         self.logger.debug('Changed speed to %d', self.urls_per_min)
 
-    def get_address(self):
+    def _get_address(self):
         return 'http://' + self.web_server.get_host()
 
     def _set_status(self, status):
@@ -132,7 +131,7 @@ class TaskServer(threading.Thread):
         Received data is used to set crawling parameters.
         """
         r = requests.post(self.manager_address + '/autoscale/server/register/',
-                          data={'task_id': self.task_id, 'address': self.get_address()})
+                          data={'task_id': self.task_id, 'address': self._get_address()})
         self.logger.debug('Registering to management. Return code: %d, message: %s' % (r.status_code, r.content))
         if r.status_code in [status.HTTP_412_PRECONDITION_FAILED, status.HTTP_404_NOT_FOUND]:
             self.stop()
@@ -301,7 +300,7 @@ class TaskServer(threading.Thread):
 
     def _cache(self, package_id, crawler, links):
         """
-        Puts link package into cache and marks assigned crawler as 'processing'
+        Puts link package into cache and marks assigned crawler as 'processing'.
         """
         self.cache_lock.acquire()
         has_timed_out = False
@@ -320,7 +319,7 @@ class TaskServer(threading.Thread):
         _links = [link for link in _links if link]
         self.logger.debug('Retrieved %d links from linkdb' % len(_links))
         if _links:
-            address = self.get_address()
+            address = self._get_address()
             package_id = self.package_id
             package = {'server_address': address, 'mime_type': self.mime_type, 'id': package_id, 'links': _links}
             self._cache(package_id, crawler, _links)
@@ -525,7 +524,7 @@ class TaskServer(threading.Thread):
         """
         Checks if crawled links number in the last time is above expectation.
         """
-        stats = self._get_stats(CRAWLING_PERIOD)
+        stats = self._get_stats(CHECK_EFFICIENCY_PERIOD)
         if stats['seconds'] > 0:
             return 60. * stats['links'] / stats['seconds'] >= stats['urls_per_min']
         return False

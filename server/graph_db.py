@@ -21,10 +21,10 @@ class GraphDB(object):
         with self.graph.transaction:
             self.pages = self.graph.node()
             self.graph.reference_node.PAGES(self.pages)
-            if self.graph.node.indexes.exists(GraphDB.__class__.PAGES_INDEX) == 0:
-                self.pages_idx = self.graph.node.indexes.create(GraphDB.__class__.PAGES_INDEX)
+            if self.graph.node.indexes.exists(GraphDB.PAGES_INDEX) == 0:
+                self.pages_idx = self.graph.node.indexes.create(GraphDB.PAGES_INDEX)
             else:
-                self.pages_idx = self.graph.node.indexes.get(GraphDB.__class__.PAGES_INDEX)
+                self.pages_idx = self.graph.node.indexes.get(GraphDB.PAGES_INDEX)
         print 'Graph db initialisation finished.'
 
     def _check_if_attached_to_jvm(function):

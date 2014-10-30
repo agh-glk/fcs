@@ -8,62 +8,85 @@ contain proper POST and GET methods. Requests are encapsulated in JSON messages.
 
 .. py:class:: index
 
+   Returns diagnostic information about Task Server's efficiency and crawlers.
+
+   :return: Diagnostic information.
+   :rtype: string
+
 .. py:class:: feedback
 
-   Sends an user's feedback with ratings of crawled data.
+   Handles an user's feedback with ratings of crawled data.
+
+   :return: Confirmation.
+   :rtype: string
 
 .. py:class:: put_data
 
    Handles crawled data package.
    
-   :return: Confirmation
+   :return: Confirmation.
    :rtype: string
 
 .. py:class:: stats
+
+   Handles statistics request for specified time period.
+
+   :return: Statistics.
+   :rtype: string
 
 .. py:class:: crawlers
 
    Assigns crawlers to the Task Server.
    
-   :return: Confirmation
+   :return: Confirmation.
    :rtype: string
 
 .. py:class:: speed
+
+   Assigns new Task Server speed as URL per minute.
+
+   :return: Confirmation.
+   :rtype: string
 
 .. py:class:: update
 
    Informs about changes of task's settings (i.a. about its stopping, pausing, change of its priority, etc.).
    
-   :return: Confirmation
+   :return: Confirmation.
    :rtype: string
 
 .. py:class:: stop
 
-   :return: Confirmation
+   Stops Task Server.
+
+   :return: Confirmation.
    :rtype: string
 
 .. py:class:: get_data
 
    Gets crawled data.
 
+   :return: File with crawling results.
+   :rtype: stream
+
 .. py:class:: alive
 
-   :return: Information if Task Server is alive
+   :return: Information if Task Server is alive.
    :rtype: string
 
 .. py:class:: kill
 
-   Kills a Task Server
+   Kills a Task Server.
 
-   :return: Confirmation
+   :return: Confirmation.
    :rtype: string
    
 .. py:class:: WebServer(address='0.0.0.0', port=8800)
 
    Wrapper for Task Server’s REST API.
 
-   :param int port: server's port
-   :param string address: server's address
+   :param int port: Server's port.
+   :param string address: Server's address.
    
    .. py:attribute:: urls
    
@@ -81,7 +104,7 @@ contain proper POST and GET methods. Requests are encapsulated in JSON messages.
    
       Returns server's address with its port.
       
-      :return: Server's address with its port in the following format: address:port
+      :return: Server's address with its port in the following format: *address:port*.
       :rtype: string
    
    .. py:method:: stop()
