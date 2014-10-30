@@ -79,7 +79,7 @@ This module contains Crawler Unit implementation.
       Returns Crawling Unit state.
 
       :return: Crawling Unit state
-      :rtype: int
+      :rtype: CrawlerState
 
    .. py:method:: stop()
 
