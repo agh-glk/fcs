@@ -64,7 +64,7 @@ This module contains implementations of API for link database. Link database sto
       
    .. py:attribute:: found_links
    
-      Structure with links and crawled content of web sites pointed by these links. This structure is based on the Neo4j graph database. Instance of :py:class:`BerkeleyContentDB`.
+      Structure with links and crawled content of web sites pointed by these links. This structure is based on the Neo4j graph database. Instance of :py:class:`GraphDB`.
    
    .. py:attribute:: priority_queue
    
@@ -105,10 +105,23 @@ This module contains implementations of API for link database. Link database sto
       Returns additional information about the given link.
    
       :return: List with 3 strings - priority, fetch date (could be an empty string) and depth of crawling tree (method of crawling tree depth calculating depends on the policy - for details see :ref:`CrawlingDepthPolicy`)
-      :rtype: list of strings
+      :rtype: list
+      
+   .. py:method:: points(url_a, url_b)
+   
+   .. py:method:: feedback(link, feedback_rating)
+   
+      Processes link rating provided in user's feedback.
+      
+      :param string link: link this feedback concerns
+      :param int feedback_rating: link rating provided in the feedback
 
    .. py:method:: size()
 
+      Number of elements in the priority queue stoting links to be crawled.
+      
+      :return: number of elements in the queue with links
+      :rtype: int
 
    .. py:method:: close()
 
@@ -117,5 +130,3 @@ This module contains implementations of API for link database. Link database sto
    .. py:method:: clear()
 
       Closes and removes database.
-
-
