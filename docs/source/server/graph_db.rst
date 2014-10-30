@@ -1,7 +1,7 @@
 fcs.server.graph_db
 =============================
 
-This module describes API for graph database, used by :class:`GraphAndBTreeDB` in LinkDB_.
+This module describes API for graph database, used by :class:`GraphAndBTreeDB` in :ref:`LinkDB_`.
 
 .. py:class:: GraphDB
 
