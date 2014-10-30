@@ -33,7 +33,7 @@ This module contains Crawler Unit implementation.
    :param int port: Port of this Crawler Unit.
    :param string manager_address: Address of Manager module.
    :param int max_content_length: Maximal size of content.
-   :param boolean handle_robots: Flag that informs if Crawler Unit should handle robots.txt.
+   :param bool handle_robots: Flag that informs if Crawler Unit should handle robots.txt.
 
    .. py:attribute:: link_package_queue
 
