@@ -35,9 +35,9 @@ contain proper POST and GET methods. Requests are encapsulated in JSON messages.
 
 .. py:class:: stats
 
-   Required POST parameters are:
+   Returns statistics summarise from given time period. Required POST parameters are:
    
-   * seconds - 
+   * seconds - number of seconds for which measurement was done (this method returns statistics since (now - seconds)).
 
 .. py:class:: crawlers
 
