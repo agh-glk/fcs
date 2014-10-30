@@ -3,7 +3,7 @@ fcs.server.task_server
 
 This module contains implementation of Task Server.
 
-.. py:const: AAA
+.. py:attribute: AAA
 
 .. py:class:: Status
 
@@ -61,7 +61,13 @@ This module contains implementation of Task Server.
       Task Server's UUID
 
    .. py:attribute:: whitelist
+   
+      URLs (regexp) which should be crawled.
+   
    .. py:attribute:: blacklist
+   
+      URLs (regexp) which should not be crawled.
+   
    .. py:attribute:: urls_per_min
    
       Task Server's crawling speed. For more details about this speed, see :py:meth:`assign_crawlers`.
