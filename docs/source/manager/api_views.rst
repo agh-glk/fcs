@@ -22,6 +22,9 @@ with Django REST framework @api_view decorator. These methods are mapped on URLs
    :param request: Request object.
 
    .. note:: Request must be authenticated with OAuth2 Token.
+   
+   :return: Response with new task's ID if successful, response with error message and code otherwise.
+   :rtype: Response
 
 
 .. py:function:: delete_task(request, task_id)
@@ -34,6 +37,9 @@ with Django REST framework @api_view decorator. These methods are mapped on URLs
    :param int task_id: ID of task to be deleted.
 
    .. note:: Request must be authenticated with OAuth2 Token.
+   
+   :return: Response with confirmation if successful, response with error message and code otherwise.
+   :rtype: Response
 
 
 .. py:function:: pause_task(request, task_id)
@@ -46,6 +52,9 @@ with Django REST framework @api_view decorator. These methods are mapped on URLs
    :param int task_id: ID of task to be paused.
 
    .. note:: Request must be authenticated with OAuth2 Token.
+   
+   :return: Response with confirmation if successful, response with error message and code otherwise.
+   :rtype: Response
 
 
 .. py:function:: resume_task(request, task_id)
@@ -58,6 +67,9 @@ with Django REST framework @api_view decorator. These methods are mapped on URLs
    :param int task_id: ID of task to be resumed.
 
    .. note:: Request must be authenticated with OAuth2 Token.
+   
+   :return: Response with confirmation if successful, response with error message and code otherwise.
+   :rtype: Response
 
 
 .. py:function:: get_data_from_crawler(request, task_id, size)
@@ -69,3 +81,6 @@ with Django REST framework @api_view decorator. These methods are mapped on URLs
    :param int size: Size of requested data.
    
    .. note:: Request must be authenticated with OAuth2 Token.
+   
+   :return: Response with crawled content if successful, response with error message and code otherwise.
+   :rtype: Response
