@@ -5,17 +5,19 @@ In this module the following Django forms are defined:
 
 .. py:class:: ChangePasswordForm
 
-   Form to change user's password.
+   Form for changing user's password.
 
 
 .. py:class:: EditTaskForm
 
-   Form to change task data.
+   Form for changing task data.
 
 
-.. py:class:: CreateTaskForm
+.. py:class:: CreateTaskForm(user)
 
-   Form to create new task.
+   Form for creating new task.
+   
+   :param User user: Task's owner
 
    .. py:attribute:: name
 
@@ -50,6 +52,11 @@ In this module the following Django forms are defined:
       MIME types which are to be crawled.
 
 
+.. py:class:: SendFeedbackForm
+
+   Form for sending feedback (URLs rating).
+
+
 .. py:class:: TaskFilterForm
 
-   Form to filter information about tasks.
+   Form for filtering information about tasks.
