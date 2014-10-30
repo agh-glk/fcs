@@ -8,18 +8,36 @@ contain proper POST and GET methods. Requests are encapsulated in JSON messages.
 
 .. py:class:: index
 
+   Returns information about Task Server's status, its statistics and details about Crawling Units assigned to this Task Server and links packages sent to them.
+   
+   :return: Information about Task Server
+   :rtype: JSON
+
 .. py:class:: feedback
 
-   Sends an user's feedback with ratings of crawled data.
+   Sends user's feedback with rating of crawled data. Required POST parameters are:
+   
+   * link - rated link
+   * rating - rating of the given link
+   
+   :return: Feedback sending confirmation
+   :rtype: string
 
 .. py:class:: put_data
 
-   Handles crawled data package.
+   Handles crawled data package received from crawler. Required POST parameters are:
+   
+   * id - crawled data package ID
+   * data - crawled data
    
    :return: Confirmation
    :rtype: string
 
 .. py:class:: stats
+
+   Required POST parameters are:
+   
+   * seconds - 
 
 .. py:class:: crawlers
 
