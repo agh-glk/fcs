@@ -8,10 +8,6 @@
       dbpassword: fcs
 
   handlers:
-    - name: reload postgres
-      action: service name=postgresql state=reloaded
-      sudo: yes
-
     - name: restart redis-server
       action: service name=redis-server state=restarted
       sudo: yes
@@ -26,7 +22,6 @@
       action: apt pkg={{ item }} state=present
       sudo: yes
       with_items:
-        - postgresql
         - libpq-dev
         - python-dev
         - python-psycopg2
@@ -86,34 +81,6 @@
       command: apt-get install -y neo4j
       sudo: yes
 
-    - name: postgres listen *
-      lineinfile: regexp="^listen_addresses = '*'" line="listen_addresses = '*'" dest=/etc/postgresql/9.1/main/postgresql.conf
-      sudo: yes
-      notify:
-        - reload postgres
-
-    - name: fixing postrgres authentication configuration
-      lineinfile: regexp="^local\s+all\s+all\s+" line="local all all md5" dest=/etc/postgresql/9.1/main/pg_hba.conf
-      sudo: yes
-      notify:
-        - reload postgres
-
-    - name: fixing postrgres authentication configuration
-      lineinfile: regexp="^host\s+all\s+all\s+" line="host all all all md5" dest=/etc/postgresql/9.1/main/pg_hba.conf
-      sudo: yes
-      notify:
-        - reload postgres
-
-    - name: ensure database is created
-      action: postgresql_db db={{ dbname }} owner=postgres
-      sudo: yes
-      sudo_user: postgres
-
-    - name: ensure user has access to database
-      action: postgresql_user db={{ dbname }} user={{ dbuser }} password={{ dbpassword }} priv=ALL role_attr_flags=CREATEDB,SUPERUSER
-      sudo: yes
-      sudo_user: postgres
-
     - name: configure redis
       action: copy src=redis.conf dest=/etc/redis/7897.conf
       sudo: yes
@@ -146,10 +113,6 @@
               BERKELEYDB_DIR: /usr/local/BerkeleyDB.4.8
               BERKELEYDB_LIBDIR: /usr/local/BerkeleyDB.4.8/lib
               BERKELEYDB_INCDIR: /usr/local/BerkeleyDB.4.8/include
-      sudo: yes
-
-    - name: installing python dev packages to virtualenv - dev
-      action: pip virtualenv=/home/vagrant/{{ project_name }} requirements=/vagrant/requirements_dev.txt extra_args='--no-use-wheel'
       sudo: yes
 
     - name: django syncdb
