@@ -35,8 +35,8 @@ This module contains implementation of Task Server.
 
 .. py:class:: TaskServer(web_server, task_id, manager_address, max_url_depth=1)
 
-   :param string web_server:
-   :param int task_id:
+   :param string web_server: Wrapper of TaskServer's REST API (see :py:class:`WebServer`)
+   :param int task_id: ID of a task for which this TaskServer was created
    :param string manager_address: Address of Management module (see :doc:`../manager/intro`)
    :param int max_url_depth: Maximal depth of crawling for a page from which given links have been retrieved
 
