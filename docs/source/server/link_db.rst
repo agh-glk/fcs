@@ -1,8 +1,7 @@
 Module fcs.server.link_db
 =======================================
 
-This module contains implementations of API for link database. Link database stores information about links that
-are to visit or have been already visited by Crawling Units.
+This module contains implementations of API for link database. Link database stores information about links that are to be visited or have been already visited by Crawling Units.
 
 .. py:class:: BaseLinkDB
 
@@ -16,27 +15,28 @@ are to visit or have been already visited by Crawling Units.
 
    .. py:method:: add_link(link, priority, depth)
 
-      Adds given link to database.
+      Adds a link to database.
       
       :param string link: link to add
-      :param int priority:
-      :param int depth:
-      :param string fetch_time:
+      :param int priority: link's priority
+      :param int depth: 
 
    .. py:method:: get_link()
 
-
+      Returns a link to crawl.
 
    .. py:method:: change_link_priority(link, rate)
+   
+      Changes link priority.
 
-      :param string link:
-      :param int rate:
-
+      :param string link: link which priority has to be changed
+      :param int rate: user's link rating. This value is the base of new priority computing.
 
    .. py:method:: get_details(link)
 
-      Returns additional information about the given link.
-
+      Returns details about the given link.
+      
+      :param string link: link which details have to be given
 
    .. py:method:: close()
 
@@ -54,17 +54,17 @@ are to visit or have been already visited by Crawling Units.
    :param string base_name: Name of the database
    :param AbstractPolicyModule policy_module: describes established policy (how links should be created, how and when priorities should be modified, etc.)
 
-   .. py:attribute:: found_links_db_name
+   .. py:attribute:: FOUND_LINKS_DB
    
       Name of database storing the :py:attr:`found_links` structure.
-      
-   .. py:attribute:: found_links
-   
-      Structure with links and crawled content of web sites pointed by these links. This structure is based on the Neo4j graph database.
    
    .. py:attribute:: priority_queue_db_name
    
       Name of database storing the :py:attr:`priority_queue` structure.
+      
+   .. py:attribute:: found_links
+   
+      Structure with links and crawled content of web sites pointed by these links. This structure is based on the Neo4j graph database. Instance of :py:class:`BerkeleyContentDB`.
    
    .. py:attribute:: priority_queue
    
@@ -76,26 +76,29 @@ are to visit or have been already visited by Crawling Units.
    
       :param string link: searched link
       :return: information if the link is in database
-      :rtype: boolean
+      :rtype: bool
 
-   .. py:method:: size()
-
-
-   .. py:method:: add_link(link, priority, depth, fetch_time="")
+   .. py:method:: add_link(link, priority, depth)
 
       Adds given link to database.
-   
-      :param string link: link to add
-      :param int priority:
+      
+      :param string link: link to be added
+      :param int priority: link's priority
       :param int depth:
-      :param string fetch_time:
 
    .. py:method:: get_link()
+   
+      Returns a link to be processed (one with the highest priority).
+      
+      :return: link to be processed
+      :rtype: string
 
    .. py:method:: change_link_priority(link, rate)
-   
-      :param string link:
-      :param int rate:
+      
+      Changes link priority.
+
+      :param string link: link which priority has to be changed
+      :param int rate: user's link rating. This value is the base of new priority computing.
 
    .. py:method:: get_details()
 
@@ -103,6 +106,9 @@ are to visit or have been already visited by Crawling Units.
    
       :return: List with 3 strings - priority, fetch date (could be an empty string) and depth of crawling tree (method of crawling tree depth calculating depends on the policy - for details see :ref:`CrawlingDepthPolicy`)
       :rtype: list of strings
+
+   .. py:method:: size()
+
 
    .. py:method:: close()
 
