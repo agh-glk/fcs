@@ -3,7 +3,7 @@
 fcs.crawler.web_interface
 =======================================
 
-In this module web methods for managing Crawling Units are defined. These methods are implemented as classes that contain proper POST methods. Request are encapsulated in JSON messages.
+In this module web methods for managing Crawling Units are defined. These methods are implemented as classes that contain proper POST or GET methods. Request are encapsulated in JSON messages.
 
 .. py:class:: index
 
