@@ -3,6 +3,11 @@ fcs.crawler.crawler
 
 This module contains Crawler Unit implementation.
 
+.. py:data:: KEEP_STATS_SECONDS
+
+   After this time in seconds old statistics are removed.
+   
+
 .. py:class:: CrawlerState
 
    Stores attributes defining Crawler Unit states.
