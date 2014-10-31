@@ -22,8 +22,7 @@ are to visit or have been already visited by Crawling Units.
       
       :param string link: Link to add.
       :param int priority: Link's priority.
-      :param int depth: Depth of crawling tree (method of crawling tree depth calculating depends
-        on the policy - for details see :ref:`CrawlingDepthPolicy`).
+      :param int depth: Depth of crawling tree (method of crawling tree depth calculating depends on the policy - for details see :ref:`CrawlingDepthPolicy`).
       :param string fetch_time: Time of last link's processing.
 
    .. py:method:: get_link()
@@ -58,8 +57,7 @@ are to visit or have been already visited by Crawling Units.
    (`bsddb3 module <https://pypi.python.org/pypi/bsddb3>`_ is used) and on `Neo4j <http://neo4j.com/>`_.
 
    :param string base_name: Name of the database.
-   :param AbstractPolicyModule policy_module: Describes established policy (how links should be created,
-   how and when priorities should be modified, etc.).
+   :param AbstractPolicyModule policy_module: Describes established policy (how links should be created, how and when priorities should be modified, etc.).
 
    .. py:attribute:: FOUND_LINKS_DB
    
