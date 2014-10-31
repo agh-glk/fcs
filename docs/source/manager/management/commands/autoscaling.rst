@@ -80,6 +80,7 @@ The autoscaling module. It is run as a Django application command.
    :param int num: signal number
    :param frame stack: current stack frame
    
+   
 
 .. py:class:: Command
 
