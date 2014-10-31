@@ -13,8 +13,7 @@ This module contains class for processing and unifying URLs.
       Validates and unifies link.
 
       :param string link: Link to validate.
-      :param string domain: Base URL that should be combined with the link if the link does not start with 'http://' or
-      'https://'.
+      :param string domain: Base URL that should be combined with the link if the link does not start with 'http://' or 'https://'.
       :return: Validated link.
       :rtype: string
 
