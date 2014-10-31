@@ -83,7 +83,7 @@ are to visit or have been already visited by Crawling Units.
    
       :param string link: Searched link.
       :return: Information if the link is in database.
-      :rtype: boolean
+      :rtype: bool
 
    .. py:method:: size()
 
@@ -123,7 +123,7 @@ are to visit or have been already visited by Crawling Units.
       :return: List with 3 strings - priority, fetch date (could be an empty string) and depth of crawling
         tree (method of crawling tree depth calculating depends on the policy - for details see
         :ref:`CrawlingDepthPolicy`).
-      :rtype: list of strings
+      :rtype: list
 
    .. py:method:: close()
 
