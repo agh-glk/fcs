@@ -30,8 +30,8 @@ This module contains FCS Manager application views rendered in web browser.
    .. note:: View accessible for logged in users only.
 
    :param django.http.HttpRequest request: The request object used to generate the response.
-   :return: HTML code of the page.
-   :rtype: django.http.HttpResponse
+   :return: redirect to :py:func:`list_tasks` if request HTTP method is POST and form with new task's details is valid, view HTML code otherwise.
+   :rtype: django.http.HttpResponseRedirect or django.http.HttpResponse
    
    
 .. py:function:: show_task(request, task_id)
@@ -42,8 +42,8 @@ This module contains FCS Manager application views rendered in web browser.
    
    :param django.http.HttpRequest request: The request object used to generate the response.
    :param int task_id: ID of the given task.
-   :return: HTML code of the page.
-   :rtype: django.http.HttpResponse
+   :return: redirect to :py:func:`list_tasks` if request HTTP method is POST and form with task's edited details is valid, HTML code of the page otherwise.
+   :rtype: django.http.HttpResponseRedirect or django.http.HttpResponse
    
 
 .. py:function:: send_feedback(request, task_id)
@@ -71,7 +71,7 @@ This module contains FCS Manager application views rendered in web browser.
    
 .. py:function:: pause_task(request, task_id)
 
-   Pauses task and redirect to tasks list.
+   Pauses task and redirects to tasks list.
    
    .. note:: View accessible for logged in users only.
 
@@ -83,7 +83,7 @@ This module contains FCS Manager application views rendered in web browser.
 
 .. py:function:: resume_task(request, task_id)
 
-   Resumes task and redirect to tasks list.
+   Resumes task and redirects to tasks list.
    
    .. note:: View accessible for logged in users only.
 
@@ -95,7 +95,7 @@ This module contains FCS Manager application views rendered in web browser.
    
 .. py:function:: stop_task(request, task_id)
 
-   Stops task and redirect to tasks list.
+   Stops task and redirects to tasks list.
    
    .. note:: View accessible for logged in users only.
 
@@ -114,7 +114,8 @@ This module contains FCS Manager application views rendered in web browser.
    :param django.http.HttpRequest request: The request object used to generate the response.
    :param int task_id: ID of the given task related to data to be downloaded.
    :param int size: Size of data to be downloaded in MB.
-   :return: Response with data or information about absence of an appropriate task server.
+   :return: Redirect to proper REST method of Task Server assigned to this task if there is one, information about absence of an appropriate Task Server otherwise.
+   :rtype: django.http.HttpResponseRedirect or django.http.StreamingHttpResponse
    
 
 .. py:function:: show_quota(request)
