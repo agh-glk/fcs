@@ -9,6 +9,7 @@ This module contains FCS Manager application views rendered in web browser.
 
    :param django.http.HttpRequest request: The request object used to generate the response.
    :return: HTML code of the page.
+   :rtype: django.http.HttpResponse
    
 
 .. py:function:: list_tasks(request)
@@ -19,6 +20,7 @@ This module contains FCS Manager application views rendered in web browser.
 
    :param django.http.HttpRequest request: The request object used to generate the response.
    :return: HTML code of the page.
+   :rtype: django.http.HttpResponse
    
    
 .. py:function:: add_task(request)
@@ -29,6 +31,7 @@ This module contains FCS Manager application views rendered in web browser.
 
    :param django.http.HttpRequest request: The request object used to generate the response.
    :return: HTML code of the page.
+   :rtype: django.http.HttpResponse
    
    
 .. py:function:: show_task(request, task_id)
@@ -40,6 +43,7 @@ This module contains FCS Manager application views rendered in web browser.
    :param django.http.HttpRequest request: The request object used to generate the response.
    :param int task_id: ID of the given task.
    :return: HTML code of the page.
+   :rtype: django.http.HttpResponse
    
 
 .. py:function:: send_feedback(request, task_id)
@@ -51,6 +55,7 @@ This module contains FCS Manager application views rendered in web browser.
    :param django.http.HttpRequest request: The request object used to generate the response.
    :param int task_id: ID of the given task.
    :return: redirect to :py:func:`show_task`.
+   :rtype: django.http.HttpResponseRedirect
    
    
 .. py:function:: api_keys(request)
@@ -61,6 +66,7 @@ This module contains FCS Manager application views rendered in web browser.
 
    :param django.http.HttpRequest request: The request object used to generate the response.
    :return: HTML code of the page.
+   :rtype: django.http.HttpResponse
    
    
 .. py:function:: pause_task(request, task_id)
@@ -71,7 +77,8 @@ This module contains FCS Manager application views rendered in web browser.
 
    :param django.http.HttpRequest request: The request object used to generate the response.
    :param int task_id: ID of the given task.
-   :return: Redirect to :py:func:`list_tasks`.
+   :return: Redirect to :py:func:`list_tasks`
+   :rtype: django.http.HttpResponseRedirect
 
 
 .. py:function:: resume_task(request, task_id)
@@ -83,6 +90,7 @@ This module contains FCS Manager application views rendered in web browser.
    :param django.http.HttpRequest request: The request object used to generate the response.
    :param int task_id: ID of the given task.
    :return: Redirect to :py:func:`list_tasks`.
+   :rtype: django.http.HttpResponseRedirect
    
    
 .. py:function:: stop_task(request, task_id)
@@ -94,6 +102,7 @@ This module contains FCS Manager application views rendered in web browser.
    :param django.http.HttpRequest request: The request object used to generate the response.
    :param int task_id: ID of the given task.
    :return: Redirect to :py:func:`list_tasks`.
+   :rtype: django.http.HttpResponseRedirect
    
 
 .. py:function:: get_data(request, task_id, size)
@@ -116,6 +125,7 @@ This module contains FCS Manager application views rendered in web browser.
 
    :param django.http.HttpRequest request: The request object used to generate the response.
    :return: HTML code of the page.
+   :rtype: django.http.HttpResponse
    
    
 .. py:function:: api_docs_resources(request)
@@ -124,6 +134,7 @@ This module contains FCS Manager application views rendered in web browser.
 
    :param django.http.HttpRequest request: The request object used to generate the response.
    :return: HTML code of the page and an HttpResponse object with rendered text.
+   :rtype: django.http.HttpResponse
    
    
 .. py:function:: api_docs_declaration(request, path)
@@ -133,3 +144,4 @@ This module contains FCS Manager application views rendered in web browser.
    :param django.http.HttpRequest request: The request object used to generate the response.
    :param string path: Path to documentation.
    :return: HTML code of the page and an HttpResponse object with rendered text.
+   :rtype: django.http.HttpResponse
