@@ -73,6 +73,14 @@ The autoscaling module. It is run as a Django application command.
    Port number of first Crawling Unit. Each next has one higher.
 
 
+.. py:function:: sigint_signal_handler(num, stack)
+
+   SIGINT signal handler. Kills all Crawling Units and Task Servers.
+   
+   :param int num: signal number
+   :param frame stack: current stack frame
+   
+
 .. py:class:: Command
 
    Definition of the command 'autoscaling'.
