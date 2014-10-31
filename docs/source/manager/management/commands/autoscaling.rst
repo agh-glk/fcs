@@ -78,7 +78,7 @@ The autoscaling module. It is run as a Django application command.
    SIGINT signal handler. Kills all Crawling Units and Task Servers.
    
    :param int num: signal number
-   :param `frame <https://docs.python.org/2/reference/datamodel.html>`_ stack: current stack frame `frame <https://docs.python.org/2/reference/datamodel.html>`_
+   :param frame stack: current stack frame (for details on frame type, see `Python documentation <https://docs.python.org/2/reference/datamodel.html>`_)
    
 
 .. py:class:: Command
