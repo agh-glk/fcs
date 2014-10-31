@@ -17,7 +17,7 @@ This module contains classes responsible for parsing content acquired by Crawlin
 
       :param string content_type: Type of content to parse (MIME type).
       :return: Instance of parser that is able to parse a content of given type.
-      :rtype:  fcs.crawler.content_parser.Parser
+      :rtype:  :py:class:`fcs.crawler.content_parser.Parser`
       :raises Exception: if unknown parser type has been requested.
 
 
