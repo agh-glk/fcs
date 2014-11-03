@@ -1,5 +1,6 @@
 import shutil
 import os
+import datetime
 
 
 class GraphDB(object):
@@ -67,6 +68,12 @@ class GraphDB(object):
                 self.pages_idx['url'][link] = page
                 return page
         return None
+
+    @_check_if_attached_to_jvm
+    def set_as_fetched(self, link):
+        _page = self._find_pages(link)
+        with self.graph.transaction:
+            _page['fetch_time'] = str(datetime.datetime.now())
 
     def _update_depth(self, url_vertex_a, url_vertex_b):
         if url_vertex_b['depth'] > url_vertex_a['depth'] + 1:

@@ -11,6 +11,9 @@ class BaseLinkDB(object):
     def add_link(self, link, priority, depth):
         pass
 
+    def set_as_fetched(self, link):
+        pass
+
     def get_link(self):
         pass
 
@@ -46,11 +49,14 @@ class GraphAndBTreeDB(BaseLinkDB):
         return self.found_links.is_in_base(link)
 
     def add_link(self, link, priority, depth):
-        res = self.found_links.add_link(link, int(priority), int(depth))
+        res = self.found_links.add_link(link, priority, depth)
         if res:
             _key = self.policy_module.generate_key(link, priority)
             self.priority_queue[_key] = link
             print "Link added: %s" % link
+
+    def set_as_fetched(self, link):
+        self.found_links.set_as_fetched(link)
 
     def get_link(self):
         try:

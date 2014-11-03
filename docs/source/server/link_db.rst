@@ -24,6 +24,12 @@ are to visit or have been already visited by Crawling Units.
         on the policy - for details see :ref:`CrawlingDepthPolicy`).
       :param string fetch_time: Time of last link's processing.
 
+   .. py:method:: set_as_fetched(link)
+
+      Sets time of page processing ending.
+
+      :param string link: URL.
+
    .. py:method:: get_link()
 
       Obtains one link with highest priority.
@@ -101,6 +107,12 @@ are to visit or have been already visited by Crawling Units.
       :param int depth: Depth of crawling tree (method of crawling tree depth calculating depends
         on the policy - for details see :ref:`CrawlingDepthPolicy`).
       :param string fetch_time: Time of last link's processing.
+
+   .. py:method:: set_as_fetched(link)
+
+      Sets time of page processing ending.
+
+      :param string link: URL.
 
    .. py:method:: get_link()
 

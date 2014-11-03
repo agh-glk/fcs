@@ -26,6 +26,12 @@ This module describes API for graph database, used by :class:`GraphAndBTreeDB` i
       :return: Object representing new node in database.
       :rtype: `neo4j.Nodes` if successful, `None` otherwise
 
+   .. py:method:: set_as_fetched(link)
+
+      Sets time of page processing ending.
+
+      :param string link: URL.
+
    .. py:method:: change_link_priority(link, priority)
 
       Changes link priority.

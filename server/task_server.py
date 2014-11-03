@@ -436,6 +436,7 @@ class TaskServer(threading.Thread):
                     #TODO - FUTURE WORKS: inherited priority?
                     self.add_links(entry['links'], self.link_db.policy_module.DEFAULT_PRIORITY, _url_depth,
                                    entry['url'])
+                    self.link_db.set_as_fetched(entry['url'])
             self._clear_cache(package_id)
 
     def _clear(self):
