@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 3
 
    quickstart
+   tutorial
    manager/intro
    crawler/intro
    server/intro
