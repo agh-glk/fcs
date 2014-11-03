@@ -40,19 +40,23 @@ contain proper POST and GET methods. Requests are encapsulated in JSON messages.
    
    * seconds - number of seconds for which measurement was done (this method returns statistics since (now - seconds)).
 
-   :return: Statistics.
-   :rtype: string
+   :return: Statistics (number of links crawled during the given period (now - seconds) and crawling speed assigned to this Task Server).
+   :rtype: JSON
 
 .. py:class:: crawlers
 
-   Assigns crawlers to the Task Server.
+   Assigns crawlers to the Task Server. Required POST parameters are:
+   
+   * crawlers - list of addresses of crawlers to assign to this Task Server
    
    :return: Confirmation.
    :rtype: string
 
 .. py:class:: speed
 
-   Assigns new Task Server speed as URL per minute.
+   Assigns new Task Server speed (expressed as URLs processed per minute). Required POST parameters are:
+   
+   * urls_per_min - new Task Server speed
 
    :return: Confirmation.
    :rtype: string
@@ -73,12 +77,14 @@ contain proper POST and GET methods. Requests are encapsulated in JSON messages.
 
 .. py:class:: get_data
 
-   Gets crawled data.
+   Gets crawled data and saves them in a file.
 
    :return: File with crawling results.
    :rtype: stream
 
 .. py:class:: alive
+
+   Informs if Task Server is alive.
 
    :return: Information if Task Server is alive.
    :rtype: string

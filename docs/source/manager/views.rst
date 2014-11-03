@@ -1,14 +1,15 @@
 fcs.manager.views
 =======================================
 
-This module contains fcs.manager application views rendered in web browser.
+This module contains FCS Manager application views rendered in web browser.
 
 .. py:function:: index(request)
 
    Main page.
 
-   :param request request: The request object used to generate the response.
+   :param django.http.HttpRequest request: The request object used to generate the response.
    :return: HTML code of the page.
+   :rtype: django.http.HttpResponse
    
 
 .. py:function:: list_tasks(request)
@@ -17,8 +18,9 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: The request object used to generate the response.
+   :param django.http.HttpRequest request: The request object used to generate the response.
    :return: HTML code of the page.
+   :rtype: django.http.HttpResponse
    
    
 .. py:function:: add_task(request)
@@ -27,8 +29,9 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: The request object used to generate the response.
-   :return: HTML code of the page.
+   :param django.http.HttpRequest request: The request object used to generate the response.
+   :return: redirect to :py:func:`list_tasks` if request HTTP method is POST and form with new task's details is valid, view HTML code otherwise.
+   :rtype: django.http.HttpResponseRedirect or django.http.HttpResponse
    
    
 .. py:function:: show_task(request, task_id)
@@ -37,9 +40,10 @@ This module contains fcs.manager application views rendered in web browser.
 
    .. note:: View accessible for logged in users only.
    
-   :param request request: The request object used to generate the response.
+   :param django.http.HttpRequest request: The request object used to generate the response.
    :param int task_id: ID of the given task.
-   :return: HTML code of the page.
+   :return: redirect to :py:func:`list_tasks` if request HTTP method is POST and form with task's edited details is valid, HTML code of the page otherwise.
+   :rtype: django.http.HttpResponseRedirect or django.http.HttpResponse
    
 
 .. py:function:: send_feedback(request, task_id)
@@ -48,9 +52,10 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: The request object used to generate the response.
+   :param django.http.HttpRequest request: The request object used to generate the response.
    :param int task_id: ID of the given task.
    :return: redirect to :py:func:`show_task`.
+   :rtype: django.http.HttpResponseRedirect
    
    
 .. py:function:: api_keys(request)
@@ -59,41 +64,45 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: The request object used to generate the response.
+   :param django.http.HttpRequest request: The request object used to generate the response.
    :return: HTML code of the page.
+   :rtype: django.http.HttpResponse
    
    
 .. py:function:: pause_task(request, task_id)
 
-   Pauses task and redirect to tasks list.
+   Pauses task and redirects to tasks list.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: The request object used to generate the response.
+   :param django.http.HttpRequest request: The request object used to generate the response.
    :param int task_id: ID of the given task.
-   :return: Redirect to :py:func:`list_tasks`.
+   :return: Redirect to :py:func:`list_tasks`
+   :rtype: django.http.HttpResponseRedirect
 
 
 .. py:function:: resume_task(request, task_id)
 
-   Resumes task and redirect to tasks list.
+   Resumes task and redirects to tasks list.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: The request object used to generate the response.
+   :param django.http.HttpRequest request: The request object used to generate the response.
    :param int task_id: ID of the given task.
    :return: Redirect to :py:func:`list_tasks`.
+   :rtype: django.http.HttpResponseRedirect
    
    
 .. py:function:: stop_task(request, task_id)
 
-   Stops task and redirect to tasks list.
+   Stops task and redirects to tasks list.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: The request object used to generate the response.
+   :param django.http.HttpRequest request: The request object used to generate the response.
    :param int task_id: ID of the given task.
    :return: Redirect to :py:func:`list_tasks`.
+   :rtype: django.http.HttpResponseRedirect
    
 
 .. py:function:: get_data(request, task_id, size)
@@ -102,10 +111,11 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: The request object used to generate the response.
+   :param django.http.HttpRequest request: The request object used to generate the response.
    :param int task_id: ID of the given task related to data to be downloaded.
    :param int size: Size of data to be downloaded in MB.
-   :return: Response with data or information about absence of an appropriate task server.
+   :return: Redirect to proper REST method of Task Server assigned to this task if there is one, information about absence of an appropriate Task Server otherwise.
+   :rtype: django.http.HttpResponseRedirect or django.http.StreamingHttpResponse
    
 
 .. py:function:: show_quota(request)
@@ -114,22 +124,25 @@ This module contains fcs.manager application views rendered in web browser.
    
    .. note:: View accessible for logged in users only.
 
-   :param request request: The request object used to generate the response.
+   :param django.http.HttpRequest request: The request object used to generate the response.
    :return: HTML code of the page.
+   :rtype: django.http.HttpResponse
    
    
 .. py:function:: api_docs_resources(request)
 
    Swagger view generating REST API documentation.
 
-   :param request request: The request object used to generate the response.
+   :param django.http.HttpRequest request: The request object used to generate the response.
    :return: HTML code of the page and an HttpResponse object with rendered text.
+   :rtype: django.http.HttpResponse
    
    
 .. py:function:: api_docs_declaration(request, path)
 
    Swagger view generating REST API documentation located at the given path.
 
-   :param request request: The request object used to generate the response.
+   :param django.http.HttpRequest request: The request object used to generate the response.
    :param string path: Path to documentation.
    :return: HTML code of the page and an HttpResponse object with rendered text.
+   :rtype: django.http.HttpResponse

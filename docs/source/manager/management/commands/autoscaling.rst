@@ -10,7 +10,7 @@ The autoscaling module. It is run as a Django application command.
 
 .. py:data:: PATH_TO_SERVER
 
-   Path to task server web interface.
+   Path to Task Server web interface.
    
 .. py:data:: PATH_TO_CRAWLER
 
@@ -18,7 +18,7 @@ The autoscaling module. It is run as a Django application command.
    
 .. py:data:: SERVER_SPAWN_TIMEOUT
 
-   A period of time after which task server is considered to be unable to spawn.
+   A period of time after which Task Server is considered to be unable to spawn.
    
 .. py:data:: MAX_CRAWLERS_NUM
 
@@ -42,11 +42,11 @@ The autoscaling module. It is run as a Django application command.
    
 .. py:data:: MIN_SERVER_STATS_PERIOD
 
-   A period during which task server efficiency is not evaluated.
+   A period during which Task Server efficiency is not evaluated.
    
 .. py:data:: AUTOSCALING_PERIOD
 
-   Frequency of downloading the task servers efficiency statistics.
+   Frequency of downloading the Task Servers efficiency statistics.
 
 .. py:data:: LOOP_PERIOD
 
@@ -73,6 +73,14 @@ The autoscaling module. It is run as a Django application command.
    Port number of first Crawling Unit. Each next has one higher.
 
 
+.. py:function:: sigint_signal_handler(num, stack)
+
+   SIGINT signal handler. Kills all Crawling Units and Task Servers.
+   
+   :param int num: signal number
+   :param frame stack: current stack frame (for details on frame type, see `Python documentation <https://docs.python.org/2/reference/datamodel.html>`_)
+   
+
 .. py:class:: Command
 
    Definition of the command 'autoscaling'.
@@ -83,7 +91,7 @@ The autoscaling module. It is run as a Django application command.
    
    .. py:attribute:: server_port
    
-      The lowest free number of port for new task server.
+      The lowest free number of port for new Task Server.
    
    .. py:attribute:: crawler_port
    
@@ -111,13 +119,13 @@ The autoscaling module. It is run as a Django application command.
 
    .. py:method:: check_tasks_state()
    
-      Checks if new task server should not be run for any of the tasks (e.g. because some task is new or a previous task server did not start).
+      Checks if new Task Server should not be run for any of the tasks (e.g. because some task is new or a previous Task Server did not start).
 
    .. py:method:: check_server_assignment(task)
    
-      Checks if new task server should not be run for the given task and runs task server if needed (e.g. because this task is new or a previous task server did not start).
+      Checks if new Task Server should not be run for the given task and runs Task Server if needed (e.g. because this task is new or a previous Task Server did not start).
 
-      :param Task task: task which could need to have new task server assigned
+      :param Task task: task which could need to have new Task Server assigned
 
    .. py:method:: handle_priority_changes()
 
@@ -125,9 +133,9 @@ The autoscaling module. It is run as a Django application command.
 
    .. py:method:: spawn_task_server(task)
    
-      Spawns task server for the given task. This method is called in two cases: the task is new or previously assigned task server did not confirm its proper launch.
+      Spawns Task Server for the given task. This method is called in two cases: the task is new or previously assigned Task Server did not confirm its proper launch.
 
-      :param Task task: task for which new task server is spawned
+      :param Task task: task for which new Task Server is spawned
 
    .. py:method:: spawn_crawler()
 

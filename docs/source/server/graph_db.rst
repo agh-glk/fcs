@@ -1,12 +1,11 @@
 fcs.server.graph_db
 =============================
 
-This module describes API for graph database, used by :class:`GraphAndBTreeDB` in `link_db`.
+This module describes API for graph database, used by :class:`GraphAndBTreeDB` in :ref:`LinkDB`.
 
 .. py:class:: GraphDB
 
    Class provides easy access to Neo4j database.
-
 
    .. py:method:: is_in_base(link)
 
@@ -14,7 +13,7 @@ This module describes API for graph database, used by :class:`GraphAndBTreeDB` i
 
       :param string link: Searched link.
       :return: Information if the link is in database.
-      :rtype: boolean
+      :rtype: bool
 
    .. py:method:: add_link(link, priority, depth)
 
@@ -70,5 +69,3 @@ This module describes API for graph database, used by :class:`GraphAndBTreeDB` i
    .. py:method:: clear()
 
       Clears database instance.
-
-

@@ -11,9 +11,9 @@ and handling crawling requests from clients. Management module provides:
 
 :doc:`admin`
 
-:doc:`api_views`
-
 :doc:`api_urls`
+
+:doc:`api_views`
 
 :doc:`autoscale_views`
 

@@ -14,6 +14,7 @@ This module contains model layer - implementation of system units and consists o
       :param string username: New user's name.
       :param string email: New user's email address.
       :param string password: New user's password.
+      :return: New user
 
    .. py:method:: create_superuser(username, email, password)
 
@@ -22,6 +23,7 @@ This module contains model layer - implementation of system units and consists o
       :param string username: New user's name.
       :param string email: New user's email address.
       :param string password: New user's password.
+      :return: New superuser
 
 
 .. py:class:: User
@@ -57,6 +59,11 @@ This module contains model layer - implementation of system units and consists o
    .. py:attribute:: user
 
       Quota's owner.
+      
+      
+.. py:class:: QuotaException
+
+   Raised when user exceeds limitations defined by Quota object.
 
 
 .. py:class:: TaskManager
@@ -76,12 +83,13 @@ This module contains model layer - implementation of system units and consists o
       :param string blacklist: Disallowed URLs as regexp list.
       :param string max_links: Maximal allowed number of processed pages.
       :param string mime_type: List of allowed MIME types.
-
+      :return: New task
+      :rtype: Task
       :raises QuotaException: if user quota is exceeded.
 
 .. py:class:: Crawler
 
-   Represents crawler unit.
+   Represents Crawling Unit.
 
    .. py:attribute:: address
 
@@ -94,6 +102,9 @@ This module contains model layer - implementation of system units and consists o
    .. py:method:: is_alive()
 
       Checks if crawler responds for requests.
+      
+      :return: Information if crawler is alive
+      :rtype: bool
 
    .. py:method:: stop()
 
@@ -107,13 +118,15 @@ This module contains model layer - implementation of system units and consists o
 
       .. note:: If crawler doesn't respond this object will be deleted.
 
-   .. py:method:: send(self, path, method='get', data=None)
+   .. py:method:: send(path, method='get', data=None)
 
       Sends request to crawler.
 
       :param string path: Request name, may be one of the following: '/put_links', '/kill', '/stop', '/alive', '/stats'.
       :param string method: Method of request, acceptable values are 'get' or 'post'.
       :param dict data: Dict with parameters (in JSON). Details of particular request's parameters are described in :ref:`CrawlerWebInterface` documentation.
+      :return: Response or `None` if connection cannot be established
+      :rtype: requests.Response or None
 
 
 .. py:class:: TaskServer
@@ -122,7 +135,7 @@ This module contains model layer - implementation of system units and consists o
 
    .. py:attribute:: address
 
-      Task server's address.
+      Task Server's address.
 
    .. py:attribute:: urls_per_min
 
@@ -130,34 +143,39 @@ This module contains model layer - implementation of system units and consists o
 
    .. py:attribute:: uuid
 
-      Task server's UUID.
+      Task Server's UUID.
 
    .. py:method:: is_alive()
 
-      Checks if task server responds for requests.
+      Checks if Task Server responds for requests.
+      
+      :return: Information if Task Server is alive
+      :rtype: bool
 
    .. py:method:: kill()
 
-      Sends kill request to task server.
+      Sends kill request to Task Server.
 
       .. note:: If server doesn't respond this object will be deleted.
 
    .. py:method:: send(self, path, method='get', data=None)
 
-      Sends request to task server.
+      Sends request to Task Server.
 
       :param string path: Request name, may be one of the following: '/put_links', '/kill', '/stop', '/alive', '/stats'.
       :param string method: Method of request, acceptable values are 'get' or 'post'.
       :param dict data: Dict with parameters (in JSON). Details of particular request's parameters are described in :ref:`ServerWebInterface` documentation.
+      :return: Response or `None` if connection cannot be established
+      :rtype: requests.Response or None
 
    .. py:method:: delete()
 
-      Deletes this task server.
+      Deletes this Task Server.
 
 
 .. py:class:: Task
 
-   Represents crawling tasks defined by users.
+   Represents crawling task defined by user.
 
    .. py:attribute:: user
    
@@ -221,32 +239,41 @@ This module contains model layer - implementation of system units and consists o
 
    .. py:attribute:: autoscale_change
    
-      Boolean value, informs if some task's parameter has been modified. It value is true, task server has to be informed of this change. 
+      Boolean value, informs if some task's parameter has been modified. It value is true, Task Server has to be informed of this change. 
 
    .. py:method:: clean()
 
       Cleans task's data. Validates new task's fields before save operation.
+      
+      :raises ValidationError: If task's parameters cannot be validated
+      :raises QuotaException: If user's quota has been exceeded
 
    .. py:method:: save(*args, **kwargs)
 
-      Saves task in data base and sends information about modifications to its task server.
+      Saves task in data base and sends information about modifications to its Task Server.
 
    .. py:method:: get_parsed_whitelist()
 
       Returns whitelist converted from user-friendly regex to python regex.
+      
+      :return: Whitelist in python regex format
+      :rtype: list
 
    .. py:method:: get_parsed_blacklist()
 
       Returns blacklist converted from user-friendly regex to python regex.
+      
+      :return: Blacklist in python regex format
+      :rtype: list
 
    .. py:method:: change_priority(priority)
 
       Sets task priority.
 
       .. note:: Task with higher priority crawls more links at the same time than those with lower priority.
-      .. note:: Task priority cannot exceed quota of user which owns this task. In other case QuotaException is raised.
-
+      
       :param int priority: Task's new priority.
+      :raises QuotaException: if task priority exceeds quota of user which owns this task
 
    .. py:method:: pause()
 
@@ -264,22 +291,25 @@ This module contains model layer - implementation of system units and consists o
 
       Marks task as finished.
 
-      .. note:: Finished tasks cannot be resumed and they do not count to user max_tasks quota. After some time its task server will be closed and crawling results will be lost.
+      .. note:: Finished tasks cannot be resumed and they do not count to user max_tasks quota. After some time its Task Server will be closed and crawling results will be lost.
 
    .. py:method:: is_waiting_for_server()
 
-      Checks if running task has no task server assigned. This case includes waiting until new task server starts.
+      Checks if running task has no Task Server assigned. This case includes waiting until new Task Server starts.
+      
+      :return: Information if this task has no Task Server assigned
+      :rtype: bool
 
    .. py:method:: feedback(link, rating)
 
-      Process feedback from client in order to update crawling process to satisfy client expectations.
+      Processes feedback from client in order to update crawling process to satisfy client expectations.
 
-      :param string link: URL.
-      :param string rating: Rating as number in range 1 - 5.
+      :param string link: Rated link
+      :param string rating: Rating as number in range 1 - 5
 
    .. py:method:: send_update_to_task_server()
    
-      Sends to Task Server information about modifications in task's parameters.
+      Sends information about task update to its Task Server.
 
 
 .. py:function:: create_api_keys(sender, **kwargs)

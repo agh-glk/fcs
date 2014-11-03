@@ -58,7 +58,7 @@ This module contains implementation of Task Server.
 
    Main class of Task Server, containing its logic.
 
-   :param fcs.server.web_interface.WebServer web_server: Wrapper of TaskServer's REST API (see :py:class:`WebServer`).
+   :param WebServer web_server: Wrapper of TaskServer's REST API (see :py:class:`WebServer`).
    :param int task_id: ID of task for which Task Server was created.
    :param string manager_address: FCS manager module address (see :doc:`../manager/intro`).
    :param int max_url_depth: Maximal allowed crawling tree depth.
