@@ -16,7 +16,7 @@ This module describes Task Server's behavior during link database key generation
 
       Calculates new priority of page according to rating sent in user's feedback.
    
-      :param int priority: Current page priority.
+      :param int priority: Current priority of page.
       :param int feedback_rating: Rating sent by user in feedback.
       :param int depth: Page depth in comparison with original site affected by feedback.
       
@@ -57,13 +57,17 @@ This module describes Task Server's behavior during link database key generation
 
    .. py:staticmethod:: get_feedback_propagation_depth()
    
-      :return:
+      Returns maximal depth of feedback propagation - how many levels of pages retrieved from original page can have its priority changed. Maximal depth is always 3.
+   
+      :return: Maximal depth of feedback propagation (always 3).
       :rtype: int
       
    .. py:staticmethod:: calculate_priority(priority, feedback_rating, depth)
    
-      :param int priority:
-      :param int feedback_rating:
-      :param int depth:
-      :return:
+      Calculates new priority of page according to rating sent in user's feedback.
+   
+      :param int priority: Current priority of page.
+      :param int feedback_rating: Rating sent by user in feedback.
+      :param int depth: Page depth in comparison with original site affected by feedback.
+      :return: New priority of page.
       :rtype: int
