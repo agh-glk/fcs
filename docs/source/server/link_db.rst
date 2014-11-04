@@ -22,7 +22,7 @@ are to visit or have been already visited by Crawling Units.
       
       :param string link: Link to add.
       :param int priority: Link's priority.
-      :param int depth: Depth of crawling tree (method of crawling tree depth calculating depends on the policy - for details see :ref:`CrawlingDepthPolicy`).
+      :param int depth: Depth of link in a crawling tree (method of crawling tree depth calculating depends on the policy - for details see :ref:`CrawlingDepthPolicy`).
       :param string fetch_time: Time of last link's processing.
 
    .. py:method:: set_as_fetched(link)
