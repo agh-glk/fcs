@@ -20,7 +20,7 @@ In this module web methods for managing Crawling Units are defined. These method
    * id - ID of the package with links
    * links - links to crawl
    * server_address - address of Task Server that sent this package of links
-   * mime_type - MIME type of data to crawl
+   * mime_type - list of MIME types of data to crawl
 
    :return: Confirmation of sending links to Crawling Unit.
    :rtype: string
