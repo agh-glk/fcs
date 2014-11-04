@@ -144,7 +144,7 @@ are to visit or have been already visited by Crawling Units.
    
       Processes rating sent by user in feedback and updates priorities of the given link and its children.
    
-      :param string link: URL whose rating was sent in feedback.
+      :param string link: URL of which rating was sent in feedback.
       :param int feedback_rating: URL rating sent in feedback.
 
    .. py:method:: size()
