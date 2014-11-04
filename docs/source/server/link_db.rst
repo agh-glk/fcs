@@ -46,7 +46,7 @@ are to visit or have been already visited by Crawling Units.
 
       Returns details about the given link.
       
-      :param string link: Link which details have to be given.
+      :param string link: Link of which details have to be given.
 
    .. py:method:: close()
 
