@@ -135,13 +135,17 @@ are to visit or have been already visited by Crawling Units.
       
    .. py:method:: points(url_a, url_b)
    
-      :param string url_a:
-      :param string url_b:
+      Connects two URLs-representing nodes in graph with relationship: "url_b obtained from page identified with url_a".
+   
+      :param string url_a: Parent URL
+      :param string url_b: Child URL
       
    .. py:method:: feedback(link, feedback_rating)
    
-      :param string link:
-      :param int feedback_rating:
+      Processes rating sent by user in feedback and updates priorities of the given link and its children.
+   
+      :param string link: URL whose rating was sent in feedback.
+      :param int feedback_rating: URL rating sent in feedback.
 
    .. py:method:: size()
 
