@@ -8,4 +8,4 @@ FCS - Focused Crawling Service - is a freely available Web crawling platform for
 Read more
 ---------
 
-More detailed information on the project can be found on [Wiki pages](https://github.com/agh-glk/fcs/wiki). Quickstart and API specification are available in [Documentation](http://fcs.readthedocs.org/en/latest/).
+More detailed information on the project can be found on [Wiki pages](https://github.com/agh-glk/fcs/wiki). Quickstart and API specification are available in [Documentation](http://fcs.readthedocs.org/en/latest/). FCS basics have been introduced in [Tutorial](http://fcs.readthedocs.org/en/latest/tutorial.html).
