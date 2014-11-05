@@ -15,6 +15,7 @@ This module contains model layer - implementation of system units and consists o
       :param string email: New user's email address.
       :param string password: New user's password.
       :return: New user
+      :rtype: User
 
    .. py:method:: create_superuser(username, email, password)
 
@@ -24,6 +25,7 @@ This module contains model layer - implementation of system units and consists o
       :param string email: New user's email address.
       :param string password: New user's password.
       :return: New superuser
+      :rtype: User
 
 
 .. py:class:: User
