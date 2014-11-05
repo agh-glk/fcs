@@ -54,7 +54,7 @@ In this module the following Django forms are defined:
 
 .. py:class:: SendFeedbackForm
 
-   Form for sending feedback (URLs rating).
+   Form for sending feedback (URLs ratings).
 
 
 .. py:class:: TaskFilterForm
