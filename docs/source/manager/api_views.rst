@@ -19,7 +19,7 @@ with Django REST framework @api_view decorator. These methods are mapped on URLs
    * blacklist - URLs (regexp) which should not be crawled
    * max_links - size of task
 
-   :param request: Request object.
+   :param rest_framework.Request request: Request object.
 
    .. note:: Request must be authenticated with OAuth2 Token.
    
@@ -33,7 +33,7 @@ with Django REST framework @api_view decorator. These methods are mapped on URLs
    
    * id - task id
 
-   :param request: Request object.
+   :param rest_framework.Request request: Request object.
    :param int task_id: ID of task to be deleted.
 
    .. note:: Request must be authenticated with OAuth2 Token.
@@ -48,7 +48,7 @@ with Django REST framework @api_view decorator. These methods are mapped on URLs
    
    * id - task id
 
-   :param request: Request object.
+   :param rest_framework.Request request: Request object.
    :param int task_id: ID of task to be paused.
 
    .. note:: Request must be authenticated with OAuth2 Token.
@@ -63,7 +63,7 @@ with Django REST framework @api_view decorator. These methods are mapped on URLs
    
    * id - task id
 
-   :param request: Request object.
+   :param rest_framework.Request request: Request object.
    :param int task_id: ID of task to be resumed.
 
    .. note:: Request must be authenticated with OAuth2 Token.
@@ -76,7 +76,7 @@ with Django REST framework @api_view decorator. These methods are mapped on URLs
 
    Downloads data gathered by crawler.
 
-   :param request: Request object.
+   :param rest_framework.Request request: Request object.
    :param int task_id: ID of task which data is to be downloaded.
    :param int size: Size of requested data.
    
