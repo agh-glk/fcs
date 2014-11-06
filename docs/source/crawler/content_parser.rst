@@ -30,7 +30,7 @@ This module contains classes responsible for parsing content acquired by Crawlin
       This method should contain parsing logic.
 
       :param string content: Content to parse.
-      :param string url: URL of base site which content is parsed.
+      :param string url: URL of base site of which content is parsed.
 
    .. note:: Parser class's parse method is not implemented and should be overwritten.
 
@@ -44,6 +44,6 @@ This module contains classes responsible for parsing content acquired by Crawlin
       Parses HTML page content.
 
       :param string content: Content to parse.
-      :param string url: URL of base site which content is parsed.
+      :param string url: URL of base site of which content is parsed.
       :return: List with 2 elements: the first one is the site's HTML encoded in Base64 format, the second one contains links retrieved from that site.
       :rtype: list

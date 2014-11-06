@@ -15,6 +15,7 @@ This module contains model layer - implementation of system units and consists o
       :param string email: New user's email address.
       :param string password: New user's password.
       :return: New user
+      :rtype: :py:class:`User`
 
    .. py:method:: create_superuser(username, email, password)
 
@@ -24,6 +25,7 @@ This module contains model layer - implementation of system units and consists o
       :param string email: New user's email address.
       :param string password: New user's password.
       :return: New superuser
+      :rtype: :py:class:`User`
 
 
 .. py:class:: User
@@ -84,7 +86,7 @@ This module contains model layer - implementation of system units and consists o
       :param string max_links: Maximal allowed number of processed pages.
       :param string mime_type: List of allowed MIME types.
       :return: New task
-      :rtype: Task
+      :rtype: :py:class:`Task`
       :raises QuotaException: if user quota is exceeded.
 
 .. py:class:: Crawler

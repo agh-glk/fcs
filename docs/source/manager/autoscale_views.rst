@@ -10,7 +10,7 @@ This module contains methods that handle requests for autoscale module operation
    * task_id - ID of task new Server is being registered for
    * address - Task Server's address
 
-   :param request: Request object.
+   :param rest_framework.Request request: Request object.
    :return: Response with task parameters if successful, response with error message and code otherwise
    :rtype: rest_framework.response.Response
 
@@ -22,7 +22,7 @@ This module contains methods that handle requests for autoscale module operation
    * task_id - ID of task this Server is registered for
    * uuid - UUID of Task Server to unregister
 
-   :param request: Request object.
+   :param rest_framework.Request request: Request object.
    :return: Response with confirmation if successful, response with error message and code otherwise
    :rtype: rest_framework.response.Response
    
@@ -34,7 +34,7 @@ This module contains methods that handle requests for autoscale module operation
    * task_id - ID of task to stop
    * uuid - UUID of Task Server that manages this task
 
-   :param request: Request object.
+   :param rest_framework.Request request: Request object.
    :return: Response with confirmation if successful, response with error message and code otherwise
    :rtype: rest_framework.response.Response
 
@@ -45,7 +45,7 @@ This module contains methods that handle requests for autoscale module operation
 
    * address - new Crawling Unit's address
 
-   :param request: Request object.
+   :param rest_framework.Request request: Request object.
    :return: Response with Crawling Unit's UUID if successful, response with error message and code otherwise
    :rtype: rest_framework.response.Response
 
@@ -56,6 +56,6 @@ This module contains methods that handle requests for autoscale module operation
 
    * uuid - UUID of Crawling Unit to unregister
 
-   :param request: Request object.
+   :param rest_framework.Request request: Request object.
    :return: Response with confirmation if successful, response with error message and code otherwise
    :rtype: rest_framework.response.Response

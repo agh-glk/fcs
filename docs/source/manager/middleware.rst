@@ -11,4 +11,4 @@ This module contains the following middleware classes:
    
       Checks if user who sent the request was inactive during a time period longer than one specified in AUTO_LOGOUT_DELAY parameter. If yes, logouts this user. Otherwise, updates information about user last activity.
       
-      :param request: User's request.
+      :param django.http.HttpRequest request: User's request.

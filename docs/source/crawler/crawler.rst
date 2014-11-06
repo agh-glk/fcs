@@ -46,6 +46,8 @@ This module contains Crawler Unit implementation.
       
    .. py:attribute:: browser
    
+      Object for visiting the web pages (an instance of `mechanize.Browser <http://wwwsearch.sourceforge.net/mechanize/>`_).
+   
    .. py:attribute:: uuid
    
       Crawler Unit's UUID.

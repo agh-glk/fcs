@@ -22,7 +22,7 @@ are to visit or have been already visited by Crawling Units.
       
       :param string link: Link to add.
       :param int priority: Link's priority.
-      :param int depth: Depth of crawling tree (method of crawling tree depth calculating depends on the policy - for details see :ref:`CrawlingDepthPolicy`).
+      :param int depth: Depth of link in a crawling tree (method of crawling tree depth calculating depends on the policy - for details see :ref:`CrawlingDepthPolicy`).
       :param string fetch_time: Time of last link's processing.
 
    .. py:method:: set_as_fetched(link)
@@ -46,7 +46,7 @@ are to visit or have been already visited by Crawling Units.
 
       Returns details about the given link.
       
-      :param string link: Link which details have to be given.
+      :param string link: Link of which details have to be given.
 
    .. py:method:: close()
 
@@ -69,10 +69,13 @@ are to visit or have been already visited by Crawling Units.
    
       Name of database storing the :py:attr:`found_links` structure.
       
+   .. py:attribute:: PRIORITY_QUEUE_DB
+   
+      Suffix of name of database storing the :py:attr:`priority_queue` structure.
+      
    .. py:attribute:: found_links
    
-      Structure with links and crawled content of web sites pointed by these links. This structure is based
-      on the Neo4j graph database.
+      Structure with links and crawled content of web sites pointed by these links. This structure is based on the Neo4j graph database.
    
    .. py:attribute:: priority_queue_db_name
    
@@ -90,13 +93,6 @@ are to visit or have been already visited by Crawling Units.
       :param string link: Searched link.
       :return: Information if the link is in database.
       :rtype: bool
-
-   .. py:method:: size()
-
-      Returns actual size of :py:attr:`found_links` structure.
-
-      :return: Number of links in found links' queue.
-      :rtype: int
 
    .. py:method:: add_link(link, priority, depth, fetch_time="")
 
@@ -136,6 +132,27 @@ are to visit or have been already visited by Crawling Units.
         tree (method of crawling tree depth calculating depends on the policy - for details see
         :ref:`CrawlingDepthPolicy`).
       :rtype: list
+      
+   .. py:method:: points(url_a, url_b)
+   
+      Connects two URLs-representing nodes in graph with relationship: "url_b obtained from page identified with url_a".
+   
+      :param string url_a: Parent URL
+      :param string url_b: Child URL
+      
+   .. py:method:: feedback(link, feedback_rating)
+   
+      Processes rating sent by user in feedback and updates priorities of the given link and its children.
+   
+      :param string link: URL of which rating was sent in feedback.
+      :param int feedback_rating: URL rating sent in feedback.
+
+   .. py:method:: size()
+
+      Returns actual size of :py:attr:`priority_queue` structure.
+
+      :return: Number of elements in queue with links to be crawled and their priorities.
+      :rtype: int
 
    .. py:method:: close()
 
