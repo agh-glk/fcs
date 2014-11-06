@@ -167,7 +167,7 @@ This module contains implementation of Task Server.
    .. py:method:: stop()
 
       Stops the Task Server. Stopped Task Server won't send crawling requests anymore. It will wait
-      WAIT_FOR_DOWNLOAD_TIME seconds for user to download gathered data.
+      :py:data:`WAIT_FOR_DOWNLOAD_TIME` seconds for user to download gathered data.
 
    .. py:method:: kill()
 
