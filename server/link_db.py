@@ -31,7 +31,6 @@ class BaseLinkDB(object):
 
 
 class GraphAndBTreeDB(BaseLinkDB):
-    FOUND_LINKS_DB = "_found_links_db"
     PRIORITY_QUEUE_DB = "_priority_queue_db"
 
     def __init__(self, base_name, policy_module):
