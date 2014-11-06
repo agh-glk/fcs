@@ -3,9 +3,15 @@ fcs.server.graph_db
 
 This module describes API for graph database, used by :class:`GraphAndBTreeDB` in :ref:`LinkDB`.
 
-.. py:class:: GraphDB
+.. py:class:: GraphDB(location)
 
    Class provides easy access to Neo4j database.
+   
+   :param string location: Location of database.
+   
+   .. py:attribute:: graph
+   
+      Reference to database.
 
    .. py:method:: is_in_base(link)
 
@@ -14,6 +20,23 @@ This module describes API for graph database, used by :class:`GraphAndBTreeDB` i
       :param string link: Searched link.
       :return: Information if the link is in database.
       :rtype: bool
+      
+   .. py:method:: change_link_priority(link, priority)
+
+      Changes link priority.
+
+      :param string link: URL with priority modified.
+      :param int priority: Link's new priority.
+      :return: Link's old priority.
+      :rtype: int
+      
+   .. py:method:: get_details(link)
+
+      Returns information stored in database about specified link.
+
+      :param string link: URL with priority modified.
+      :return: List with 3 strings - priority, fetch date(could be empty string) and depth.
+      :rtype: list
 
    .. py:method:: add_link(link, priority, depth)
 
@@ -30,23 +53,6 @@ This module describes API for graph database, used by :class:`GraphAndBTreeDB` i
       Sets time of page processing ending.
 
       :param string link: URL.
-
-   .. py:method:: change_link_priority(link, priority)
-
-      Changes link priority.
-
-      :param string link: URL with priority modified.
-      :param int priority: Link's new priority.
-      :return: Link's old priority.
-      :rtype: int
-
-   .. py:method:: get_details(link)
-
-      Returns information stored in database about specified link.
-
-      :param string link: URL with priority modified.
-      :return: List with 3 strings - priority, fetch date(could be empty string) and depth.
-      :rtype: list
 
    .. py:method:: points(url_a, url_b)
 
