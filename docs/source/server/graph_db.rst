@@ -37,6 +37,7 @@ This module describes API for graph database, used by :class:`GraphAndBTreeDB` i
       :param string link: URL with priority modified.
       :return: List with 3 strings - priority, fetch date(could be empty string) and depth.
       :rtype: list
+      :raises Exception: if link has not been found in databse
 
    .. py:method:: add_link(link, priority, depth)
 
